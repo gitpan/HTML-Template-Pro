@@ -1,0 +1,33 @@
+Revision history for Perl extension HTML::Template::Pro.
+
+0.01  Thu Feb 24 17:20:58 2005
+	- original version; created by h2xs 1.23 with options
+		-A -O -b 5.5.0 -c -n HTML::Template::Pro --skip-exporter *.h
+
+0.17  Tue Mar  8 10:19:28 2005
+	- First stable release. 
+
+0.26  Tue Mar 28 23:05:00 2005
+	- Full support of template syntax. 
+
+0.34  Mon Apr 11 16:31:36 2005
+	- First public release. 
+	- Distinctions from original HTML::Template:
+		* No support for querying of templates, filter
+		* No support for die_on_bad_params=1, strict=1:
+	warn but not die issued when one tries to include template
+	with no_includes=1 or exceeded max_includes.
+
+0.35  Thu May 19 19:10:38 2005
+	- added warnings on incorrect tags like /tmpl_else 
+
+0.36  Thu May 23 19:10:38 2005
+	- merged HTML::Template 2.7 
+	- added escape=js modifier from 2.7
+
+0.37  Thu June 2 11:22:38 2005
+	- internal refactoring
+
+0.38  Thu June 9 13:39:24 2005
+	- added basic support for EXPR="expr" from HTML::Template::Expr. 
+	  it includes numeric arithmetic and comparisons.

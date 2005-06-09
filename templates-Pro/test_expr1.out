@@ -1,0 +1,18 @@
+<HTML><BODY>
+<H1> test_expr1 </H1>
+ok 
+true 
+true 
+ok 
+true 
+ok 
+2+2=4
+ONE+2=3
+ONE + TWO=3
+THREE=3
+(ONE+TWO)==THREE=1
+ONE+TWO == THREE=1
+ONE+TWO eq THREE=1
+(ONE+TWO eq THREE) and (THREE && TWO) and sin(ONE)=1
+sin(ONE)=0.841471
+</body></html>
