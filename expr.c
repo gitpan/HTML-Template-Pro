@@ -1389,7 +1389,7 @@ struct builtin_func
     {"sin",  sin},
     {"cos",  cos},
     {"atan", atan},
-    {"ln",   log},
+    {"log",   log},
     {"exp",  exp},
     {"sqrt", sqrt},
      {0, 0}

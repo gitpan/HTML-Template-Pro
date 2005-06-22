@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu May 26 15:13:10 2005
  *
- * $Id: proscope.h,v 1.1 2005/06/02 09:58:49 igor Exp $
+ * $Id: proscope.h,v 1.2 2005/06/16 17:07:30 igor Exp $
  */
 
 struct ProLoopState {
@@ -25,3 +25,4 @@ void PushScope2(int loops, void *loops_AV);
 void SetRootScope(void* param_HV);
 void Scope_init();
 void Scope_free();
+

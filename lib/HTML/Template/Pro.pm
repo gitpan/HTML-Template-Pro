@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.38';
+$VERSION = '0.39';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -23,8 +23,40 @@ push @HTML::Template::Expr::ISA, qw/HTML::Template::Pro/;
 
 # internal mallocs -- required
 _init();
-# internal frees -- it is safe to comment it
-END {_done()}
+# internal frees -- it is better to comment it:
+# when process terminates, memory is freed anyway
+# but END {} can be called between calls (as Speedy do)
+# END {_done()}
+
+# initialize preset function table
+use vars qw(%FUNC);
+%FUNC = 
+ (
+  # commented sin,cos,log,tan,... are built-in
+   'sprintf' => sub { sprintf(shift, @_); },
+   'substr'  => sub { 
+     return substr($_[0], $_[1]) if @_ == 2; 
+     return substr($_[0], $_[1], $_[2]);
+   },
+   'lc'      => sub { lc($_[0]); },
+   'lcfirst' => sub { lcfirst($_[0]); },
+   'uc'      => sub { uc($_[0]); },
+   'ucfirst' => sub { ucfirst($_[0]); },
+   'length'  => sub { length($_[0]); },
+   'defined' => sub { defined($_[0]); },
+   'abs'     => sub { abs($_[0]); },
+   'atan2'   => sub { atan2($_[0], $_[1]); },
+#   'cos'     => sub { cos($_[0]); },
+#   'exp'     => sub { exp($_[0]); },
+   'hex'     => sub { hex($_[0]); },
+   'int'     => sub { int($_[0]); },
+#   'log'     => sub { log($_[0]); },
+   'oct'     => sub { oct($_[0]); },
+   'rand'    => sub { rand($_[0]); },
+#   'sin'     => sub { sin($_[0]); },
+#   'sqrt'    => sub { sqrt($_[0]); },
+   'srand'   => sub { srand($_[0]); },
+  );
 
 sub new {
     my $class=shift;
@@ -193,6 +225,14 @@ sub param {
 	  }
       }
   }
+}
+
+sub register_function {
+  my($class, $name, $sub) = @_;
+  croak("HTML::Template::Pro : args 3 of register_function must be subroutine reference\n")
+    unless ref($sub) eq 'CODE';
+  $FUNC{$name} = $sub;
+  warn "HTML::Template::Pro : register_function : not yet implemented... may be soon.\n";
 }
 
 sub _lowercase_keys {

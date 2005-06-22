@@ -6,7 +6,7 @@
 %define module HTML-Template-Pro
 
 Name: perl-%module
-Version: 0.38
+Version: 0.39
 Release: alt1
 
 Packager: Igor Yu. Vlasenko <viy@altlinux.org>
@@ -54,6 +54,9 @@ in the Perl script.
 %perl_vendor_man3dir/*
 
 %changelog
+* Thu Jun 22 2005 Igor Vlasenko <viy@altlinux.ru> 0.39-alt1
+- new version
+
 * Thu Jun 09 2005 Igor Vlasenko <viy@altlinux.org> 0.38-alt1
 - new version, basic support for HTML::Template::Expr
 

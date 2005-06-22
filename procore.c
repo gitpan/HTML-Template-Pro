@@ -420,6 +420,9 @@ void tag_handler_else (struct tmplpro_state *state)
 }
 
 int next_loop (struct tmplpro_state* state) {
+#ifdef DEBUG
+  fprintf(stderr,"next_loop:before NextLoopFuncPtr\n");
+#endif
   if (++CurrentScope->loop >CurrentScope->maxloop || !(state->param->NextLoopFuncPtr)(state)) {
     PopScope();
     return 0;
@@ -433,12 +436,18 @@ void tag_handler_loop (struct tmplpro_state *state, PSTRING name)
   iftag.vcontext=state->is_visible;
   iftag.value=0;
   iftag.position=state->cur_pos; /* loop start - to restore in </tmpl_loop> */
+#ifdef DEBUG
+  fprintf(stderr,"tag_handler_loop:before InitLoopFuncPtr\n");
+#endif
   if (state->is_visible && (*state->param->InitLoopFuncPtr)(state,name) && next_loop(state)) {
     iftag.value=1; /* the loop is non - empty */
   } else {
     /* empty loop is equal to <if false> ... </if> */
     state->is_visible=0;
   }
+#ifdef DEBUG
+  fprintf(stderr,"tag_handler_loop:after InitLoopFuncPtr\n");
+#endif
   pstack_push(iftag);
 }
 

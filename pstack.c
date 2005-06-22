@@ -40,7 +40,11 @@ struct pstack_entry* pstack_head() {
 struct pstack_entry pstack_pop() {
   if (pstack_pos<0) {
     fprintf(stderr,"stack underflow:tags stack is empty\n");
-    pstack_pos=0; 
+    pstack_pos=0;
+    if (pstack_depth<0) {
+      fprintf(stderr,"FATAL:stack error:tags stack is uninitialized\n");
+      pstack_init();
+    }
   }
   return *(pstack+ pstack_pos--);
 }

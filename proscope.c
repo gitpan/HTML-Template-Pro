@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu May 26 15:25:57 2005
  *
- * $Id: proscope.c,v 1.1 2005/06/02 09:58:49 igor Exp $
+ * $Id: proscope.c,v 1.3 2005/06/16 17:07:30 igor Exp $
  */
 
 #include <stdio.h>
@@ -22,15 +22,19 @@ struct ProLoopState* CurrentScope;
 void Scope_init() {
   ScopeMax=START_NUMBER_OF_NESTED_LOOPS;
   Scope=(struct ProLoopState*) malloc (ScopeMax * sizeof(struct ProLoopState));
+  if (NULL==Scope) fprintf(stderr, "DIE:Scope_init:internal error:not enough memory\n");
+  ScopeLevel=-1;
 }
 
 void Scope_free() {
+  /* fprintf(stderr, "Scope_free done\n"); */
   free(Scope);
   ScopeMax=-1;
+  ScopeLevel=-1;
 }
 
 inline void set_CurrentScope () {
-  CurrentScope=&(Scope[ScopeLevel]);
+  CurrentScope=Scope+ScopeLevel;
 }
 
 struct ProLoopState* GetScope(int depth) {
@@ -44,6 +48,11 @@ void PopScope() {
 }
 
 void PushScope2(int maxloop, void *loops_AV) {
+  if (ScopeMax<0) {
+    
+    fprintf(stderr, "WARN:PushScope:internal warning:why scope is empty?\n");
+    Scope_init();
+  }
   ++ScopeLevel;
   if (ScopeLevel>ScopeMax) 
     {
@@ -59,6 +68,10 @@ void PushScope2(int maxloop, void *loops_AV) {
 }
 
 void SetRootScope(void* param_HV) {
+  if (ScopeMax<0) {
+    fprintf(stderr, "WARN:SetRootScope:internal warning:why scope is empty?\n");
+    Scope_init();
+  }
   ScopeLevel=0;
   set_CurrentScope();
   CurrentScope->param_HV=param_HV;
