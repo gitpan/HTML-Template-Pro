@@ -9,42 +9,54 @@
   void yyerror (char const *);
   /* expr-specific globals needed by yylex */
   void expr_debug(char const *,char const *);
-  double expr_retval;
+  PSTRING expr_retval;
   %}
 %union {
-  double    val;   /* For returning numbers.  */
+  int    intval;   /* For returning numbers.  */
+  double dblval;   /* For returning numbers.  */
+ PSTRING strval;   /* For returning strings.  */
   symrec  *tptr;   /* For returning symbol-table pointers.  */
 }
-%token <val>  NUM        /* Simple double precision number.  */
+%start line
+%token <dblval>  dblNUM        /* Simple double precision number.  */
+%token <intval>  intNUM        /* Simple integer number.  */
+%token <strval>  strVAL        
 /*%token <tptr> VAR FNCT*/   /* Variable and Function.  */
 %token <tptr> VAR FNCT   /* Variable and Function.  */
-%token <val> EXTVAR /* external (perl, etc) variable */
-%type  <val>  exp
+%token <strval>  EXTVAR /* external (perl, etc) variable */
+%type  <dblval>  dblEXP
+%type  <intval>  intEXP
+%type  <strval>  strEXP
      
-%right '='
+/*%right '='*/
 %left OR
 %left AND
-%left GT GE LT LE EQ NE
+%nonassoc strGT strGE strLT strLE strEQ strNE
+%nonassoc numGT numGE numLT numLE numEQ numNE '<' '>'
 %left '-' '+'
-%left '*' '/'
-%left NEG NOT /* negation--unary minus */
+%left '*' '/' '%'
+%left  '!' NOT NEG /* negation--unary minus */
 %right '^'    /* exponentiation */
 %% /* The grammar follows.  */
 
-line: exp  {  expr_retval=$1; }
+line: dblEXP		{ expr_retval=double_to_pstring($1);	}
+| strVAL		{ expr_retval=$1; 			}
 ;
 /* | error { yyerrok;                  } */
-     
-exp: NUM             { $$ = $1;				}
-| EXTVAR             { $$ = $1;				}
-| VAR                { $$ = $1->value.var;		}
-/*| VAR '=' exp        { $$ = $3; $1->value.var = $3;     } */
-| FNCT '(' exp ')'   { $$ = (*($1->value.fnctptr))($3); }
-| exp '+' exp        { $$ = $1 + $3;			}
-| exp '-' exp        { $$ = $1 - $3;			}
-| exp '*' exp        { $$ = $1 * $3;			}
-/*| exp '/' exp        { $$ = $1 / $3;    }*/
-| exp '/' exp
+
+strEXP: strVAL			{ $$ = $1;			}
+| EXTVAR			{ $$ = $1;			}
+;
+
+intEXP: intNUM			{ $$ = $1;			}
+/*| VAR '=' intEXP 		{ $$ = $3; $1->value.var = $3;	} */
+/*| FNCT '(' intEXP ')'		{ $$ = (*($1->value.fnctptr))($3); }*/
+| intEXP '+' intEXP		{ $$ = $1 + $3;			}
+| intEXP '-' intEXP		{ $$ = $1 - $3;			}
+| intEXP '*' intEXP		{ $$ = $1 * $3;			}
+| intEXP '%' intEXP		{ $$ = $1 % $3;			}
+/*| intEXP '/' intEXP		{ $$ = $1 / $3;    }*/
+| intEXP '/' intEXP
                  {
                    if ($3)
                      $$ = $1 / $3;
@@ -54,20 +66,62 @@ exp: NUM             { $$ = $1;				}
 		       expr_debug("division by zero","");
                      }
                  }
-| '-' exp  %prec NEG	{ $$ = -$2;			}
-| exp '^' exp 		{ $$ = pow ($1, $3);		}
-| exp AND exp 		{ $$ = $1 && $3;		}
-| exp OR  exp 		{ $$ = $1 || $3;		}
-| exp GE  exp 		{ $$ = $1 >= $3;		}
-| exp LE  exp 		{ $$ = $1 <= $3;		}
-| exp NE  exp 		{ $$ = $1 != $3;		}
-| exp EQ  exp 		{ $$ = $1 == $3;		}
-| exp '>' exp %prec GT	{ $$ = $1 > $3;			}
-| exp '<' exp %prec LT	{ $$ = $1 < $3;			}
-| '!' exp  %prec NOT	{ $$ = !$2;			}
-| NOT exp		{ $$ = !$2;			}
-| '(' exp ')'		{ $$ = $2;			}
+| '-' intEXP  %prec NEG	{ $$ = -$2;			}
+/*| intEXP '^' intEXP 		{ $$ = pow ($1, $3);		}*/
+| intEXP AND intEXP 		{ $$ = $1 && $3;		}
+| intEXP OR  intEXP 		{ $$ = $1 || $3;		}
+| intEXP numGE intEXP 		{ $$ = $1 >= $3;		}
+| intEXP numLE intEXP 		{ $$ = $1 <= $3;		}
+| intEXP numNE intEXP 		{ $$ = $1 != $3;		}
+| intEXP numEQ intEXP 		{ $$ = $1 == $3;		}
+| intEXP '>' intEXP %prec numGT	{ $$ = $1 > $3;			}
+| intEXP '<' intEXP %prec numLT	{ $$ = $1 < $3;			}
+| '!' intEXP  %prec NOT		{ $$ = !$2;			}
+| NOT intEXP			{ $$ = !$2;			}
+| '(' intEXP ')'		{ $$ = $2;			}
+| strEXP strGE strEXP 		{ $$ = pstring_ge ($1,$3);	}
+| strEXP strLE strEXP 		{ $$ = pstring_le ($1,$3);	}
+| strEXP strNE strEXP 		{ $$ = pstring_ne ($1,$3);	}
+| strEXP strEQ strEXP 		{ $$ = pstring_eq ($1,$3);	}
+| strEXP strGT strEXP		{ $$ = pstring_gt ($1,$3);	}
+| strEXP strLT strEXP		{ $$ = pstring_lt ($1,$3);	}
 ;
+     
+dblEXP: dblNUM			{ $$ = $1;			}
+| EXTVAR			{ $$ = atof($1.begin);		}
+| VAR				{ $$ = $1->value.var;		}
+/*| VAR '=' dblEXP 		{ $$ = $3; $1->value.var = $3;	} */
+| FNCT '(' dblEXP ')'		{ $$ = (*($1->value.fnctptr))($3); }
+| dblEXP '+' dblEXP		{ $$ = $1 + $3;			}
+| dblEXP '-' dblEXP		{ $$ = $1 - $3;			}
+| dblEXP '*' dblEXP		{ $$ = $1 * $3;			}
+/*| dblEXP '/' dblEXP		{ $$ = $1 / $3;    }*/
+| dblEXP '/' dblEXP
+                 {
+                   if ($3)
+                     $$ = $1 / $3;
+                   else
+                     {
+                       $$ = 0;
+		       expr_debug("division by zero","");
+                     }
+                 }
+| '-' dblEXP  %prec NEG	{ $$ = -$2;			}
+| dblEXP '^' dblEXP 		{ $$ = pow ($1, $3);		}
+| dblEXP AND dblEXP 		{ $$ = $1 && $3;		}
+| dblEXP OR  dblEXP 		{ $$ = $1 || $3;		}
+| dblEXP numGE dblEXP 		{ $$ = $1 >= $3;		}
+| dblEXP numLE dblEXP 		{ $$ = $1 <= $3;		}
+| dblEXP numNE dblEXP 		{ $$ = $1 != $3;		}
+| dblEXP numEQ dblEXP 		{ $$ = $1 == $3;		}
+| dblEXP '>' dblEXP %prec numGT	{ $$ = $1 > $3;			}
+| dblEXP '<' dblEXP %prec numLT	{ $$ = $1 < $3;			}
+| '!' dblEXP  %prec NOT		{ $$ = !$2;			}
+| NOT dblEXP			{ $$ = !$2;			}
+| '(' dblEXP ')'		{ $$ = $2;			}
+| intEXP			{ $$ = $1;			}
+;
+
 /* End of grammar.  */
 %%
 
@@ -75,7 +129,7 @@ exp: NUM             { $$ = $1;				}
 void
 yyerror (char const *s)
 {
-  expr_debug("not a valid expression", s);
+  expr_debug("not a valid expression:", s);
 }
       
 struct builtin_func
@@ -99,12 +153,12 @@ struct builtin_ops
   int const optag;
 } const binary_ops[] =
   {
-    {"eq",  EQ},
-    {"ne",  NE},
-    {"gt",  GT},
-    {"ge",  GE},
-    {"lt",  LT},
-    {"le",  LE},
+    {"eq",  strEQ},
+    {"ne",  strNE},
+    {"gt",  strGT},
+    {"ge",  strGE},
+    {"lt",  strLT},
+    {"le",  strLE},
     {"or",  OR},
     {"and",AND},
     {"not",NOT},
@@ -145,11 +199,11 @@ PSTRING expr;
 char* curpos;
 struct tmplpro_param* param;
 
-double parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
+PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 {
   expr=expression;
   curpos=expr.begin;
-  expr_retval=0.0;
+  expr_retval=(PSTRING) {expression.begin, expression.begin};
   param=param_arg;
   yyparse ();
   return expr_retval;
@@ -207,8 +261,8 @@ yylex (void)
   /* Char starts a number => parse the number.         */
   if (c == '.' || isdigit (c))
     {
-      yylval.val=atof(fill_symbuf(is_float_lex).begin);
-      return NUM;
+      yylval.dblval=atof(fill_symbuf(is_float_lex).begin);
+      return dblNUM;
     }
   /* Char starts an identifier => read the name.       */
   if (isalpha (c))
@@ -218,22 +272,38 @@ yylex (void)
       s = getsym (name.begin);
       if (s == 0) {
 	// s = putsym (symbuf, VAR);
-	PSTRING varvalue =(param->GetVarFuncPtr)(param, name);
+	PSTRING varvalue;
+	if (param->case_sensitive)
+	 varvalue=(param->GetVarFuncPtr)(param, name);
+	else
+	 varvalue=(param->GetVarFuncPtr)(param, lowercase_pstring(name));
+
 	if (varvalue.begin==NULL) {
-	  yylval.val=0;
+	  yylval.strval=(PSTRING) {curpos, curpos};
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
-	} else yylval.val = atof(varvalue.begin);
+	} else yylval.strval=varvalue;
 	return EXTVAR;
       } else {
 	yylval.tptr = s;
 	return s->type;
       }
     }
+  /* Char starts a quote => read a string */
+  if ('\''==c || '"'==c) {
+    char terminal_quote=c;
+    curpos++;
+    PSTRING strvalue = {curpos, curpos};
+    while (curpos<expr.endnext && ((c = *curpos) != terminal_quote)) curpos++;
+    strvalue.endnext=curpos;
+    if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
+    yylval.strval = strvalue;
+    return strVAL;
+  }
 
-  TESTOP('=','=',EQ)
-  TESTOP('>','=',GE)
-  TESTOP('<','=',LE)
-  TESTOP('!','=',NE)
+  TESTOP('=','=',numEQ)
+  TESTOP('>','=',numGE)
+  TESTOP('<','=',numLE)
+  TESTOP('!','=',numNE)
   TESTOP('&','&',AND)
   TESTOP('|','|',OR)
 

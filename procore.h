@@ -1,17 +1,8 @@
 #define ERR_PRO_CANT_OPEN_FILE 1
 
-/* typedef struct sstring { */
-/*   unsigned int size; */
-/*   char * top; */
-/* } SSTRING; */
-
-typedef struct pstring {
-  char* begin;
-  char* endnext;
-} PSTRING;
+#include "pstring.h"
 
 typedef int flag;
-
 
 struct tmplpro_state;
 struct tmplpro_param;

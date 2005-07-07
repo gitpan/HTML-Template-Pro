@@ -17,6 +17,8 @@ proscope.h
 proscope.c 
 calc.h
 calc.c
+pstring.h
+pstring.c 
 expr.h
 expr.y
 expr.c                                  old perls can't yacc it
@@ -63,6 +65,8 @@ templates-Pro/test_var3.out
 templates-Pro/test_var3.tmpl
 templates-Pro/test_expr1.out
 templates-Pro/test_expr1.tmpl
+templates-Pro/test_expr2.out
+templates-Pro/test_expr2.tmpl
 templates/case_loop.tmpl
 templates/context.tmpl
 templates/counter.tmpl

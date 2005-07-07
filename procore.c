@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -221,24 +220,13 @@ PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
   }
 }
 
-PSTRING double_to_pstring (double number) {
-  static char buffer[40]; /* for sprintf %f */
-  size_t len=0;
-  sprintf(buffer,"%f",number);
-  len=strlen(buffer);
-  /* removing trailing 0 as 2.00000... */
-  while (buffer[len-1]=='0' && len-->0); 
-  buffer[len-1]=='.' && len--;
-  return (PSTRING) {buffer, buffer+len};
-}
-
 void tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, int escapeopt)
 {
   PSTRING varvalue ={NULL, NULL};
   /* registering variable could be inside GetVarFuncPtr */
   if (! state->is_visible) return;
   if (state->is_expr) {
-    varvalue=double_to_pstring(parse_expr(name, state->param));
+    varvalue=parse_expr(name, state->param);
   } else 
     if (state->param->loop_context_vars) {
       varvalue=get_loop_context_vars_value(name);
@@ -293,13 +281,12 @@ int is_var_true(struct tmplpro_state *state, PSTRING name)
 {
   register int ifval=-1;
   if (state->is_expr) {
-    if (parse_expr(name, state->param)) ifval=1;
-    else ifval=0;
+    ifval=is_pstring_true(parse_expr(name, state->param));
   } else
     if (state->param->loop_context_vars) {
       PSTRING loop_var=get_loop_context_vars_value(name);
       if (loop_var.begin!=NULL) {
-	if (*(loop_var.begin)=='0') ifval=0; else ifval=1;
+	ifval=is_pstring_true(loop_var);
       }
     }
   if (ifval==-1) ifval=(state->param->IsVarTrueFuncPtr)(state->param, name);
@@ -532,19 +519,6 @@ int try_tag_parameter (struct tmplpro_state *state,const char *modifier,const ch
   return 0;
 }
 
-PSTRING lowercase_pstring (PSTRING pstring) {
-  size_t size=pstring.endnext-pstring.begin;
-  char* buf=pbuffer_resize(size+1);
-  char* inbuf=buf;
-  char* i=pstring.begin;
-  while (i<pstring.endnext) {
-    *inbuf++=tolower(*i++);
-  }
-  *inbuf=0;
-  if (debug>1 && size >0) fprintf(stderr," (lovercased to %s) ",buf);
-  return (PSTRING) {buf, buf+size};
-}
-
 void try_tmpl_var_options (struct tmplpro_state *state, PSTRING* OptEscape, PSTRING* OptDefault)
 {
   static const char* escapeopt="escape";
@@ -657,7 +631,9 @@ void process_tmpl_tag(struct tmplpro_state *state)
     }
   } else {
     int escape = HTML_TEMPLATE_OPT_ESCAPE_NO;
-    if (tag_type!= HTML_TEMPLATE_TAG_INCLUDE && 0==state->param->case_sensitive) OptName=lowercase_pstring(OptName);
+    if (tag_type!= HTML_TEMPLATE_TAG_INCLUDE &&
+	0==state->is_expr &&
+	0==state->param->case_sensitive) OptName=lowercase_pstring(OptName);
     switch (tag_type) {
     case HTML_TEMPLATE_TAG_VAR:	
       if (OptEscape.begin!=OptEscape.endnext) {
