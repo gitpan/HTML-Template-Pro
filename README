@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.39
+HTML-Template-Pro version 0.41
 ==============================
 
 DESCRIPTION
@@ -17,6 +17,9 @@ but to be a fast implementation of HTML::Template if you don't need
 extended facilities of HTML::Template such as filters or quering.
 Designed for heavy upload, resource limitations, abcence of mod_perl.
 
+Note, that implementing of HTML::Template::Expr is still in progress
+and some features may not work. It is expected to be finished before 0.45.
+
 HTML::Template work cycle uses 2 steps. First, it loads and parse template.
 Then it accepts param() calls until you call output().
 output() is its second phase where it produces a page from the parsed tree
@@ -34,8 +37,9 @@ don't consumes memory for caches and use mmap() for reading templates on disk.
 
 INSTALLATION
 
-This module is tested on Linux and FreeBSD. It currently requires 
-POSIX mmap() system call, which may be unavaliable on some systems.
+This module is tested on Linux and FreeBSD. There are success reports 
+on MacOS X and Solaris. It currently requires POSIX mmap() system call, 
+which may be unavaliable on some systems.
 
 To install this module type the following:
 
@@ -52,7 +56,8 @@ This module requires these other modules and libraries:
 
 TODO
 
-Add support for HTML::Template::Expr compatible tags.
+Complete support for HTML::Template::Expr compatible tags.
+Improve debug message subsystem.
 
 WEBSITE
 

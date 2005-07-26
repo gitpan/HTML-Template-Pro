@@ -2,7 +2,7 @@ use 5.005;
 use ExtUtils::MakeMaker;
 $Verbose = 1;
 
-$O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o calc.o expr.o pstring.o/;
+$O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o calc.o expr.o pstring.o exprtool.o/;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(

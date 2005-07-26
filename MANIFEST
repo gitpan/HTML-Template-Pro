@@ -22,6 +22,8 @@ pstring.c
 expr.h
 expr.y
 expr.c                                  old perls can't yacc it
+exprtool.h
+exprtool.c
 Pro.xs
 README
 README.ru

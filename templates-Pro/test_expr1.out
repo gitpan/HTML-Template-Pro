@@ -14,4 +14,7 @@ THREE=3
 ONE+TWO == THREE=1
 (ONE+TWO == THREE) and (THREE && TWO) and sin(ONE)=1
 sin(ONE)=0.841471
+111.111 + 222.333555=333.444555
+7%3=1
+(70*5)%33-20=0
 </body></html>

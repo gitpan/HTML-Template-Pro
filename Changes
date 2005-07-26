@@ -31,3 +31,11 @@ Revision history for Perl extension HTML::Template::Pro.
 0.38  Thu June 9 13:39:24 2005
 	- added basic support for EXPR="expr" from HTML::Template::Expr. 
 	  it includes numeric arithmetic and comparisons.
+
+0.40  Thu July 7 12:18:22 2005
+	- added support for string comparisions in EXPR="... " tags
+
+0.41  Thu July 7 12:18:22 2005
+	- EXPR="... " tags: string type comparisions now support digits
+	- grammar is improved
+	- bug fixes

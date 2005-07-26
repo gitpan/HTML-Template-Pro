@@ -5,28 +5,21 @@
 #include <ctype.h> /* for yylex alnum */
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "procore.h"
+#include "exprtool.h"
   int yylex (void);
   void yyerror (char const *);
   /* expr-specific globals needed by yylex */
-  void expr_debug(char const *,char const *);
   PSTRING expr_retval;
   %}
 %union {
-  int    intval;   /* For returning numbers.  */
-  double dblval;   /* For returning numbers.  */
- PSTRING strval;   /* For returning strings.  */
+  struct exprval numval;   /* For returning numbers.  */
   symrec  *tptr;   /* For returning symbol-table pointers.  */
 }
 %start line
-%token <dblval>  dblNUM        /* Simple double precision number.  */
-%token <intval>  intNUM        /* Simple integer number.  */
-%token <strval>  strVAL        
+%token <numval>  NUM        /*  number.  */
 /*%token <tptr> VAR FNCT*/   /* Variable and Function.  */
 %token <tptr> VAR FNCT   /* Variable and Function.  */
-%token <strval>  EXTVAR /* external (perl, etc) variable */
-%type  <dblval>  dblEXP
-%type  <intval>  intEXP
-%type  <strval>  strEXP
+%type  <numval>  numEXP
      
 /*%right '='*/
 %left OR
@@ -39,89 +32,95 @@
 %right '^'    /* exponentiation */
 %% /* The grammar follows.  */
 
-line: dblEXP		{ expr_retval=double_to_pstring($1);	}
-| strVAL		{ expr_retval=$1; 			}
+line: numEXP		
+		 { 
+		   if (EXPRPSTR == $1.type) {
+		     expr_retval=$1.val.strval;
+		   } else {
+		     expr_to_dbl1(&$1); 
+		     expr_retval=double_to_pstring($1.val.dblval,left_buffer);
+		   }
+		 }
 ;
 /* | error { yyerrok;                  } */
 
-strEXP: strVAL			{ $$ = $1;			}
-| EXTVAR			{ $$ = $1;			}
-;
-
-intEXP: intNUM			{ $$ = $1;			}
-/*| VAR '=' intEXP 		{ $$ = $3; $1->value.var = $3;	} */
-/*| FNCT '(' intEXP ')'		{ $$ = (*($1->value.fnctptr))($3); }*/
-| intEXP '+' intEXP		{ $$ = $1 + $3;			}
-| intEXP '-' intEXP		{ $$ = $1 - $3;			}
-| intEXP '*' intEXP		{ $$ = $1 * $3;			}
-| intEXP '%' intEXP		{ $$ = $1 % $3;			}
-/*| intEXP '/' intEXP		{ $$ = $1 / $3;    }*/
-| intEXP '/' intEXP
+numEXP: NUM			{ $$ = $1;			}
+| VAR				{ $$.type=EXPRDBL; $$.val.dblval = $1->value.var; }
+/*| VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
+| FNCT '(' numEXP ')'		
                  {
-                   if ($3)
-                     $$ = $1 / $3;
+		   $$.type=EXPRDBL;
+		   expr_to_dbl1(&$3);
+		   $$.val.dblval = (*($1->value.fnctptr))($3.val.dblval); 
+		 }
+| numEXP '+' numEXP		{ DO_MATHOP($$,+,$1,$3);	}
+| numEXP '-' numEXP		{ DO_MATHOP($$,-,$1,$3);	}
+| numEXP '*' numEXP		{ DO_MATHOP($$,*,$1,$3);	}
+| numEXP '%' numEXP
+		 { 
+		   $$.type=EXPRINT;
+		   expr_to_int(&$1,&$3);
+		   $$.val.intval = $1.val.intval % $3.val.intval;
+		 }
+/*| numEXP '/' numEXP		{ $$ = $1 / $3;    }*/
+| numEXP '/' numEXP
+                 {
+		   switch ($$.type=expr_to_int_or_dbl(&$1,&$3)) {
+		   case EXPRINT: 
+                   if ($3.val.intval)
+                     $$.val.intval = $1.val.intval / $3.val.intval;
                    else
                      {
-                       $$ = 0;
+                       $$.val.intval = 0;
 		       expr_debug("division by zero","");
                      }
-                 }
-| '-' intEXP  %prec NEG	{ $$ = -$2;			}
-/*| intEXP '^' intEXP 		{ $$ = pow ($1, $3);		}*/
-| intEXP AND intEXP 		{ $$ = $1 && $3;		}
-| intEXP OR  intEXP 		{ $$ = $1 || $3;		}
-| intEXP numGE intEXP 		{ $$ = $1 >= $3;		}
-| intEXP numLE intEXP 		{ $$ = $1 <= $3;		}
-| intEXP numNE intEXP 		{ $$ = $1 != $3;		}
-| intEXP numEQ intEXP 		{ $$ = $1 == $3;		}
-| intEXP '>' intEXP %prec numGT	{ $$ = $1 > $3;			}
-| intEXP '<' intEXP %prec numLT	{ $$ = $1 < $3;			}
-| '!' intEXP  %prec NOT		{ $$ = !$2;			}
-| NOT intEXP			{ $$ = !$2;			}
-| '(' intEXP ')'		{ $$ = $2;			}
-| strEXP strGE strEXP 		{ $$ = pstring_ge ($1,$3);	}
-| strEXP strLE strEXP 		{ $$ = pstring_le ($1,$3);	}
-| strEXP strNE strEXP 		{ $$ = pstring_ne ($1,$3);	}
-| strEXP strEQ strEXP 		{ $$ = pstring_eq ($1,$3);	}
-| strEXP strGT strEXP		{ $$ = pstring_gt ($1,$3);	}
-| strEXP strLT strEXP		{ $$ = pstring_lt ($1,$3);	}
-;
-     
-dblEXP: dblNUM			{ $$ = $1;			}
-| EXTVAR			{ $$ = atof($1.begin);		}
-| VAR				{ $$ = $1->value.var;		}
-/*| VAR '=' dblEXP 		{ $$ = $3; $1->value.var = $3;	} */
-| FNCT '(' dblEXP ')'		{ $$ = (*($1->value.fnctptr))($3); }
-| dblEXP '+' dblEXP		{ $$ = $1 + $3;			}
-| dblEXP '-' dblEXP		{ $$ = $1 - $3;			}
-| dblEXP '*' dblEXP		{ $$ = $1 * $3;			}
-/*| dblEXP '/' dblEXP		{ $$ = $1 / $3;    }*/
-| dblEXP '/' dblEXP
-                 {
-                   if ($3)
-                     $$ = $1 / $3;
+		   ;break;
+		   case EXPRDBL: 
+                   if ($3.val.dblval)
+                     $$.val.dblval = $1.val.dblval / $3.val.dblval;
                    else
                      {
-                       $$ = 0;
+                       $$.val.dblval = 0;
 		       expr_debug("division by zero","");
                      }
+		   }
+		   ;break;
+		 }
+| '-' numEXP  %prec NEG
+		 { 
+		   switch ($$.type=$2.type) {
+		   case EXPRINT: 
+		     $$.val.intval = -$2.val.intval;
+		   ;break;
+		   case EXPRDBL: 
+		     $$.val.dblval = -$2.val.dblval;
+		   ;break;
+		   }
+		 }
+| numEXP '^' numEXP 		
+                 { 
+		   $$.type=EXPRDBL;
+		   expr_to_dbl(&$1,&$3);
+		   $$.val.dblval = pow ($1.val.dblval, $3.val.dblval);
                  }
-| '-' dblEXP  %prec NEG	{ $$ = -$2;			}
-| dblEXP '^' dblEXP 		{ $$ = pow ($1, $3);		}
-| dblEXP AND dblEXP 		{ $$ = $1 && $3;		}
-| dblEXP OR  dblEXP 		{ $$ = $1 || $3;		}
-| dblEXP numGE dblEXP 		{ $$ = $1 >= $3;		}
-| dblEXP numLE dblEXP 		{ $$ = $1 <= $3;		}
-| dblEXP numNE dblEXP 		{ $$ = $1 != $3;		}
-| dblEXP numEQ dblEXP 		{ $$ = $1 == $3;		}
-| dblEXP '>' dblEXP %prec numGT	{ $$ = $1 > $3;			}
-| dblEXP '<' dblEXP %prec numLT	{ $$ = $1 < $3;			}
-| '!' dblEXP  %prec NOT		{ $$ = !$2;			}
-| NOT dblEXP			{ $$ = !$2;			}
-| '(' dblEXP ')'		{ $$ = $2;			}
-| intEXP			{ $$ = $1;			}
+| numEXP AND numEXP 		{ DO_LOGOP($$,&&,$1,$3);	}
+| numEXP OR  numEXP 		{ DO_LOGOP($$,||,$1,$3);	}
+| numEXP numGE numEXP 		{ DO_CMPOP($$,>=,$1,$3);	}
+| numEXP numLE numEXP 		{ DO_CMPOP($$,<=,$1,$3);	}
+| numEXP numNE numEXP 		{ DO_CMPOP($$,!=,$1,$3);	}
+| numEXP numEQ numEXP 		{ DO_CMPOP($$,==,$1,$3);	}
+| numEXP '>' numEXP %prec numGT	{ DO_CMPOP($$,>,$1,$3);		}
+| numEXP '<' numEXP %prec numLT	{ DO_CMPOP($$,<,$1,$3);		}
+| '!' numEXP  %prec NOT		{ DO_LOGOP1($$,!,$2);		}
+| NOT numEXP			{ DO_LOGOP1($$,!,$2);		}
+| '(' numEXP ')'		{ $$ = $2;			}
+| numEXP strGE numEXP 		{ DO_TXTOP($$,pstring_ge,$1,$3);}
+| numEXP strLE numEXP 		{ DO_TXTOP($$,pstring_le,$1,$3);}
+| numEXP strNE numEXP 		{ DO_TXTOP($$,pstring_ne,$1,$3);}
+| numEXP strEQ numEXP 		{ DO_TXTOP($$,pstring_eq,$1,$3);}
+| numEXP strGT numEXP		{ DO_TXTOP($$,pstring_gt,$1,$3);}
+| numEXP strLT numEXP		{ DO_TXTOP($$,pstring_lt,$1,$3);}
 ;
-
 /* End of grammar.  */
 %%
 
@@ -238,11 +237,6 @@ PSTRING fill_symbuf (int is_accepted(char)) {
   return (PSTRING) {symbuf, symbuf+i};
 }
 
-int is_float_lex (char c)
-{
-  return (c == '.' || isdigit (c));
-}
-
 int is_alnum_lex (char c)
 {
   return (c == '_' || isalnum (c));
@@ -261,8 +255,8 @@ yylex (void)
   /* Char starts a number => parse the number.         */
   if (c == '.' || isdigit (c))
     {
-      yylval.dblval=atof(fill_symbuf(is_float_lex).begin);
-      return dblNUM;
+      yylval.numval=exp_read_number (&curpos, expr.endnext);
+      return NUM;
     }
   /* Char starts an identifier => read the name.       */
   if (isalpha (c))
@@ -279,10 +273,11 @@ yylex (void)
 	 varvalue=(param->GetVarFuncPtr)(param, lowercase_pstring(name));
 
 	if (varvalue.begin==NULL) {
-	  yylval.strval=(PSTRING) {curpos, curpos};
+	  yylval.numval.val.strval=(PSTRING) {curpos, curpos};
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
-	} else yylval.strval=varvalue;
-	return EXTVAR;
+	} else yylval.numval.val.strval=varvalue;
+	yylval.numval.type=EXPRPSTR;
+	return NUM;
       } else {
 	yylval.tptr = s;
 	return s->type;
@@ -290,14 +285,16 @@ yylex (void)
     }
   /* Char starts a quote => read a string */
   if ('\''==c || '"'==c) {
+    PSTRING strvalue;
     char terminal_quote=c;
     curpos++;
-    PSTRING strvalue = {curpos, curpos};
+    strvalue = (PSTRING) {curpos, curpos};
     while (curpos<expr.endnext && ((c = *curpos) != terminal_quote)) curpos++;
     strvalue.endnext=curpos;
     if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
-    yylval.strval = strvalue;
-    return strVAL;
+    yylval.numval.val.strval=strvalue;
+    yylval.numval.type=EXPRPSTR;
+    return NUM;
   }
 
   TESTOP('=','=',numEQ)

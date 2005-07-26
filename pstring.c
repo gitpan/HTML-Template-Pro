@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.c,v 1.4 2005/07/07 07:29:49 igor Exp $
+ * $Id: pstring.c,v 1.7 2005/07/26 15:55:10 igor Exp $
  */
 
 #include <stdio.h>
@@ -16,16 +16,28 @@ typedef struct pstring {
   char* endnext;
 } PSTRING;
 
-PSTRING double_to_pstring (double number) {
-  static char buffer[40]; /* for sprintf %f */
+PSTRING double_to_pstring (double number, char buffer[]) {
   size_t len=0;
+  size_t tmplen=0;
   sprintf(buffer,"%f",number);
   len=strlen(buffer);
+  tmplen=len;
   /* removing trailing 0 as 2.00000... */
-  while (buffer[len-1]=='0' && len-->0); 
-  buffer[len-1]=='.' && len--;
+  while (buffer[tmplen-1]=='0' && tmplen-->0); 
+  if (buffer[tmplen-1]=='.') {
+    tmplen--;
+    len=tmplen;
+  }
   return (PSTRING) {buffer, buffer+len};
 }
+
+PSTRING int_to_pstring (int number, char buffer[]) {
+  size_t len=0;
+  sprintf(buffer,"%d",number);
+  len=strlen(buffer);
+  return (PSTRING) {buffer, buffer+len};
+}
+
 
 PSTRING lowercase_pstring (PSTRING pstring) {
   size_t size=pstring.endnext-pstring.begin;
@@ -81,13 +93,15 @@ int pstring_gt(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
-  if ((in_b==b.endnext && in_a!=a.endnext) || (in_b!=b.endnext && in_a!=a.endnext && *(--in_a) > *(--in_b)) ) return 1; else return 0;
+  if ((in_b==b.endnext && in_a!=a.endnext)
+      || (*(--in_a) > *(--in_b)) ) return 1; else return 0;
 }
 
 int pstring_lt(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
-  if ((in_b==b.endnext && in_a==a.endnext) || (in_b!=b.endnext && in_a!=a.endnext && *(--in_a) > *(--in_b)) ) return 1; else return 0;
+  if ((in_b!=b.endnext && in_a==a.endnext)
+      ||  *(--in_a) < *(--in_b) ) return 1; else return 0;
 }
 
