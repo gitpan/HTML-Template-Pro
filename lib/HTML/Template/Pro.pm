@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.41';
+$VERSION = '0.42';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -62,6 +62,7 @@ sub new {
     my $class=shift;
     my %param;
     my $options={param_map=>\%param,
+		functions => {},
 		# ---- supported -------
 		debug => 0,
 		max_includes => 10,
@@ -137,6 +138,9 @@ sub new {
 	local *FH=$options->{filehandle};
 	$options->{scalarref}=<FH>;
     }
+
+    # merging built_in funcs with user-defined funcs
+    $options->{expr_func}={%FUNC, %{$options->{functions}}};
 
     $options->{options}=$options; # hack to be fully compatible with HTML::Template
     bless $options,$class;
@@ -232,7 +236,6 @@ sub register_function {
   croak("HTML::Template::Pro : args 3 of register_function must be subroutine reference\n")
     unless ref($sub) eq 'CODE';
   $FUNC{$name} = $sub;
-  warn "HTML::Template::Pro : register_function : not yet implemented... may be soon.\n";
 }
 
 sub _lowercase_keys {

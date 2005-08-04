@@ -39,3 +39,6 @@ Revision history for Perl extension HTML::Template::Pro.
 	- EXPR="... " tags: string type comparisions now support digits
 	- grammar is improved
 	- bug fixes
+
+0.42  Thu Aug 2 16:26:35 2005
+	- complete support of EXPR="... " tags

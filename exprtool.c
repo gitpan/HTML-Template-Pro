@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:17 2005
  *
- * $Id: exprtool.c,v 1.10 2005/07/26 16:51:09 igor Exp $
+ * $Id: exprtool.c,v 1.11 2005/08/04 15:56:59 igor Exp $
  */
 
 #include "exprtool.h"
@@ -69,10 +69,12 @@ void expr_to_int (struct exprval* val1, struct exprval* val2) {
   if (val1->type == EXPRDBL) {
     val1->type=EXPRINT;
     val1->val.intval=val1->val.dblval;
+    //expnum_debug(*val1, "WARN:converting to `int' from `double'");
   }
   if (val2->type == EXPRDBL) {
     val2->type=EXPRINT;
     val2->val.intval=val2->val.dblval;
+    //expnum_debug(*val1, "WARN:converting to `int' from `double'");
   }
 }
 

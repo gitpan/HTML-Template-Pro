@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.41
+HTML-Template-Pro version 0.42
 ==============================
 
 DESCRIPTION
@@ -11,14 +11,14 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template and HTML::Template::Expr. It is not intended to be 
-a complete replacement, 
+of HTML::Template (as of 2.7) and HTML::Template::Expr (as of 0.0.4). 
+It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
 extended facilities of HTML::Template such as filters or quering.
 Designed for heavy upload, resource limitations, abcence of mod_perl.
 
-Note, that implementing of HTML::Template::Expr is still in progress
-and some features may not work. It is expected to be finished before 0.45.
+HTML::Template::Pro has complete support of HTML::Template::Expr's tag
+EXPR="<expression>", including user-defined functions.
 
 HTML::Template work cycle uses 2 steps. First, it loads and parse template.
 Then it accepts param() calls until you call output().

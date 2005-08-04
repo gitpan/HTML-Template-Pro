@@ -10,16 +10,21 @@
   void yyerror (char const *);
   /* expr-specific globals needed by yylex */
   PSTRING expr_retval;
+  struct tmplpro_param* param;
   %}
 %union {
   struct exprval numval;   /* For returning numbers.  */
   symrec  *tptr;   /* For returning symbol-table pointers.  */
+  PSTRING strname;  /* for user-defined function name */
+  void* extfunc;  /* for user-defined function name */
+
 }
 %start line
-%token <numval>  NUM        /*  number.  */
-/*%token <tptr> VAR FNCT*/   /* Variable and Function.  */
-%token <tptr> VAR FNCT   /* Variable and Function.  */
+%token <numval>  NUM        /*  poly type.  */
+%token <extfunc> EXTFUNC    /* user-defined function */
+%token <tptr> VAR FNCT   /* built-in Variable and Function.  */
 %type  <numval>  numEXP
+%type  <numval>  arglist
      
 /*%right '='*/
 %left OR
@@ -47,6 +52,15 @@ line: numEXP
 numEXP: NUM			{ $$ = $1;			}
 | VAR				{ $$.type=EXPRDBL; $$.val.dblval = $1->value.var; }
 /*| VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
+| EXTFUNC '(' arglist ')'
+                 {
+		   $$ = param->CallExprUserfncFuncPtr(param, $1);
+		 }
+| EXTFUNC '(' ')'
+                 {
+		   param->InitExprArglistFuncPtr(param);
+		   $$ = param->CallExprUserfncFuncPtr(param, $1);
+		 }
 | FNCT '(' numEXP ')'		
                  {
 		   $$.type=EXPRDBL;
@@ -121,6 +135,16 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP strGT numEXP		{ DO_TXTOP($$,pstring_gt,$1,$3);}
 | numEXP strLT numEXP		{ DO_TXTOP($$,pstring_lt,$1,$3);}
 ;
+
+/*arglist: {param->InitExprArglistFuncPtr(param);}
+  | numEXP 	 	 { */
+arglist: numEXP 	 	 { 
+  param->InitExprArglistFuncPtr(param);
+  param->PushExprArglistFuncPtr(param,$1);
+}
+| arglist ',' numEXP	 { param->PushExprArglistFuncPtr(param,$3);	 }
+;
+
 /* End of grammar.  */
 %%
 
@@ -196,7 +220,6 @@ expr_free(void)
 
 PSTRING expr;
 char* curpos;
-struct tmplpro_param* param;
 
 PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 {
@@ -264,7 +287,13 @@ yylex (void)
       symrec *s;
       PSTRING name=fill_symbuf(is_alnum_lex);
       s = getsym (name.begin);
-      if (s == 0) {
+      if (s != 0) {
+	yylval.tptr = s;
+	return s->type;
+      } else if ((yylval.extfunc=(param->IsExprUserfncFuncPtr)(param, name))) {
+	// fprintf(stderr, "lex:detected func %s\n", name.begin);
+	return EXTFUNC;
+      } else {
 	// s = putsym (symbuf, VAR);
 	PSTRING varvalue;
 	if (param->case_sensitive)
@@ -277,10 +306,8 @@ yylex (void)
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
 	} else yylval.numval.val.strval=varvalue;
 	yylval.numval.type=EXPRPSTR;
+	// fprintf(stderr, "lex:decoded number %s\n", name.begin);
 	return NUM;
-      } else {
-	yylval.tptr = s;
-	return s->type;
       }
     }
   /* Char starts a quote => read a string */

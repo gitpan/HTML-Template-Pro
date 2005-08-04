@@ -153,6 +153,101 @@ const char* get_filepath (const char* filename, const char* prevfilename) {
   return filepath;
 }
 
+void* is_expr_userfnc (struct tmplpro_param* param, PSTRING name) {
+  SV** hashvalptr=hv_fetch((HV *) param->ExprFuncHash, name.begin, name.endnext-name.begin, 0);
+  /*fprintf(stderr, "is call: name=%s (%p)\n", name.begin, hashvalptr);*/
+  return hashvalptr;
+}
+
+inline void free_expr_arglist(struct tmplpro_param* param)
+{
+  if (NULL!=param->ExprFuncArglist) {
+    av_undef((AV*) param->ExprFuncArglist);
+  }
+}
+
+void init_expr_arglist(struct tmplpro_param* param)
+{
+  free_expr_arglist(param);
+  param->ExprFuncArglist=newAV();
+}
+
+void push_expr_arglist(struct tmplpro_param* param,  struct exprval exprval)
+{
+  SV* val=NULL;
+  switch (exprval.type) {
+  case EXPRINT:  val=newSViv(exprval.val.intval);break;
+  case EXPRDBL:  val=newSVnv(exprval.val.dblval);break;
+  case EXPRPSTR: val=newSVpv(exprval.val.strval.begin, exprval.val.strval.endnext-exprval.val.strval.begin);break;
+  default: die ("FATAL INTERNAL ERROR:Unsupported type %d in exprval", exprval.type);
+  }
+  av_push ((AV*) param->ExprFuncArglist, val);
+  if (debuglevel>6) expnum_debug (exprval, "EXPR: arglist: pushed ");
+}
+
+struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr) {
+  dSP ;
+  char* empty="";
+  char* strval;
+  SV ** arrval;
+  SV * svretval;
+  I32 i;
+  I32 numretval;
+  I32 arrlen=av_len((AV *) param->ExprFuncArglist);
+  struct exprval retval = {EXPRPSTR};
+  retval.val.strval=(PSTRING) {empty,empty};
+  if (hashvalptr==NULL) {
+    die ("FATAL INTERNAL ERROR:Call_EXPR:function called but not exists");
+    return retval;
+  } else if (! SvROK(*((SV**) hashvalptr)) || (SvTYPE(SvRV(*((SV**) hashvalptr))) != SVt_PVCV)) {
+    die ("FATAL INTERNAL ERROR:Call_EXPR:not a function reference");
+    return retval;
+  }
+  
+  ENTER ;
+  SAVETMPS ;
+  
+  PUSHMARK(SP) ;
+  for (i=0;i<=arrlen;i++) {
+    arrval=av_fetch((AV *) param->ExprFuncArglist,i,0);
+    if (arrval) XPUSHs(*arrval);
+    else warn("INTERNAL: call: strange arrval");
+  }
+  PUTBACK ;
+  numretval=call_sv(*((SV**) hashvalptr), G_SCALAR);
+  SPAGAIN ;
+  if (numretval) {
+    svretval=POPs;
+    if (SvOK(svretval)) {
+      if (SvIOK(svretval)) {
+	retval.type=EXPRINT;
+	retval.val.intval=SvIV(svretval);
+      } else if (SvNOK(svretval)) {
+	retval.type=EXPRDBL;
+	retval.val.dblval=SvNV(svretval);
+      } else {
+	STRLEN len=0;
+	retval.type=EXPRPSTR;
+	strval =SvPV(svretval, len);
+	// hack !!!
+	SvREFCNT_inc(svretval);
+	retval.val.strval=(PSTRING) {strval, strval +len};
+      }
+    } else {
+      warn ("user defined function returned undef");
+    }
+  } else {
+    warn ("user defined function returned nothing");
+  }
+
+  FREETMPS ;
+  LEAVE ;
+
+  free_expr_arglist(param);
+  if (debuglevel>6) expnum_debug (retval, "EXPR: function call: returned ");
+  return retval;
+}
+
 int get_integer_from_hash(HV* TheHash, char* key) {
   SV** hashvalptr=hv_fetch(TheHash, key, strlen(key), 0);
   if (hashvalptr==NULL) return 0;
@@ -179,6 +274,8 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   HV* SelfHash;
   SV** hashvalptr;
 
+  /* internal initialization */
+  param_init(&param);
   /*   setting initial hooks */
   param.WriterFuncPtr=&write_chars_to_string;
   param.GetVarFuncPtr=&get_perl_var_value;
@@ -186,6 +283,11 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   param.InitLoopFuncPtr=&perl_init_loop;
   param.NextLoopFuncPtr=&perl_next_loop;
   param.FindFileFuncPtr=&get_filepath;
+  /*   setting initial Expr hooks */
+  param.InitExprArglistFuncPtr=&init_expr_arglist;
+  param.PushExprArglistFuncPtr=&push_expr_arglist;
+  param.CallExprUserfncFuncPtr=&call_expr_userfnc;
+  param.IsExprUserfncFuncPtr=&is_expr_userfnc;
   /* end setting initial hooks */
 
   /*   setting perl globals */
@@ -198,6 +300,13 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
     }
   SelfHash=(HV *)SvRV(PerlSelfPtr);
   
+  /* setting expr_func */
+  hashvalptr=hv_fetch(SelfHash, "expr_func", 9, 0); /* 9=strlen("expr_func") */
+  if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
+    die("FATAL:output:EXPR user functions not found");
+  param.ExprFuncHash=(HV *) SvRV(*hashvalptr);
+  /* end setting expr_func */
+
   /* setting param_map */
   hashvalptr=hv_fetch(SelfHash, "param_map", 9, 0); /* 9=strlen("param_map") */
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
@@ -208,7 +317,6 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   param.selfpath=NULL; /* we are not included by somthing */
   param.filename=get_string_from_hash(SelfHash,"filename").begin;
   param.scalarref=get_string_from_hash(SelfHash,"scalarref");
-  param.cur_includes=0; /* current level of inclusion */
   param.max_includes=get_integer_from_hash(SelfHash,"max_includes");
   param.no_includes=get_integer_from_hash(SelfHash,"no_includes");
   /* search_path_on_include proccessed directly in perl code */

@@ -777,6 +777,15 @@ void procore_done()
   expr_free();
 }
 
+/* internal initialization of struct tmplpro_param */
+void param_init(struct tmplpro_param* param)
+{
+    param->cur_includes=0; /* current level of inclusion */
+    param->selfpath=NULL;
+    param->ExprFuncHash=NULL;
+    param->ExprFuncArglist=NULL;
+}
+
 
 /*
  * Local Variables:

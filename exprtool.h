@@ -3,8 +3,11 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:04 2005
  *
- * $Id: exprtool.h,v 1.8 2005/07/26 15:17:18 igor Exp $
+ * $Id: exprtool.h,v 1.9 2005/07/28 11:21:29 igor Exp $
  */
+
+#ifndef _EXPRTOOL_H
+#define _EXPRTOOL_H	1
 
 #include "pstring.h"
 
@@ -65,3 +68,5 @@ void expr_debug(char const *,char const *);
  */
 extern char left_buffer[40]; 
 extern char right_buffer[40];
+
+#endif /* exprtool.h */

@@ -1,0 +1,9 @@
+<HTML><BODY>
+<H1> test expr with perl-supplied functions </H1>
+hello('dad')=hi, dad!
+registered_func('self')=self
+lc('DAD')=dad
+lc(ONE)=1
+sprintf('1+1=%d', TWO)=1+1=2
+hello_string()=hello!
+</body></html>
