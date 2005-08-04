@@ -47,16 +47,36 @@ your browser when visiting the CGI:
 It is recommended to use case_sensitive=>1 in new()
 and print_to=>\*STDOUT in output() for best perfomance.
 
-NOTE: you can safely write 
-  my $template = HTML::Template->new( ... options ...)
-  with HTML::Template::Pro, because in absence of original HTML::Template
-  HTML::Template::Pro intercepts its calls.
+IMPORTANT NOTE: you can safely write 
 
-  You also can use both modules and safely mix their calls.
+  my $template = HTML::Template->new( ... options ...)
+	or even
+  my $template = HTML::Template::Expr->new( ... options ...)
+
+with HTML::Template::Pro, because in absence of original HTML::Template
+and HTML::Template::Expr HTML::Template::Pro intercepts their calls.
+
+You can also use all three modules and safely mix their calls
+(benchmarking may be the only reason for it).
+In case you want to mix calls to HTML::Template::Expr and 
+HTML::Template::Pro, the only proper usage of their load is
+
+use HTML::Template;
+use HTML::Template::Expr;
+use HTML::Template::Pro;
+
+Of course, if you don't plan to mix them (in most cases)
+it is enough to simply write
+
+use HTML::Template::Pro;
+
+Simply use HTML::Template::Pro, 
+it supports all functions of HTML::Template::Expr.
 
 =head1 DESCRIPTION
 
-HTML::Template::Pro is a fast C/perl+XS implementation of HTML::Template.
+HTML::Template::Pro is a fast C/perl+XS implementation of HTML::Template
+and HTML::Template::Expr. 
 See L<HTML::Template::Pro|HTML::Template::Pro> for details.
 
 It fully supports template language of HTML::Template 
@@ -74,7 +94,8 @@ variables, loops and branches declared in the template.  This allows
 you to separate design - the HTML - from the data, which you generate
 in the Perl script."
 
-There is described a perl interface of HTML::Template::Pro and HTML::Template.
+Here is described a perl interface of HTML::Template::Pro and 
+HTML::Template + HTML::Template::Expr.
 See B<DISTINCTIONS> for brief summary of distinctions between 
 HTML::Template::Pro and HTML::Template.
 
@@ -476,6 +497,8 @@ as they are for the main template file.
 
 =end comment
 
+
+
 =back
 
 =cut
@@ -759,6 +782,80 @@ CVS SERVER section.
 
 =end comment
 
+
+
+
+
+
+=head1 EXPR: DEFINING NEW FUNCTIONS
+
+To define a new function, pass a C<functions> option to new:
+
+  $t = HTML::Template::Pro->new(filename => 'foo.tmpl',
+                                 functions => 
+                                   { func_name => \&func_handler });
+or
+
+  $t = HTML::Template::Expr->new(filename => 'foo.tmpl',
+                                 functions => 
+                                   { func_name => \&func_handler });
+
+Or, you can use C<register_function> class method to register
+the function globally:
+
+  HTML::Template::Pro->register_function(func_name => \&func_handler);
+or 
+  HTML::Template::Expr->register_function(func_name => \&func_handler);
+
+You provide a subroutine reference that will be called during output.
+It will recieve as arguments the parameters specified in the template.
+For example, here's a function that checks if a directory exists:
+
+  sub directory_exists {
+    my $dir_name = shift;
+    return 1 if -d $dir_name;
+    return 0;
+  }
+
+If you call HTML::Template::Expr->new() with a C<functions> arg:
+
+  $t = HTML::Template::Expr->new(filename => 'foo.tmpl',
+                                 functions => {
+                                    directory_exists => \&directory_exists
+                                 });
+
+Then you can use it in your template:
+
+  <tmpl_if expr="directory_exists('/home/sam')">
+
+This can be abused in ways that make my teeth hurt.
+
+=head1 EXPR MOD_PERL TIP
+
+C<register_function> class method can be called in mod_perl's
+startup.pl to define widely used common functions to
+HTML::Template::Expr. Add something like this to your startup.pl:
+
+  use HTML::Template::Pro;
+
+  HTML::Template::Pro->register_function(foozicate => sub { ... });
+  HTML::Template::Pro->register_function(barify    => sub { ... });
+  HTML::Template::Pro->register_function(baznate   => sub { ... });
+
+=head1 EXPR CAVEATS
+
+HTML::Template::Pro does not forces the HTML::Template global_vars 
+option to be set, whereas currently HTML::Template::Expr does.
+Anyway, this also will hopefully go away in a future version of 
+HTML::Template::Expr, so if you need global_vars in your templates 
+then you should set it explicitely.
+
+
+
+
+
+
+
 =head1 CREDITS
 
 to Sam Tregar, sam@tregar.com
@@ -824,13 +921,28 @@ provided by:
 
 Thanks!
 
-=begin comment
+Original credits of HTML::Template::Expr:
+
+The following people have generously submitted bug reports, patches
+and ideas:
+
+   Peter Leonard
+   Tatsuhiko Miyagawa
+
+Thanks!
+
 
 =head1 WEBSITE
+
+You can find information about HTML::Template::Pro at:
+
+   http://html-tmpl-pro.sourceforge.net
 
 You can find information about HTML::Template and other related modules at:
 
    http://html-template.sourceforge.net
+
+=begin comment
 
 =head1 PUBLIC CVS SERVER
 

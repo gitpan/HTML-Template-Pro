@@ -387,6 +387,244 @@ HTML::Template processing, or who use DTD-savvy editing tools.
 In order to realize a dramatic savings in bandwidth, the standard
 (non-comment) tags will be used throughout this documentation.
 
+
+
+
+=head1 EXPR EXTENSION
+
+This module supports an extension to HTML::Template which allows
+expressions in the template syntax which was implemented in
+HTML::Template::Expr. See L<HTML::Template::Expr> for details.
+
+Expression support includes comparisons, math operations, string
+operations and a mechanism to allow you add your own functions at
+runtime.  The basic syntax is:
+
+   <TMPL_IF EXPR="banana_count > 10">
+     I've got a lot of bananas.
+   </TMPL_IF>
+
+This will output "I've got a lot of bananas" if you call:
+
+   $template->param(banana_count => 100);
+
+In your script.  <TMPL_VAR>s also work with expressions:
+
+   I'd like to have <TMPL_VAR EXPR="banana_count * 2"> bananas.
+
+This will output "I'd like to have 200 bananas." with the same param()
+call as above.
+
+=head1 BASIC SYNTAX
+
+Variables are unquoted alphanumeric strings with the same restrictions
+as variable names in HTML::Template.  Their values are set through
+param(), just like normal HTML::Template variables.  For example,
+these two lines are equivalent:
+
+   <TMPL_VAR EXPR="foo">
+  
+   <TMPL_VAR NAME="foo">
+
+Numbers are unquoted strings of numbers and may have a single "." to
+indicate a floating point number.  For example:
+
+   <TMPL_VAR EXPR="10 + 20.5">
+
+String constants must be enclosed in quotes, single or double.  For example:
+
+   <TMPL_VAR EXPR="sprintf('%d', foo)">
+
+Note that the original parser of HTML::Template::Expr is currently (0.04) 
+rather simple, so if you need backward compatibility all compound 
+expressions must be parenthesized. 
+
+Backward compatible examples:
+
+   <TMPL_VAR EXPR="(10 + foo) / bar">
+
+   <TMPL_IF EXPR="(foo % 10) > (bar + 1)">
+
+Nevertheless, in HTML::Template::Pro, you can safely write things like
+
+   <TMPL_VAR EXPR="1+2*foo/bar^2 ">
+
+with proper priority of operations.
+
+Pattern in regular expression must be enclosed with "/":
+
+   <TMPL_VAR EXPR="foo =~ /bar/">
+
+=head1 COMPARISON
+
+Here's a list of supported comparison operators:
+
+=over 4
+
+=item * Numeric Comparisons
+
+=over 4
+
+=item * E<lt>
+
+=item * E<gt>
+
+=item * ==
+
+=item * !=
+
+=item * E<gt>=
+
+=item * E<lt>=
+
+=item * E<lt>=E<gt>
+
+=back 4
+
+=item * String Comparisons
+
+=over 4
+
+=item * gt
+
+=item * lt
+
+=item * eq
+
+=item * ne
+
+=item * ge
+
+=item * le
+
+=item * cmp
+
+=back 4
+
+=back 4
+
+=head1 MATHEMATICS
+
+The basic operators are supported:
+
+=over 4
+
+=item * +
+
+=item * -
+
+=item * *
+
+=item * /
+
+=item * %
+
+=item * ^ (not supported in HTML::Template::Expr)
+
+=back 4
+
+There are also some mathy functions.  See the FUNCTIONS section below.
+
+=head1 LOGIC
+
+Boolean logic is available:
+
+=over 4
+
+=item * && (synonym: and)
+
+=item * || (synonym: or)
+
+=back 4
+
+=head1 REGULAR EXPRESSION SUPPORT
+
+regexp support is added to HTML::Template::Expr and
+HTML::Template::Pro by Stanislav Yadykin <tosick at altlinux.ru>
+It is currently not included in official distribution of HTML::Template::Expr.
+
+Standart regexp syntax:
+
+=over 4
+
+=item * =~
+
+=item * !~
+
+=back 4
+
+=head1 FUNCTIONS
+
+The following functions are available to be used in expressions.  See
+perldoc perlfunc for details.
+
+=over 4
+
+=item * sprintf
+
+=item * substr (2 and 3 arg versions only)
+
+=item * lc
+
+=item * lcfirst
+
+=item * uc
+
+=item * ucfirst
+
+=item * length
+
+=item * defined
+
+=item * abs
+
+=item * atan2
+
+=item * cos
+
+=item * exp
+
+=item * hex
+
+=item * int
+
+=item * log
+
+=item * oct
+
+=item * rand
+
+=item * sin
+
+=item * sqrt
+
+=item * srand
+
+=back 4
+
+All functions must be called using full parenthesis.  For example,
+this is a syntax error:
+
+   <TMPL_IF expr="defined foo">
+
+But this is good:
+
+   <TMPL_IF expr="defined(foo)">
+
+=head1 EXPR: DEFINING NEW FUNCTIONS
+
+You may also define functions of your own.
+See L<HTML::Template::PerlInterface> for details.
+
+
+
+
+
+
+
+
+
+
 =begin comment
 
 =head1 METHODS
@@ -1250,7 +1488,9 @@ http://sourceforge.net/cvs/?group_id=1075.  Give it a try!
 
 =head1 AUTHOR
 
-Sam Tregar, sam@tregar.com
+Sam Tregar, sam@tregar.com (Main text)
+
+I. Vlasenko, E<lt>viy@altlinux.orgE<gt> (Pecularities of HTML::Template::Pro)
 
 =head1 LICENSE
 

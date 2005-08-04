@@ -31,6 +31,10 @@ README.ru
 t/HTML-Template-Pro.t
 t/HTML-Template.t
 t/HTML-Template-Expr.t
+t/02basic.t
+t/03complex.t
+t/04register.t
+cmp_expr.t
 benchmark.pl.t
 META.yml                                 Module meta-data (added by MakeMaker)
 perl-HTML-Template-Pro.spec
@@ -113,3 +117,11 @@ templates/outer.tmpl
 templates/include_path2/inner.tmpl
 templates/include_path/inner.tmpl
 templates/js.tmpl
+t/templates
+t/templates/negative.tmpl
+t/templates/loop.tmpl
+t/templates/foo.tmpl
+t/templates/func.tmpl
+t/templates/numerics.tmpl
+t/templates/register.tmpl
+t/templates/complex.tmpl
