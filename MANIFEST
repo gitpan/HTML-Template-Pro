@@ -76,6 +76,8 @@ templates-Pro/test_expr2.out
 templates-Pro/test_expr2.tmpl
 templates-Pro/test_expr3.out
 templates-Pro/test_expr3.tmpl
+templates-Pro/test_broken1.out
+templates-Pro/test_broken1.tmpl
 templates/case_loop.tmpl
 templates/context.tmpl
 templates/counter.tmpl

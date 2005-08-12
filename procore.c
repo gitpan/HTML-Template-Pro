@@ -468,37 +468,47 @@ void tag_handler_unknown (struct tmplpro_state *state)
 PSTRING read_tag_parameter_value (struct tmplpro_state *state)
 {
   PSTRING modifier_value;
-  char cyr_char;
+  char cur_char;
   char quote_char=0;
+  register char* cur_pos;
+  register char* next_to_end=state->next_to_end;
   jump_over_space(state);
-  cyr_char=*(state->cur_pos);
-  if (('"'==cyr_char) || ('\''==cyr_char)) {
-    quote_char=*(state->cur_pos);
-    state->cur_pos++;
+  cur_pos=state->cur_pos;
+  cur_char=*(cur_pos);
+  if (('"'==cur_char) || ('\''==cur_char)) {
+    quote_char=*(cur_pos);
+    cur_pos++;
   }
-  modifier_value.begin=state->cur_pos;
-  cyr_char=*(state->cur_pos);
+  modifier_value.begin=cur_pos;
+  cur_char=*(cur_pos);
   if (quote_char) {
-    while (quote_char!=cyr_char) {
-      if (debug) fputc(*(state->cur_pos),stderr);
-      state->cur_pos++;
-      cyr_char=*(state->cur_pos);
+    while (quote_char!=cur_char && cur_pos<next_to_end) {
+      if (debug) fputc(*(cur_pos),stderr);
+      cur_pos++;
+      cur_char=*(cur_pos);
     }
   } else {
-    while ('>'!=cyr_char && ! isspace(cyr_char)) {
-      if (debug) fputc(*(state->cur_pos),stderr);
-      state->cur_pos++;
-      cyr_char=*(state->cur_pos);
+    while ('>'!=cur_char && ! isspace(cur_char) && cur_pos<next_to_end) {
+      cur_pos++;
+      cur_char=*(cur_pos);
+      if (debug) fputc(cur_char,stderr);
     }
   }
-  modifier_value.endnext=state->cur_pos;
+  if (cur_pos>=next_to_end) {
+    fprintf(stderr,"quote char %c at pos %d is not terminated\n",quote_char,state->cur_pos-state->top);
+    modifier_value.endnext=modifier_value.begin;
+    jump_over_space(state);
+    return modifier_value;
+  }
+  modifier_value.endnext=cur_pos;
   if (quote_char) {
-    if (quote_char==*(state->cur_pos)) {
-      state->cur_pos++;
+    if (quote_char==*cur_pos) {
+      cur_pos++;
     } else {
-      fprintf(stderr,"found %c instead of end quote %c at pos %d\n",*state->cur_pos,quote_char,state->cur_pos-state->top);
+      fprintf(stderr,"found %c instead of end quote %c at pos %d\n",*cur_pos,quote_char,cur_pos - state->top);
     }
   }
+  state->cur_pos=cur_pos;
   /* fprintf(stderr," at pos %d",state->cur_pos-state->top); */
   jump_over_space(state);
   return modifier_value;

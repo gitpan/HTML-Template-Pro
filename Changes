@@ -46,3 +46,6 @@ Revision history for Perl extension HTML::Template::Pro.
 0.43  Thu Aug 2 19:26:35 2005
 	- added documentation of EXPR="... " tags
 
+0.44  Thu Aug 12 19:03:05 2005
+	- underquoted string fix
+

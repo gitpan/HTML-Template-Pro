@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+2*15 };
+BEGIN { plan tests => 1+2*16 };
 #use HTML::Template;
 use HTML::Template::Pro;
 ok(1); # If we made it this far, we're ok.
@@ -51,6 +51,10 @@ test_tmpl('test_loop2', @varset1, @refset1);
 test_tmpl('test_loop3', @varset1, @refset1);
 test_tmpl('test_loop4', @varset1, @refset1);
 test_tmpl('test_loop5', @varset1, @refset1);
+
+close (STDERR);
+open (STDERR, '>/dev/null');
+test_tmpl('test_broken1', @varset1, @refset1);
 # not a test -- to see warnings on broken tmpl
 # test_tmpl('test_broken', @varset1, @refset1);
 
