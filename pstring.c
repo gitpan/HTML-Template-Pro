@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.c,v 1.7 2005/07/26 15:55:10 igor Exp $
+ * $Id: pstring.c,v 1.8 2005/08/19 18:16:42 igor Exp $
  */
 
 #include <stdio.h>
@@ -105,3 +105,13 @@ int pstring_lt(PSTRING a, PSTRING b) {
       ||  *(--in_a) < *(--in_b) ) return 1; else return 0;
 }
 
+
+int re_like(PSTRING a, PSTRING b) {
+  fprintf(stderr," (sorry, Stanislav Yadykin extension is not yet implemented) \n");
+  return 0;
+}
+
+int re_notlike(PSTRING a, PSTRING b) {
+  fprintf(stderr," (sorry, Stanislav Yadykin extension is not yet implemented) \n");
+  return 1;
+}

@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.h,v 1.6 2005/07/26 16:31:37 igor Exp $
+ * $Id: pstring.h,v 1.7 2005/08/19 18:16:42 igor Exp $
  */
 
 #ifndef _PSTRING_H
@@ -24,5 +24,8 @@ int pstring_ne(PSTRING, PSTRING);
 int pstring_eq(PSTRING, PSTRING);
 int pstring_gt(PSTRING, PSTRING);
 int pstring_lt(PSTRING, PSTRING);
+
+int re_like(PSTRING, PSTRING);
+int re_notlike(PSTRING, PSTRING);
 
 #endif /* pstring.h */

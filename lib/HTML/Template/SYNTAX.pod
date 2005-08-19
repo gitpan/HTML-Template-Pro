@@ -417,6 +417,8 @@ call as above.
 
 =head1 BASIC SYNTAX
 
+=head2 Variables
+
 Variables are unquoted alphanumeric strings with the same restrictions
 as variable names in HTML::Template.  Their values are set through
 param(), just like normal HTML::Template variables.  For example,
@@ -425,6 +427,20 @@ these two lines are equivalent:
    <TMPL_VAR EXPR="foo">
   
    <TMPL_VAR NAME="foo">
+
+=head2 Emiliano Bruno extension to Expr
+
+original HTML::Template allows almost arbitrary chars in parameter names,
+but original HTML::Template::Expr (as to 0.04) allows variables in the 
+'EXPR' tag to be only m![A-Za-z_][A-Za-z0-9_]*!.
+
+With this extension, arbitrary chars can be used in variable name inside 
+the 'EXPR' tag if bracketed in {}, as, for example, EXPR="{foo.bar} eq 'a'".
+
+COMPATIBILITY WARNING.
+Currently, this extension is not present in HTML::Template::Expr (as of 0.04).
+
+=head2 Constants
 
 Numbers are unquoted strings of numbers and may have a single "." to
 indicate a floating point number.  For example:

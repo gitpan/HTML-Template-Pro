@@ -31,6 +31,7 @@
 %left AND
 %nonassoc strGT strGE strLT strLE strEQ strNE
 %nonassoc numGT numGE numLT numLE numEQ numNE '<' '>'
+%nonassoc reLIKE reNOTLIKE
 %left '-' '+'
 %left '*' '/' '%'
 %left  '!' NOT NEG /* negation--unary minus */
@@ -134,6 +135,8 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP strEQ numEXP 		{ DO_TXTOP($$,pstring_eq,$1,$3);}
 | numEXP strGT numEXP		{ DO_TXTOP($$,pstring_gt,$1,$3);}
 | numEXP strLT numEXP		{ DO_TXTOP($$,pstring_lt,$1,$3);}
+| numEXP reLIKE numEXP		{ DO_TXTOP($$,re_like,$1,$3);}
+| numEXP reNOTLIKE numEXP	{ DO_TXTOP($$,re_notlike,$1,$3);}
 ;
 
 /*arglist: {param->InitExprArglistFuncPtr(param);}
@@ -265,42 +268,70 @@ int is_alnum_lex (char c)
   return (c == '_' || isalnum (c));
 }
 
-#define TESTOP(x,y,z)  if (x == c) { char d=*++curpos; if (y != d) return c; else curpos++; return z; }
+int is_not_identifier_ext_end (char c)  
+{ 
+  return (c != '}');
+} 
+
+#define TESTOP(c1,c2,z)  if (c1 == c) { char d=*++curpos; if (c2 != d) return c; else curpos++; return z; }
+#define TESTOP3(c1,c2,c3,z2,z3)  if (c1 == c) { char d=*++curpos; if (c2 == d) {curpos++; return z2;} else if (c3 == d) {curpos++; return z3;} else return c; }
 
 int
 yylex (void)
 {
   register char c;
+  int is_identifier_ext; 
   /* Ignore white space, get first nonwhite character.  */
   while (curpos<expr.endnext && ((c = *curpos) == ' ' || c == '\t')) curpos++;
   if (curpos>=expr.endnext) return 0;
-
+	
   /* Char starts a number => parse the number.         */
   if (c == '.' || isdigit (c))
     {
       yylval.numval=exp_read_number (&curpos, expr.endnext);
       return NUM;
     }
+
+  /* 
+   * Emiliano Bruno extension to Expr:
+   * original HTML::Template allows almost arbitrary chars in parameter names,
+   * but original HTML::Template::Expr (as to 0.04) allows only
+   * var to be m![A-Za-z_][A-Za-z0-9_]*!.
+   * with this extension, arbitrary chars can be used 
+   * if bracketed in {}, as, for example, EXPR="{foo.bar} eq 'a'".
+   *
+   * COMPATIBILITY WARNING.
+   * Currently, this extension is not present in HTML::Template::Expr (as of 0.04).
+   */
+  /* Let's try to see if this is an identifier between two { } - Emiliano */
+  is_identifier_ext = (int) (c == '{'); 
+
   /* Char starts an identifier => read the name.       */
-  if (isalpha (c))
+  if (isalpha (c) || is_identifier_ext)
     {
       symrec *s;
-      PSTRING name=fill_symbuf(is_alnum_lex);
+      PSTRING name;
+      if (is_identifier_ext) {
+	curpos++; /* jump over { */
+	name=fill_symbuf(is_not_identifier_ext_end);
+	if (curpos<expr.endnext) curpos++; /* Jump the last } - Emiliano */
+      } else {
+	name=fill_symbuf(is_alnum_lex);
+      }
       s = getsym (name.begin);
       if (s != 0) {
 	yylval.tptr = s;
 	return s->type;
       } else if ((yylval.extfunc=(param->IsExprUserfncFuncPtr)(param, name))) {
-	// fprintf(stderr, "lex:detected func %s\n", name.begin);
+	/* fprintf(stderr, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {
-	// s = putsym (symbuf, VAR);
+	/* s = putsym (symbuf, VAR); */
 	PSTRING varvalue;
 	if (param->case_sensitive)
 	 varvalue=(param->GetVarFuncPtr)(param, name);
 	else
 	 varvalue=(param->GetVarFuncPtr)(param, lowercase_pstring(name));
-
 	if (varvalue.begin==NULL) {
 	  yylval.numval.val.strval=(PSTRING) {curpos, curpos};
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
@@ -324,10 +355,14 @@ yylex (void)
     return NUM;
   }
 
-  TESTOP('=','=',numEQ)
+  TESTOP3('=','=','~',numEQ,reLIKE)
+  TESTOP3('!','=','~',numNE,reNOTLIKE)
+  /*  
+      TESTOP('=','=',numEQ)
+      TESTOP('!','=',numNE)
+  */
   TESTOP('>','=',numGE)
   TESTOP('<','=',numLE)
-  TESTOP('!','=',numNE)
   TESTOP('&','&',AND)
   TESTOP('|','|',OR)
 

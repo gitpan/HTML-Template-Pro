@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.44';
+$VERSION = '0.45';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -387,6 +387,10 @@ See L<HTML::Template::PerlInterface/BUGS>
 =head1 AUTHOR
 
 I. Vlasenko, E<lt>viy@altlinux.orgE<gt>
+
+with contributions of
+Bruni Emiliano, <info@ebruni.it>
+Stanislav Yadykin <tosick at altlinux.ru>
 
 =head1 COPYRIGHT AND LICENSE
 
