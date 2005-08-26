@@ -121,7 +121,6 @@ templates/outer.tmpl
 templates/include_path2/inner.tmpl
 templates/include_path/inner.tmpl
 templates/js.tmpl
-t/templates
 t/templates/negative.tmpl
 t/templates/loop.tmpl
 t/templates/foo.tmpl

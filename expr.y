@@ -224,12 +224,20 @@ expr_free(void)
 PSTRING expr;
 char* curpos;
 
+/* 
+ * is_expect_quote_like allows recognization of quotelike.
+ * if not is_expect_quote_like we look only for 'str' and, possibly, "str"
+ * if is_expect_quote_like we also look for /str/.
+ */
+int is_expect_quote_like;
+
 PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 {
   expr=expression;
   curpos=expr.begin;
   expr_retval=(PSTRING) {expression.begin, expression.begin};
   param=param_arg;
+  is_expect_quote_like=1;
   yyparse ();
   return expr_retval;
 }
@@ -274,7 +282,7 @@ int is_not_identifier_ext_end (char c)
 } 
 
 #define TESTOP(c1,c2,z)  if (c1 == c) { char d=*++curpos; if (c2 != d) return c; else curpos++; return z; }
-#define TESTOP3(c1,c2,c3,z2,z3)  if (c1 == c) { char d=*++curpos; if (c2 == d) {curpos++; return z2;} else if (c3 == d) {curpos++; return z3;} else return c; }
+#define TESTOP3(c1,c2,c3,num2,str3)  if (c1 == c) { char d=*++curpos; if (c2 == d) {curpos++; return num2;} else if (c3 == d) {curpos++; is_expect_quote_like=1; return str3;} else return c; }
 
 int
 yylex (void)
@@ -284,7 +292,23 @@ yylex (void)
   /* Ignore white space, get first nonwhite character.  */
   while (curpos<expr.endnext && ((c = *curpos) == ' ' || c == '\t')) curpos++;
   if (curpos>=expr.endnext) return 0;
+
+  /* Char starts a quote => read a string */
+  if ('\''==c || '"'==c || (is_expect_quote_like && '/'==c) ) {
+    PSTRING strvalue;
+    char terminal_quote=c;
+    curpos++;
+    strvalue = (PSTRING) {curpos, curpos};
+    while (curpos<expr.endnext && ((c = *curpos) != terminal_quote)) curpos++;
+    strvalue.endnext=curpos;
+    if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
+    yylval.numval.val.strval=strvalue;
+    yylval.numval.type=EXPRPSTR;
+    is_expect_quote_like=0;
+    return NUM;
+  }
 	
+  is_expect_quote_like=0;
   /* Char starts a number => parse the number.         */
   if (c == '.' || isdigit (c))
     {
@@ -341,19 +365,6 @@ yylex (void)
 	return NUM;
       }
     }
-  /* Char starts a quote => read a string */
-  if ('\''==c || '"'==c) {
-    PSTRING strvalue;
-    char terminal_quote=c;
-    curpos++;
-    strvalue = (PSTRING) {curpos, curpos};
-    while (curpos<expr.endnext && ((c = *curpos) != terminal_quote)) curpos++;
-    strvalue.endnext=curpos;
-    if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
-    yylval.numval.val.strval=strvalue;
-    yylval.numval.type=EXPRPSTR;
-    return NUM;
-  }
 
   TESTOP3('=','=','~',numEQ,reLIKE)
   TESTOP3('!','=','~',numNE,reNOTLIKE)

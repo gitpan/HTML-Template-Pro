@@ -428,7 +428,7 @@ these two lines are equivalent:
   
    <TMPL_VAR NAME="foo">
 
-=head2 Emiliano Bruno extension to Expr
+=head2 Emiliano Bruni extension to Expr
 
 original HTML::Template allows almost arbitrary chars in parameter names,
 but original HTML::Template::Expr (as to 0.04) allows variables in the 
