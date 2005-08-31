@@ -29,7 +29,7 @@
 /*%right '='*/
 %left OR
 %left AND
-%nonassoc strGT strGE strLT strLE strEQ strNE
+%nonassoc strGT strGE strLT strLE strEQ strNE strCMP
 %nonassoc numGT numGE numLT numLE numEQ numNE '<' '>'
 %nonassoc reLIKE reNOTLIKE
 %left '-' '+'
@@ -129,6 +129,10 @@ numEXP: NUM			{ $$ = $1;			}
 | '!' numEXP  %prec NOT		{ DO_LOGOP1($$,!,$2);		}
 | NOT numEXP			{ DO_LOGOP1($$,!,$2);		}
 | '(' numEXP ')'		{ $$ = $2;			}
+| numEXP strCMP numEXP 		{ 
+  expr_to_str(&$1,&$3); 
+  $$.type=EXPRINT; $$.val.intval = pstring_ge ($1.val.strval,$3.val.strval)-pstring_le ($1.val.strval,$3.val.strval);
+}
 | numEXP strGE numEXP 		{ DO_TXTOP($$,pstring_ge,$1,$3);}
 | numEXP strLE numEXP 		{ DO_TXTOP($$,pstring_le,$1,$3);}
 | numEXP strNE numEXP 		{ DO_TXTOP($$,pstring_ne,$1,$3);}
@@ -185,6 +189,7 @@ struct builtin_ops
     {"ge",  strGE},
     {"lt",  strLT},
     {"le",  strLE},
+    {"cmp", strCMP},
     {"or",  OR},
     {"and",AND},
     {"not",NOT},

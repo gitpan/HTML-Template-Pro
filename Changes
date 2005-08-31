@@ -54,3 +54,10 @@ Revision history for Perl extension HTML::Template::Pro.
 	With this extension, arbitrary chars can be used in variable name inside 
 	the 'EXPR' tag if bracketed in {}, as, for example, EXPR="{foo.bar} eq 'a'".
 
+0.47  Wed Aug 31 19:29:31 2005
+	- merged patch of Stanislav Yadykin
+	  (implemented his regexp extension)
+
+0.48  Wed Aug 31 20:31:41 2005
+	- added support for cmp in Expr
+	- minor bugfixes in string comparison

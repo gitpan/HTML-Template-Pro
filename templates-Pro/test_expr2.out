@@ -23,6 +23,12 @@ ONE eq '3'=0
 '100' ge '30'=0
 100 lt '30'=1
 100 lt 30=1
+'aaa' le 'b'=1
+'aaa' ge 'b'=0
+'bbb' le 'a'=0
+'bbb' ge 'a'=1
+'bbb' cmp 'a'=1
+'aaa' cmp 'b'=-1
 ONE=1
 foo=foo
 </body></html>

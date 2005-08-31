@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.45
+HTML-Template-Pro version 0.47
 ==============================
 
 DESCRIPTION
@@ -48,15 +48,22 @@ To install this module type the following:
    make test
    make install
 
+If you have no libpcre installed try 
+   perl Makefile.PL PCRE=0
+
 DEPENDENCIES
 
 This module requires these other modules and libraries:
 
+modules:
   File::Spec
+
+libraries:
+  libpcre (optional)
 
 TODO
 
-Complete support for HTML::Template::Expr compatible tags.
+Add support for filters.
 Improve debug message subsystem.
 
 WEBSITE

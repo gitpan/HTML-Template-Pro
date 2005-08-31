@@ -3,8 +3,41 @@ use ExtUtils::MakeMaker;
 $Verbose = 1;
 
 $O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o calc.o expr.o pstring.o exprtool.o/;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
+my $INC='-I.';
+my $DEFINE='';
+my $LIBS='-lm';
+
+my $PCRE=1;
+
+my $i;
+for ($i=0; $i<@ARGV; $i++)  {
+    $PCRE=$1 if $ARGV[$i]=~/PCRE=(.+)/;
+}
+
+if ($PCRE) {
+    $INC.=' -I/usr/include/pcre';
+    $DEFINE.=' -DHAVE_PCRE';
+    $LIBS.=' -lpcre';
+    print "
+=================================================
+build with libpcre is enabled.
+=================================================
+if you have not installed libpcre, you still can build the module 
+without libpcre using
+perl Makefile.PL PCRE=0
+note that in such case Stanislav Yadykin's regexp extension will be disabled.
+PCRE=$PCRE $ARGV[0]
+";
+} else {
+    print "
+=================================================
+build with libpcre is disabled.
+=================================================
+Stanislav Yadykin's regexp extension is disabled.
+";
+}
+
 WriteMakefile(
     NAME              => 'HTML::Template::Pro',
     VERSION_FROM      => 'lib/HTML/Template/Pro.pm', # finds $VERSION
@@ -12,9 +45,9 @@ WriteMakefile(
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/HTML/Template/Pro.pm', # retrieve abstract from module
        AUTHOR         => 'I. Yu. Vlasenko <viy@altlinux.org>') : ()),
-    LIBS              => ['-lm'],
-    DEFINE            => '', # e.g., '-DHAVE_SOMETHING'
-    INC               => '-I.', # e.g., '-I. -I/usr/include/other'
+    LIBS              => [$LIBS],
+    DEFINE            => $DEFINE, # e.g., '-DHAVE_SOMETHING'
+    INC               => $INC, 
     OBJECT            => '$(O_FILES)', # link all the C files too
 #   PERL_MALLOC_OK    => 1 # read first
 );

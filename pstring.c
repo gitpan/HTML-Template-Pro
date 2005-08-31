@@ -3,18 +3,14 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.c,v 1.8 2005/08/19 18:16:42 igor Exp $
+ * $Id: pstring.c,v 1.10 2005/08/31 17:30:21 igor Exp $
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include "pbuffer.h"
-
-typedef struct pstring {
-  char* begin;
-  char* endnext;
-} PSTRING;
+#include "pstring.h"
 
 PSTRING double_to_pstring (double number, char buffer[]) {
   size_t len=0;
@@ -65,14 +61,14 @@ int pstring_ge(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
-  if (in_b==b.endnext || *(--in_a) > *(--in_b) ) return 1; else return 0;
+  if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) >= *(--in_b) ) return 1; else return 0;
 }
 
 int pstring_le(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
-  if (in_a==a.endnext || *(--in_a) < *(--in_b) ) return 1; else return 0;
+  if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) <= *(--in_b) ) return 1; else return 0;
 }
 
 int pstring_ne(PSTRING a, PSTRING b) {
@@ -105,13 +101,35 @@ int pstring_lt(PSTRING a, PSTRING b) {
       ||  *(--in_a) < *(--in_b) ) return 1; else return 0;
 }
 
+int re_notlike(PSTRING a, PSTRING b) {
+  return ! re_like(a,b);
+}
 
+#ifndef HAVE_PCRE
 int re_like(PSTRING a, PSTRING b) {
-  fprintf(stderr," (sorry, Stanislav Yadykin extension is not yet implemented) \n");
+    fprintf(stderr," (sorry, Stanislav Yadykin extension is disabled at compile time) \n");
   return 0;
 }
-
-int re_notlike(PSTRING a, PSTRING b) {
-  fprintf(stderr," (sorry, Stanislav Yadykin extension is not yet implemented) \n");
-  return 1;
+#else
+#include <pcre.h>
+int re_like(PSTRING a, PSTRING b) {
+  pcre* re;
+  int ovector[30];
+  int rc, erroffset;
+  const char* error;
+  char* subject=a.begin;
+  int subject_length=(int)(a.endnext-a.begin);
+  char* pattern=(char*)malloc(b.endnext-b.begin);
+  strncpy(pattern, b.begin, (b.endnext-b.begin));
+  *(pattern+(b.endnext-b.begin))=0;
+  re = pcre_compile(pattern, 0, &error, &erroffset, NULL); // default character set
+  free(pattern);
+  if (re==NULL) {
+    fprintf(stderr, "PCRE compilation failed at offset %d: %s\n",
+      erroffset, error);
+    return 0;
+  }
+  rc=pcre_exec(re, NULL, subject, subject_length, 0, 0, ovector, 30);
+  return (rc<0)?0:1;
 }
+#endif
