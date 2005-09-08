@@ -8,16 +8,21 @@ typedef int flag;
 struct tmplpro_state;
 struct tmplpro_param;
 
-typedef void (*writerfunc) (char* begin, char* endnext);
+typedef void    (*writerfunc) (char* begin, char* endnext);
 typedef PSTRING (*get_variable_func) (struct tmplpro_param* param, PSTRING name);
 typedef int (*is_variable_true_func) (struct tmplpro_param* param, PSTRING name);
 typedef int (*init_loop_func) (struct tmplpro_state* state, PSTRING name);
 typedef int (*next_loop_func) (struct tmplpro_state* state);
 typedef const char* (*find_file_func) (const char* filename, const char* prevfilename);
-typedef void (*init_expr_arglist_func) (struct tmplpro_param* param);
-typedef void (*push_expr_arglist_func) (struct tmplpro_param* param, struct exprval);
+/* optional; we can use wrapper to load file and apply its filters before running itself */
+/* note that this function should allocate region 1 byte nore than the file size	 */
+typedef PSTRING (*load_file_func) (const char* filename);
+typedef PSTRING (*unload_file_func) (PSTRING memarea);
+/* those are needed for EXPR= extension */
+typedef void    (*init_expr_arglist_func) (struct tmplpro_param* param);
+typedef void    (*push_expr_arglist_func) (struct tmplpro_param* param, struct exprval);
 typedef struct exprval (*call_expr_userfnc_func) (struct tmplpro_param* param, void* extfunc);
-typedef void* (*is_expr_userfnc_func) (struct tmplpro_param* param, PSTRING name);
+typedef void*   (*is_expr_userfnc_func) (struct tmplpro_param* param, PSTRING name);
 
 struct tmplpro_param {
   int global_vars;
@@ -42,6 +47,8 @@ struct tmplpro_param {
   init_loop_func InitLoopFuncPtr;
   next_loop_func NextLoopFuncPtr;
   find_file_func FindFileFuncPtr;
+  load_file_func LoadFileFuncPtr;
+unload_file_func UnloadFileFuncPtr;
   /* HTML::Template::Expr hooks */
   init_expr_arglist_func InitExprArglistFuncPtr;
   push_expr_arglist_func PushExprArglistFuncPtr;

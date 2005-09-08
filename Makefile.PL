@@ -2,32 +2,42 @@ use 5.005;
 use ExtUtils::MakeMaker;
 $Verbose = 1;
 
-$O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o calc.o expr.o pstring.o exprtool.o/;
+$O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o calc.o expr.o pstring.o exprtool.o 
+   loadfile.o tmpllog.o/;
 
 my $INC='-I.';
 my $DEFINE='';
 my $LIBS='-lm';
 
 my $PCRE=1;
+my $DEBUG=0;
+$PCRE=0 if $^O =~ /win/i;
 
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
-    $PCRE=$1 if $ARGV[$i]=~/PCRE=(.+)/;
+    if ($ARGV[$i]=~/PCRE=(.+)/) {
+	$PCRE=$1;
+    } elsif ($ARGV[$i]=~/DEBUG=(.+)/) {
+	$DEBUG=$1;
+    } else {
+	next;
+    }
+    splice @ARGV, $i, 1;
 }
+
+$DEFINE.=' -DDEBUG' if ($DEBUG);
 
 if ($PCRE) {
     $INC.=' -I/usr/include/pcre';
     $DEFINE.=' -DHAVE_PCRE';
     $LIBS.=' -lpcre';
     print "
-=================================================
-build with libpcre is enabled.
-=================================================
+=====================================================================
+build with libpcre (Stanislav Yadykin's regexp extension) is enabled.
+=====================================================================
 if you have not installed libpcre, you still can build the module 
-without libpcre using
+without libpcre (with this extension disabled) using 
 perl Makefile.PL PCRE=0
-note that in such case Stanislav Yadykin's regexp extension will be disabled.
-PCRE=$PCRE $ARGV[0]
 ";
 } else {
     print "

@@ -1,6 +1,3 @@
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -12,6 +9,7 @@
 #include "pbuffer.h"
 #include "proscope.h"
 #include "expr.h"
+#include "loadfile.h"
 
 #define HTML_TEMPLATE_BAD_TAG     0
 #define HTML_TEMPLATE_FIRST_TAG_USED 1
@@ -308,7 +306,7 @@ void tag_handler_if (struct tmplpro_state *state, PSTRING name)
     state->is_visible=0;
   }
   pstack_push(iftag);
-  if (debug>3) fprintf(stderr,"if:visible context =%d value=%d ",iftag.vcontext,iftag.value);
+  if (debug>3) fprintf(stderr,"tag_handler_if:visible context =%d value=%d ",iftag.vcontext,iftag.value);
 }
 
 void tag_handler_unless (struct tmplpro_state *state, PSTRING name)
@@ -727,34 +725,26 @@ void init_state (struct tmplpro_state *state, struct tmplpro_param *param)
 int exec_tmpl (const char* filename, struct tmplpro_param *param)
 {
   struct tmplpro_state state;
-  const char* filepath;
-  int fd;
   int mmapstatus;
-  struct stat st;
-  size_t size_in_bytes;
+  PSTRING memarea;
   /* 
    * param->selfpath is path to upper level template 
    * (or NULL in toplevel) which called <include filename>.
    * we use it to calculate filepath for filename.
    * Then filename becames upper level template for its <include>.
    */
-  filepath=(param->FindFileFuncPtr)(filename, param->selfpath); 
+  const char* filepath=(param->FindFileFuncPtr)(filename, param->selfpath); 
   param->selfpath=filepath;
-  /* fd = open(filename, O_RDONLY); */
-  fd = open(filepath, O_RDONLY);
-  if (fd == -1) return ERR_PRO_CANT_OPEN_FILE;
-  fstat(fd, &st);
-  size_in_bytes = st.st_size;
+  memarea=mmap_load_file(filepath);
+  if (memarea.begin == NULL) return ERR_PRO_CANT_OPEN_FILE;
   /* mmap size_in_bytes+1 to avoid crash with empty file */
-  state.top = (char *) mmap(0, size_in_bytes+1,  PROT_READ,  MAP_SHARED, fd, 0);
-  close(fd);
-  state.next_to_end=state.top+size_in_bytes;
+  state.top =memarea.begin;
+  state.next_to_end=memarea.endnext;
   init_state(&state,param);
   /* end initializing state */
   process_state(&state);
   /* destroying */
-  mmapstatus=munmap((void *)state.top, state.next_to_end-state.top);
-  if (debug) fprintf(stderr,"munmap:finished as %d\n",mmapstatus);
+  mmapstatus=mmap_unload_file(memarea);
   return 0;
 }
 

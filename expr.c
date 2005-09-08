@@ -1707,7 +1707,12 @@ yylex (void)
     char terminal_quote=c;
     curpos++;
     strvalue = (PSTRING) {curpos, curpos};
-    while (curpos<expr.endnext && ((c = *curpos) != terminal_quote)) curpos++;
+    while (curpos<expr.endnext && 
+	   (
+	    /* it's buggy, but Expr 0.0.4 compatible :( */
+	    ('\\' == c && ((c =*curpos) || 1)) /* any escaped char with \ , incl. quote */
+	    || 
+	    (c = *curpos) != terminal_quote)) curpos++;
     strvalue.endnext=curpos;
     if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
     yylval.numval.val.strval=strvalue;

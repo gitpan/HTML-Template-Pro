@@ -25,9 +25,12 @@ expr.y
 expr.c                                  old perls can't yacc it
 exprtool.h
 exprtool.c
+loadfile.h
+loadfile.c
 Pro.xs
 README
 README.ru
+README.win
 t/HTML-Template-Pro.t
 t/HTML-Template.t
 t/HTML-Template-Expr.t

@@ -283,6 +283,8 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   param.InitLoopFuncPtr=&perl_init_loop;
   param.NextLoopFuncPtr=&perl_next_loop;
   param.FindFileFuncPtr=&get_filepath;
+  param.LoadFileFuncPtr=NULL;
+  param.UnloadFileFuncPtr=NULL;
   /*   setting initial Expr hooks */
   param.InitExprArglistFuncPtr=&init_expr_arglist;
   param.PushExprArglistFuncPtr=&push_expr_arglist;

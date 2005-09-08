@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.48';
+$VERSION = '0.50';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -63,6 +63,7 @@ sub new {
     my %param;
     my $options={param_map=>\%param,
 		functions => {},
+		filter => [],
 		# ---- supported -------
 		debug => 0,
 		max_includes => 10,
@@ -80,7 +81,6 @@ sub new {
 		die_on_bad_params => 0,
 		# ---- unsupported -------
 #		vanguard_compatibility_mode => 0,
-#		filter => [],
 #=============================================
 # The following options are harmless caching-specific.
 # They are ignored silently because there is nothing to cache.
@@ -112,6 +112,10 @@ sub new {
     # path should be an array if it's not already
     if (ref($options->{path}) ne 'ARRAY') {
 	$options->{path} = [ $options->{path} ];
+    }
+    # filter should be an array if it's not already
+    if (ref($options->{filter}) ne 'ARRAY') {
+	$options->{filter} = [ $options->{filter} ];
     }
 
     # make sure objects in associate area support param()
@@ -256,6 +260,15 @@ sub _lowercase_keys {
 	}
     }
     return $newhash;
+}
+
+sub _load_file {
+    my $filepath=shift;
+    open my $fh, $filepath or die $!;
+    local $/; # enable localized slurp mode
+    my $content = <$fh>;
+    close $fh;
+    return $content;
 }
 
 ## HTML::Template based

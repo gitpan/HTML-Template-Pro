@@ -1,0 +1,11 @@
+
+release 0.50 added basis support for windows.
+The source of HTML-Template-Pro should be portable,
+exept unix/win specific file loadfile.c.
+There are ifdef WIN32 -ed section of win-specific code
+added as described on msdn.
+Unfortunately, I have no place to test this code.
+
+If you will try to complie this code on win,
+be so kind to send me success story or bugreport.
+
