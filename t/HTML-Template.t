@@ -592,9 +592,6 @@ ok($output !~ /ADVERB/i and
    $template->param('adverb') eq 'painfully' and
    $output =~ /painfully painfully/);
 
-SKIP: {
-  skip "Skipping filter test. Not supported in Pro\n", 3
-    if (!exists($ENV{TEST_FILTER}) or !$ENV{TEST_FILTER});
 $template = HTML::Template->new(filename => './templates/include_path/a.tmpl',
                                 filter => sub {
                                   ${$_[0]} =~ s/Bar/Zanzabar/g;
@@ -637,7 +634,6 @@ $template = HTML::Template->new(filename => './templates/include_path/a.tmpl',
                                );
 $output =  $template->output;
 ok($output =~ /1 : Foo/);
-}
 
 $template = HTML::Template->new(
                                 scalarref => \ "\n<TMPL_INCLUDE templates/simple.tmpl>",

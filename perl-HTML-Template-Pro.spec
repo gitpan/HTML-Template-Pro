@@ -6,7 +6,7 @@
 %define module HTML-Template-Pro
 
 Name: perl-%module
-Version: 0.50
+Version: 0.52
 Release: alt1
 
 Packager: Igor Yu. Vlasenko <viy@altlinux.org>
@@ -25,8 +25,8 @@ BuildRequires: perl-devel pcre libpcre-devel
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
 of HTML::Template and HTML::Template::Expr. It is not intended 
 to be a complete replacement, but to be a fast implementation 
-of HTML::Template if you don't need extended facilities 
-of HTML::Template such as filters or quering.
+of HTML::Template if you don't need quering, the extended facility
+of HTML::Template. 
 Designed for heavy upload, resource limitations, abcence of mod_perl.
 
 HTML::Template module attempts make using HTML templates simple and natural. 
@@ -54,6 +54,12 @@ in the Perl script.
 %perl_vendor_man3dir/*
 
 %changelog
+* Fri Sep 30 2005 Igor Vlasenko <viy@altlinux.ru> 0.52-alt1
+- new version
+
+* Thu Sep 15 2005 Igor Vlasenko <viy@altlinux.ru> 0.51-alt1
+- new version
+
 * Thu Sep 01 2005 Igor Vlasenko <viy@altlinux.ru> 0.49-alt1
 - new version
 
@@ -101,4 +107,3 @@ in the Perl script.
 
 * Sun May 15 2005 Igor Vlasenko <viy@altlinux.ru> 0.34-alt1.1
 - First build for Daedalus.
-

@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.c,v 1.10 2005/08/31 17:30:21 igor Exp $
+ * $Id: pstring.c,v 1.11 2005/09/30 11:00:37 igor Exp $
  */
 
 #include <stdio.h>
@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include "pbuffer.h"
 #include "pstring.h"
+#include "tmpllog.h"
 
 PSTRING double_to_pstring (double number, char buffer[]) {
   size_t len=0;
@@ -44,7 +45,6 @@ PSTRING lowercase_pstring (PSTRING pstring) {
     *inbuf++=tolower(*i++);
   }
   *inbuf=0;
-  //if (debug>1 && size >0) fprintf(stderr," (lovercased to %s) ",buf);
   return (PSTRING) {buf, buf+size};
 }
 
@@ -107,7 +107,7 @@ int re_notlike(PSTRING a, PSTRING b) {
 
 #ifndef HAVE_PCRE
 int re_like(PSTRING a, PSTRING b) {
-    fprintf(stderr," (sorry, Stanislav Yadykin extension is disabled at compile time) \n");
+    tmpl_log(NULL,TMPL_LOG_ERROR," (sorry, Stanislav Yadykin extension is disabled at compile time) \n");
   return 0;
 }
 #else
@@ -125,7 +125,7 @@ int re_like(PSTRING a, PSTRING b) {
   re = pcre_compile(pattern, 0, &error, &erroffset, NULL); // default character set
   free(pattern);
   if (re==NULL) {
-    fprintf(stderr, "PCRE compilation failed at offset %d: %s\n",
+    tmpl_log(NULL,TMPL_LOG_ERROR, "PCRE compilation failed at offset %d: %s\n",
       erroffset, error);
     return 0;
   }

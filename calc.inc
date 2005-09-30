@@ -1,14 +1,13 @@
 /* -*- c -*- 
  * File: calc.c
- * $Id: calc.c,v 1.1 2005/06/09 08:46:42 igor Exp $
+ * $Id: calc.inc,v 1.1 2005/09/30 11:00:37 igor Exp $
  */
 #include <string.h>
-#include <stdlib.h>
-#include "calc.h"
 
 /* The symbol table: a chain of `struct symrec'. */
 struct symrec *sym_table;
 
+static
 void freesym (void) {
   while (sym_table) {
     struct symrec *next_sym=sym_table->next;
@@ -17,6 +16,7 @@ void freesym (void) {
   }
 }
 
+static
 symrec *
 putsym (char const *sym_name, int sym_type)
 {
@@ -31,6 +31,7 @@ putsym (char const *sym_name, int sym_type)
   return ptr;
 }
      
+static
 symrec *
 getsym (char const *sym_name)
 {

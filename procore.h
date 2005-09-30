@@ -1,12 +1,31 @@
 #define ERR_PRO_CANT_OPEN_FILE 1
 
 #include "pstring.h"
-#include "exprtool.h"
+#include "tmpllog.h"
 
 typedef int flag;
 
 struct tmplpro_state;
 struct tmplpro_param;
+
+extern void tmpl_log_state (struct tmplpro_state *state, int level);
+
+/* -------- Expr extension------------ */
+typedef char exprtype;
+#define EXPRINT 'i'
+#define EXPRDBL 'd'
+#define EXPRPSTR 'p'
+
+struct exprval {
+  exprtype type;
+  union uval {
+    int  intval; 		/* integer */
+    double dblval;		/* double */
+    PSTRING strval;
+  } val;
+};
+void expnum_debug (struct exprval val, char* msg);
+/* ------- end Expr extension -------- */
 
 typedef void    (*writerfunc) (char* begin, char* endnext);
 typedef PSTRING (*get_variable_func) (struct tmplpro_param* param, PSTRING name);
@@ -17,7 +36,7 @@ typedef const char* (*find_file_func) (const char* filename, const char* prevfil
 /* optional; we can use wrapper to load file and apply its filters before running itself */
 /* note that this function should allocate region 1 byte nore than the file size	 */
 typedef PSTRING (*load_file_func) (const char* filename);
-typedef PSTRING (*unload_file_func) (PSTRING memarea);
+typedef int     (*unload_file_func) (PSTRING memarea);
 /* those are needed for EXPR= extension */
 typedef void    (*init_expr_arglist_func) (struct tmplpro_param* param);
 typedef void    (*push_expr_arglist_func) (struct tmplpro_param* param, struct exprval);
@@ -32,6 +51,7 @@ struct tmplpro_param {
   int case_sensitive;
   int loop_context_vars;
   int strict;
+  int filters;
   const char* filename; /* template file */
   PSTRING scalarref; /* memory area */
   /* currently used in Perl code */
@@ -84,8 +104,6 @@ void procore_done();
 
 /* internal initialization of struct tmplpro_param */
 void param_init(struct tmplpro_param* param);
-
-void tag_warn  (struct tmplpro_state *state, char* message, PSTRING msg2);
 
 /* 
  * Local Variables:

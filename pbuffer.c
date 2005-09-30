@@ -6,6 +6,7 @@ struct pbuffer {
   char*  buffer;
 };
 
+static 
 struct pbuffer StrBuffer;
 
 size_t pbuffer_size() {

@@ -6,11 +6,11 @@
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "procore.h"
 #include "exprtool.h"
-  int yylex (void);
-  void yyerror (char const *);
+  static int yylex (void);
+  static void yyerror (char const *);
   /* expr-specific globals needed by yylex */
-  PSTRING expr_retval;
-  struct tmplpro_param* param;
+  static PSTRING expr_retval;
+  static struct tmplpro_param* param;
   %}
 %union {
   struct exprval numval;   /* For returning numbers.  */
@@ -156,12 +156,13 @@ arglist: numEXP 	 	 {
 %%
 
 /* Called by yyparse on error.  */
-void
+static void
 yyerror (char const *s)
 {
   expr_debug("not a valid expression:", s);
 }
-      
+
+static      
 struct builtin_func
 {
   char const *fname;
@@ -177,6 +178,7 @@ struct builtin_func
      {0, 0}
   };
 
+static
 struct builtin_ops
 {
   char const *oname;
@@ -196,7 +198,10 @@ struct builtin_ops
      {0, 0}
   };
 
+#include "calc.inc"
+
 /* Put arithmetic functions in table.  */
+static 
 void
 initsym (void)
 {
@@ -226,7 +231,9 @@ expr_free(void)
   freesym ();
 }
 
+static
 PSTRING expr;
+static
 char* curpos;
 
 /* 
@@ -234,7 +241,7 @@ char* curpos;
  * if not is_expect_quote_like we look only for 'str' and, possibly, "str"
  * if is_expect_quote_like we also look for /str/.
  */
-int is_expect_quote_like;
+static int is_expect_quote_like;
 
 PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 {
@@ -248,9 +255,10 @@ PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 }
 
 void expr_debug(char const *msg1, char const *msg2) {
-  fprintf(stderr, "EXPR:at pos %d: %s %s\n", curpos-expr.begin,msg1,msg2);
+  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %d: %s %s\n", curpos-expr.begin,msg1,msg2);
 }
 
+static
 PSTRING fill_symbuf (int is_accepted(char)) {
   register char c=*curpos;
   static char *symbuf = 0;
@@ -276,12 +284,12 @@ PSTRING fill_symbuf (int is_accepted(char)) {
   return (PSTRING) {symbuf, symbuf+i};
 }
 
-int is_alnum_lex (char c)
+static int is_alnum_lex (char c)
 {
   return (c == '_' || isalnum (c));
 }
 
-int is_not_identifier_ext_end (char c)  
+static int is_not_identifier_ext_end (char c)  
 { 
   return (c != '}');
 } 
@@ -289,7 +297,7 @@ int is_not_identifier_ext_end (char c)
 #define TESTOP(c1,c2,z)  if (c1 == c) { char d=*++curpos; if (c2 != d) return c; else curpos++; return z; }
 #define TESTOP3(c1,c2,c3,num2,str3)  if (c1 == c) { char d=*++curpos; if (c2 == d) {curpos++; return num2;} else if (c3 == d) {curpos++; is_expect_quote_like=1; return str3;} else return c; }
 
-int
+static int
 yylex (void)
 {
   register char c;
@@ -309,7 +317,8 @@ yylex (void)
 	    /* it's buggy, but Expr 0.0.4 compatible :( */
 	    ('\\' == c && ((c =*curpos) || 1)) /* any escaped char with \ , incl. quote */
 	    || 
-	    (c = *curpos) != terminal_quote)) curpos++;
+	    ((c = *curpos) != terminal_quote)) /* not end of string */
+	    ) curpos++;
     strvalue.endnext=curpos;
     if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
     yylval.numval.val.strval=strvalue;
@@ -327,7 +336,7 @@ yylex (void)
     }
 
   /* 
-   * Emiliano Bruno extension to Expr:
+   * Emiliano Bruni extension to Expr:
    * original HTML::Template allows almost arbitrary chars in parameter names,
    * but original HTML::Template::Expr (as to 0.04) allows only
    * var to be m![A-Za-z_][A-Za-z0-9_]*!.
@@ -357,7 +366,7 @@ yylex (void)
 	yylval.tptr = s;
 	return s->type;
       } else if ((yylval.extfunc=(param->IsExprUserfncFuncPtr)(param, name))) {
-	/* fprintf(stderr, "lex:detected func %s\n", name.begin); */
+	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {
 	/* s = putsym (symbuf, VAR); */
@@ -371,7 +380,6 @@ yylex (void)
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
 	} else yylval.numval.val.strval=varvalue;
 	yylval.numval.type=EXPRPSTR;
-	// fprintf(stderr, "lex:decoded number %s\n", name.begin);
 	return NUM;
       }
     }
@@ -392,3 +400,4 @@ yylex (void)
   return c;
 }
 
+#include "exprtool.inc"

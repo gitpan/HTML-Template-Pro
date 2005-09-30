@@ -3,12 +3,14 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:17 2005
  *
- * $Id: exprtool.c,v 1.11 2005/08/04 15:56:59 igor Exp $
+ * $Id: exprtool.inc,v 1.1 2005/09/30 11:00:37 igor Exp $
  */
 
+/*
 #include "exprtool.h"
-#include <ctype.h> /* for yylex alnum */
-#include <stdio.h> /* for printf */
+#include <ctype.h> // for yylex alnum
+#include <stdio.h> // for printf
+*/
 
 #define EXPR_CHECK_NUMBER(ptr)   switch (ptr->type) { \
   case EXPRINT: case EXPRDBL: break; \
@@ -17,13 +19,21 @@
   ptr->type = EXPRINT; \
 }
 
+#define EXPR_CHECK_LOGICAL(ptr)   switch (ptr->type) { \
+  case EXPRINT: case EXPRDBL: break; \
+  case EXPRPSTR: expr_to_bool(ptr); break; \
+  default: expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
+  ptr->type = EXPRINT; \
+}
+
 /* 
  * for sprintf %f
  * internal expr buffers for conversion int/double --> string 
  */
-char left_buffer[40]; 
-char right_buffer[40];
+static char left_buffer[40]; 
+static char right_buffer[40];
 
+static
 exprtype expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(val1);
   EXPR_CHECK_NUMBER(val2);
@@ -42,6 +52,26 @@ exprtype expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
   return EXPRDBL;
 }
 
+static
+exprtype expr_to_int_or_dbl_logop (struct exprval* val1, struct exprval* val2) {
+  EXPR_CHECK_LOGICAL(val1);
+  EXPR_CHECK_LOGICAL(val2);
+  if (val1->type == EXPRINT && val2->type == EXPRINT)
+    return EXPRINT;
+  if (val1->type == EXPRDBL && val2->type == EXPRDBL)
+    return EXPRDBL;
+  if (val1->type == EXPRINT) {
+    val1->type=EXPRDBL;
+    val1->val.dblval=val1->val.intval;
+  }
+  if (val2->type == EXPRINT) {
+    val1->type=EXPRDBL;
+    val2->val.dblval=val2->val.intval;
+  }
+  return EXPRDBL;
+}
+
+static
 void expr_to_dbl (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(val1);
   EXPR_CHECK_NUMBER(val2);
@@ -55,6 +85,7 @@ void expr_to_dbl (struct exprval* val1, struct exprval* val2) {
   }
 }
 
+static
 void expr_to_dbl1 (struct exprval* val1) {
   EXPR_CHECK_NUMBER(val1);
   if (val1->type == EXPRINT) {
@@ -63,6 +94,7 @@ void expr_to_dbl1 (struct exprval* val1) {
   }
 }
 
+static
 void expr_to_int (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(val1);
   EXPR_CHECK_NUMBER(val2);
@@ -78,6 +110,7 @@ void expr_to_int (struct exprval* val1, struct exprval* val2) {
   }
 }
 
+static
 void expr_to_str (struct exprval* val1, struct exprval* val2) {
   switch (val1->type) {
   case EXPRPSTR: break;
@@ -96,11 +129,13 @@ void expr_to_str (struct exprval* val1, struct exprval* val2) {
   val2->type = EXPRPSTR;
 }
 
+static
 inline int is_float_lex (char c)
 {
   return (c == '.' || isdigit (c));
 }
 
+static
 struct exprval exp_read_number (char* *curposptr, char* endchars) {
   char c = **curposptr;
   struct exprval retval;
@@ -146,6 +181,7 @@ struct exprval exp_read_number (char* *curposptr, char* endchars) {
   return retval;
 }
 
+static
 void expr_to_num (struct exprval* val1)
 {
   if (val1->type == EXPRPSTR) {
@@ -154,18 +190,36 @@ void expr_to_num (struct exprval* val1)
   }
 }
 
+static
+void expr_to_bool (struct exprval* val1)
+{
+  if (val1->type == EXPRPSTR) {
+    char* begin=val1->val.strval.begin;
+    char* end=val1->val.strval.endnext;
+    char* curpos=begin;
+    *val1=exp_read_number (&curpos, end);
+    if (val1->type == EXPRINT) {
+      if (val1->val.intval || (curpos == end)) return;
+      else val1->val.intval=1; /* strings are true in perl */
+    }
+    else
+      if (val1->type == EXPRDBL) {
+	if (val1->val.dblval || (curpos == end)) return;
+	else val1->val.dblval=1.0; /* strings are true in perl */
+      }
+  }
+}
+
 void expnum_debug (struct exprval val, char* msg) 
 {
+  tmpl_log(NULL,TMPL_LOG_DEBUG,"--> debug %s:type %c ",msg,val.type);
   if (val.type == EXPRINT)
-    fprintf(stderr,"--> debug %s:type %c ival=%d\n",msg,val.type,val.val.intval);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"ival=%d\n",val.val.intval);
   else if (val.type == EXPRDBL)
-    fprintf(stderr,"--> debug %s:type %c dval=%f\n",msg,val.type,val.val.dblval);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"dval=%f\n",val.val.dblval);
   else if (val.type == EXPRPSTR) {
-    char* curpos=val.val.strval.begin;
-    fprintf(stderr,"--> debug %s:type %c sval=",msg,val.type);
-    while (curpos<val.val.strval.endnext) fputc(*curpos++,stderr);
-    fputc('\n',stderr);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"sval=%.*s\n",val.val.strval.endnext-val.val.strval.begin,val.val.strval.begin);
   } else {
-    fprintf(stderr,"--> debug %s:type %c ival=%d\n",msg,val.type,val.val.intval);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"ival=%d\n",val.val.intval);
   }
 }

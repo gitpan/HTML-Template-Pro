@@ -21,6 +21,7 @@ $DEBUG||=0;
 
 HTML::Template::Pro->register_function('registered_func'=>sub { return shift(); });
 HTML::Template::Pro->register_function('hello_string'=>sub { return 'hello!'; });
+HTML::Template::Pro->register_function('arglist'=>sub { return '['.join('][',@_).']'; });
 
 my @exprset1=(ONE=>1,TWO=>2,THREE=>3,ZERO=>0);
 my @brunoext=('foo.bar'=>'<test passed>');

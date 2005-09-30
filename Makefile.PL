@@ -2,8 +2,8 @@ use 5.005;
 use ExtUtils::MakeMaker;
 $Verbose = 1;
 
-$O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o calc.o expr.o pstring.o exprtool.o 
-   loadfile.o tmpllog.o/;
+$O_FILES=qw/procore.o pstack.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
+#  loadfile.o calc.o exprtool.o
 
 my $INC='-I.';
 my $DEFINE='';
@@ -64,6 +64,9 @@ WriteMakefile(
 
 sub MY::postamble {
     return <<'MAKE_FRAG';
+expr.c: calc.inc exprtool.inc
+procore.o: loadfile.inc
+
 rpm: dist
 	rpmbuild -ta --clean --target i586-alt-linux HTML-Template-Pro-$(VERSION).tar.gz
 

@@ -17,16 +17,18 @@ pbuffer.c
 proscope.h
 proscope.c 
 calc.h
-calc.c
+calc.inc
 pstring.h
 pstring.c 
 expr.h
 expr.y
 expr.c                                  old perls can't yacc it
 exprtool.h
-exprtool.c
+exprtool.inc
 loadfile.h
-loadfile.c
+loadfile.inc
+tmpllog.h
+tmpllog.c
 Pro.xs
 README
 README.ru

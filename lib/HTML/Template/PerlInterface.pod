@@ -448,10 +448,6 @@ files.  A filter is a subroutine that will be called after
 HTML::Template reads your template file but before it starts parsing
 template tags.
 
-I<WARNING>: filters are not supported in HTML::Template::Pro.
-
-=begin comment
-
 In the most simple usage, you simply assign a code reference to the
 filter parameter.  This subroutine will recieve a single arguement - a
 reference to a string containing the template file text.  Here is an
@@ -494,9 +490,6 @@ specified.
 
 The specified filters will be called for any TMPL_INCLUDEed files just
 as they are for the main template file.
-
-=end comment
-
 
 
 =back
@@ -729,7 +722,7 @@ HTML::Template::Pro issues warning to STDERR and continue.
 
 the following options are not supported in HTML::Template::Pro:
 
- filter, vanguard_compatibility_mode.
+ vanguard_compatibility_mode.
 
 The options die_on_bad_params and strict are ignored.
 HTML::Template::Pro behaves itself as HTML::Template called with 
@@ -737,9 +730,10 @@ HTML::Template::Pro behaves itself as HTML::Template called with
 
 It currently can't be changed, because HTML::Template::Pro can't
 know whether a parameter is bad before it start output.
+This may change in future releases.
 
 To keep backward compatibility with HTML::Template, you should 
-explicitly call new() with die_on_bad_params => 0, strict => 0.
+explicitly call its new() with die_on_bad_params => 0, strict => 0.
 
 =head2 query()
 

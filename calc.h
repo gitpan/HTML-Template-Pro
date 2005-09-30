@@ -17,15 +17,16 @@ struct symrec
 typedef struct symrec symrec;
      
 /* The symbol table: a chain of `struct symrec'.  */
+/*
 extern symrec *sym_table;
      
 symrec *putsym (char const *, int);
 symrec *getsym (char const *);
 void freesym (void);
+*/
 
 /*
   Local Variables:
   mode: c
-  coding: cp1251
   End:
 */

@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.50';
+$VERSION = '0.52';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -135,12 +135,14 @@ sub new {
     }
     if ($options->{arrayref}) {
 	die "bad value of arrayref" unless UNIVERSAL::isa($_[0], 'ARRAY');
-	$options->{scalarref}=join('',@{$options->{arrayref}});
+	my $template=join('',@{$options->{arrayref}});
+	$options->{scalarref}=\$template;
     }
     if ($options->{filehandle}) {
 	local $/; # enable "slurp" mode
 	local *FH=$options->{filehandle};
-	$options->{scalarref}=<FH>;
+	my $template=<FH>;
+	$options->{scalarref}=\$template;
     }
 
     # merging built_in funcs with user-defined funcs
@@ -148,6 +150,8 @@ sub new {
 
     $options->{options}=$options; # hack to be fully compatible with HTML::Template
     bless $options,$class;
+    $options->_call_filters($options->{scalarref}) if $options->{scalarref} and @{$options->{filter}};
+    return $options; # == $self
 }
 
 # a few shortcuts to new(), of possible use...
@@ -262,14 +266,14 @@ sub _lowercase_keys {
     return $newhash;
 }
 
-sub _load_file {
-    my $filepath=shift;
-    open my $fh, $filepath or die $!;
-    local $/; # enable localized slurp mode
-    my $content = <$fh>;
-    close $fh;
-    return $content;
-}
+# sub _load_file {
+#     my $filepath=shift;
+#     open my $fh, $filepath or die $!;
+#     local $/; # enable localized slurp mode
+#     my $content = <$fh>;
+#     close $fh;
+#     return $content;
+# }
 
 ## HTML::Template based
 
@@ -328,6 +332,69 @@ sub _find_file {
   }
   
   return undef;
+}
+
+sub _load_template {
+  my $self = shift;
+  my $filepath=shift;
+  my $template = "";
+    confess("HTML::Template->new() : Cannot open file $filepath : $!")
+        unless defined(open(TEMPLATE, $filepath));
+    # read into scalar
+    while (read(TEMPLATE, $template, 10240, length($template))) {}
+    close(TEMPLATE);
+  $self->_call_filters(\$template) if @{$self->{filter}};
+  return \$template;
+}
+
+# handle calling user defined filters
+sub _call_filters {
+  my $self = shift;
+  my $template_ref = shift;
+  my $options = $self->{options};
+
+  my ($format, $sub);
+  foreach my $filter (@{$options->{filter}}) {
+    croak("HTML::Template->new() : bad value set for filter parameter - must be a code ref or a hash ref.")
+      unless ref $filter;
+
+    # translate into CODE->HASH
+    $filter = { 'format' => 'scalar', 'sub' => $filter }
+      if (ref $filter eq 'CODE');
+
+    if (ref $filter eq 'HASH') {
+      $format = $filter->{'format'};
+      $sub = $filter->{'sub'};
+
+      # check types and values
+      croak("HTML::Template->new() : bad value set for filter parameter - hash must contain \"format\" key and \"sub\" key.")
+        unless defined $format and defined $sub;
+      croak("HTML::Template->new() : bad value set for filter parameter - \"format\" must be either 'array' or 'scalar'")
+        unless $format eq 'array' or $format eq 'scalar';
+      croak("HTML::Template->new() : bad value set for filter parameter - \"sub\" must be a code ref")
+        unless ref $sub and ref $sub eq 'CODE';
+
+      # catch errors
+      eval {
+        if ($format eq 'scalar') {
+          # call
+          $sub->($template_ref);
+        } else {
+	  # modulate
+	  my @array = map { $_."\n" } split("\n", $$template_ref);
+          # call
+          $sub->(\@array);
+	  # demodulate
+	  $$template_ref = join("", @array);
+        }
+      };
+      croak("HTML::Template->new() : fatal error occured during filter call: $@") if $@;
+    } else {
+      croak("HTML::Template->new() : bad value set for filter parameter - must be code ref or hash ref");
+    }
+  }
+  # all done
+  return $template_ref;
 }
 
 1;

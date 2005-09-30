@@ -1,21 +1,22 @@
 /* -*- c -*- 
- * File: loadfile.c
+ * File: loadfile.h
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
- * Created: Thu Sep  8 17:18:46 2005
+ * Created: Thu Sep  8 17:16:48 2005
  *
- * $Id: loadfile.c,v 1.1 2005/09/08 17:31:29 igor Exp $
+ * $Id: loadfile.inc,v 1.1 2005/09/30 11:00:37 igor Exp $
  */
-
-#include "procore.h"
 
 #ifdef WIN32
 
 #include <windows.h>
 #include <stdio.h>
 
+static 
 HANDLE hMapObject;
+static 
 HANDLE hFile;
 
+static 
 PSTRING mmap_load_file (const char* filepath) {
   LPCTSTR lpvMem;
   DWORD size_in_bytes;
@@ -61,6 +62,7 @@ PSTRING mmap_load_file (const char* filepath) {
   return memarea;
 }
 
+static 
 int mmap_unload_file (PSTRING memarea) {
   UnmapViewOfFile((void *)memarea.begin);
   CloseHandle(hMapObject);
@@ -70,12 +72,13 @@ int mmap_unload_file (PSTRING memarea) {
 
 #else /* unix!!! :) */
 
-#define NULL 0
+/* # define NULL 0 */
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>  /* open  */
 #include <unistd.h> /* close */
 
+static 
 PSTRING mmap_load_file (const char* filepath) {
   int fd;
   struct stat st;
@@ -92,6 +95,7 @@ PSTRING mmap_load_file (const char* filepath) {
   return memarea;
 }
 
+static 
 int mmap_unload_file (PSTRING memarea) {
   /* destroying */
   return munmap((void *)memarea.begin, memarea.endnext-memarea.begin);

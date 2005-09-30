@@ -1,12 +1,15 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "pstack.h"
+#include "tmpllog.h"
 
 #define MAX_ENV_DEPTH 256
 
+static 
 struct pstack_entry* pstack;
+static 
 int pstack_pos=-1;
+static 
 int pstack_depth=MAX_ENV_DEPTH;
 
 void pstack_init() {
@@ -25,8 +28,9 @@ int pstack_notempty() {
   return pstack_pos>=0;
 }
 
+static 
 void pstack_debug(struct pstack_entry item) {
- fprintf(stderr,"vcontext = %d value=%d\n",item.vcontext,item.value);
+ tmpl_log(NULL,TMPL_LOG_DEBUG,"vcontext = %d value=%d\n",item.vcontext,item.value);
 }
 
 struct pstack_entry pstack_top() {
@@ -39,10 +43,10 @@ struct pstack_entry* pstack_head() {
 
 struct pstack_entry pstack_pop() {
   if (pstack_pos<0) {
-    fprintf(stderr,"stack underflow:tags stack is empty\n");
+    tmpl_log(NULL,TMPL_LOG_ERROR,"stack underflow:tags stack is empty\n");
     pstack_pos=0;
     if (pstack_depth<0) {
-      fprintf(stderr,"FATAL:stack error:tags stack is uninitialized\n");
+      tmpl_log(NULL,TMPL_LOG_ERROR,"FATAL:stack error:tags stack is uninitialized\n");
       pstack_init();
     }
   }

@@ -22,14 +22,20 @@ extern "C" {
 typedef PerlIO *        OutputStream;
 
 
+static 
 PerlIO* OutputFile;
+static 
 SV* OutputString;
+static
+AV* PerlFilteredTmpls=NULL;
 
+static 
 SV* PerlSelfHTMLTemplatePro;
+static 
 int debuglevel=0;
 
 /* endnext points on next character to end of interval as in c++ */
-void write_chars_to_file (char* begin, char* endnext) {
+static void write_chars_to_file (char* begin, char* endnext) {
   register char* i;
   for (i=begin; i<endnext; i++) {
     PerlIO_putc(OutputFile,*i);
@@ -37,10 +43,11 @@ void write_chars_to_file (char* begin, char* endnext) {
 }
 
 /* endnext points on next character to end of interval as in c++ */
-void write_chars_to_string (char* begin, char* endnext) {
+static void write_chars_to_string (char* begin, char* endnext) {
   sv_catpvn(OutputString, begin, endnext-begin);
 }
 
+static 
 SV ** walk_through_nested_loops (struct tmplpro_param* param, PSTRING name) {
   int PrevHash;
   SV** hashvalptr=hv_fetch((HV*) CurrentScope->param_HV,name.begin, name.endnext-name.begin, 0);
@@ -54,6 +61,7 @@ SV ** walk_through_nested_loops (struct tmplpro_param* param, PSTRING name) {
   return NULL;
 }
 
+static 
 PSTRING get_perl_var_value (struct tmplpro_param* param, PSTRING name) {
   STRLEN len=0;
   char *value;
@@ -68,6 +76,7 @@ PSTRING get_perl_var_value (struct tmplpro_param* param, PSTRING name) {
   }
 }
 
+static 
 int is_perl_value_true (struct tmplpro_param* param, PSTRING name) {
   SV** hashvalptr;
   hashvalptr=walk_through_nested_loops(param, name);
@@ -85,6 +94,7 @@ int is_perl_value_true (struct tmplpro_param* param, PSTRING name) {
   return 0;
 }
 
+static 
 int perl_next_loop (struct tmplpro_state* state) {
   SV** arrayvalptr;
   arrayvalptr=av_fetch((AV*)CurrentScope->loops_AV, CurrentScope->loop, 0);
@@ -97,6 +107,7 @@ int perl_next_loop (struct tmplpro_state* state) {
   }
 }
 
+static 
 int perl_init_loop (struct tmplpro_state* state, PSTRING name) {
   AV* loops_AV;
   int maxloop;
@@ -118,6 +129,7 @@ int perl_init_loop (struct tmplpro_state* state, PSTRING name) {
   }
 }
 
+static 
 const char* get_filepath (const char* filename, const char* prevfilename) {
   dSP ;
   int count ;
@@ -153,12 +165,56 @@ const char* get_filepath (const char* filename, const char* prevfilename) {
   return filepath;
 }
 
+static 
+PSTRING load_file (const char* filepath) {
+  dSP ;
+  int count ;
+  STRLEN len;
+  PSTRING tmpl;
+  SV* templateptr;
+  SV* perlretval = sv_2mortal(newSVpv(filepath,0));
+  ENTER ;
+  SAVETMPS;
+  PUSHMARK(SP) ;
+  XPUSHs(PerlSelfHTMLTemplatePro);
+  XPUSHs(perlretval);
+  PUTBACK ;
+  count = call_pv("_load_template", G_SCALAR);
+  SPAGAIN ;
+  if (count != 1) croak("Big troublen") ;
+  templateptr=POPs;
+  /* any memory leaks??? */  
+  if (SvOK(templateptr) && SvROK(templateptr)) {
+    tmpl.begin = SvPV(SvRV(templateptr), len);
+    tmpl.endnext=tmpl.begin+len;
+    av_push(PerlFilteredTmpls,templateptr);
+    SvREFCNT_inc(SvRV(templateptr));
+  } else {
+    croak("Big trouble! _load_template internal fatal error\n") ;
+  }
+  PUTBACK ;
+  FREETMPS ;
+  LEAVE ;
+  return tmpl;
+}
+
+static
+int unload_file(PSTRING memarea) {
+  /*
+   * scalar is already mortal so we don't need dereference it
+   * SvREFCNT_dec(SvRV(av_pop(PerlFilteredTmpls)));
+   */
+  av_pop(PerlFilteredTmpls); 
+  return 0;
+}
+
+static 
 void* is_expr_userfnc (struct tmplpro_param* param, PSTRING name) {
   SV** hashvalptr=hv_fetch((HV *) param->ExprFuncHash, name.begin, name.endnext-name.begin, 0);
-  /*fprintf(stderr, "is call: name=%s (%p)\n", name.begin, hashvalptr);*/
   return hashvalptr;
 }
 
+static 
 inline void free_expr_arglist(struct tmplpro_param* param)
 {
   if (NULL!=param->ExprFuncArglist) {
@@ -166,25 +222,28 @@ inline void free_expr_arglist(struct tmplpro_param* param)
   }
 }
 
+static 
 void init_expr_arglist(struct tmplpro_param* param)
 {
   free_expr_arglist(param);
   param->ExprFuncArglist=newAV();
 }
 
+static 
 void push_expr_arglist(struct tmplpro_param* param,  struct exprval exprval)
 {
   SV* val=NULL;
   switch (exprval.type) {
   case EXPRINT:  val=newSViv(exprval.val.intval);break;
   case EXPRDBL:  val=newSVnv(exprval.val.dblval);break;
-  case EXPRPSTR: val=newSVpv(exprval.val.strval.begin, exprval.val.strval.endnext-exprval.val.strval.begin);break;
+  case EXPRPSTR: val=newSVpvn(exprval.val.strval.begin, exprval.val.strval.endnext-exprval.val.strval.begin);break;
   default: die ("FATAL INTERNAL ERROR:Unsupported type %d in exprval", exprval.type);
   }
   av_push ((AV*) param->ExprFuncArglist, val);
   if (debuglevel>6) expnum_debug (exprval, "EXPR: arglist: pushed ");
 }
 
+static 
 struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr) {
   dSP ;
   char* empty="";
@@ -248,12 +307,14 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
   return retval;
 }
 
+static 
 int get_integer_from_hash(HV* TheHash, char* key) {
   SV** hashvalptr=hv_fetch(TheHash, key, strlen(key), 0);
   if (hashvalptr==NULL) return 0;
   return SvIV(*hashvalptr);
 }
 
+static 
 PSTRING get_string_from_hash(HV* TheHash, char* key) {
   SV** hashvalptr=hv_fetch(TheHash, key, strlen(key), 0);
   STRLEN len=0;
@@ -269,6 +330,7 @@ PSTRING get_string_from_hash(HV* TheHash, char* key) {
   return (PSTRING) {begin, begin+len};
 }
 
+static 
 struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   struct tmplpro_param param;
   HV* SelfHash;
@@ -283,8 +345,8 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   param.InitLoopFuncPtr=&perl_init_loop;
   param.NextLoopFuncPtr=&perl_next_loop;
   param.FindFileFuncPtr=&get_filepath;
-  param.LoadFileFuncPtr=NULL;
-  param.UnloadFileFuncPtr=NULL;
+  param.LoadFileFuncPtr=&load_file;
+  param.UnloadFileFuncPtr=&unload_file;
   /*   setting initial Expr hooks */
   param.InitExprArglistFuncPtr=&init_expr_arglist;
   param.PushExprArglistFuncPtr=&push_expr_arglist;
@@ -294,6 +356,7 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
 
   /*   setting perl globals */
   PerlSelfHTMLTemplatePro=PerlSelfPtr;
+  PerlFilteredTmpls=newAV();
   /*  end setting perl globals */
 
   if ((!SvROK(PerlSelfPtr)) || (SvTYPE(SvRV(PerlSelfPtr)) != SVt_PVHV))
@@ -314,6 +377,13 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
     die("FATAL:output:param_map not found");
   SetRootScope((HV *)SvRV(*hashvalptr));
+  /* end setting param_map */
+
+  /* setting filter */
+  hashvalptr=hv_fetch(SelfHash, "filter", 6, 0); /* 6=strlen("filter") */
+  if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVAV))
+    die("FATAL:output:filter not found");
+  if (av_len(SvRV(*hashvalptr))>=0) param.filters=1;
   /* end setting param_map */
 
   param.selfpath=NULL; /* we are not included by somthing */

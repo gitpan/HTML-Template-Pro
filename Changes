@@ -61,3 +61,13 @@ Revision history for Perl extension HTML::Template::Pro.
 0.48  Wed Aug 31 20:31:41 2005
 	- added support for cmp in Expr
 	- minor bugfixes in string comparison
+
+0.50  Thu Sep 8 12:34:56 2005
+	- added new debug subsystem
+
+0.51  Thu Sep 15 19:37:13 2005
+	- compatibility fixes in Expr
+
+0.52  Thu Sep 30 14:39:00 2005
+	- Expr: fixed bug with empty string passed
+	- added filters support
