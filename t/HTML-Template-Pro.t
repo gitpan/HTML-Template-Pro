@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+2*16 };
+BEGIN { plan tests => 1+2*17 };
 #use HTML::Template;
 use HTML::Template::Pro;
 ok(1); # If we made it this far, we're ok.
@@ -43,6 +43,7 @@ test_tmpl('test_if1',  @varset1);
 test_tmpl('test_if2',  @varset1);
 test_tmpl('test_if3',  @refset1);
 test_tmpl('test_if4',  @varset1);
+test_tmpl('test_if5',  @varset1);
 test_tmpl('test_include1', @varset1);
 test_tmpl('test_include2', @varset1);
 test_tmpl('test_include3', @varset1);

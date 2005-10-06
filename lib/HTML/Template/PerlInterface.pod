@@ -221,8 +221,6 @@ to cache preparsed html templates.
 Since HTML::Template::Pro parses and outputs templates at once,
 it silently ignores those options.
 
-=back
-
 =item Filesystem Options
 
 =over 4
@@ -308,7 +306,7 @@ the order they appear:
   my $template = HTML::Template->new(filename => 'template.tmpl',
                                      associate => [$query, $other_obj]);
 
-= begin comment 
+=begin comment
 
 The old associateCGI() call is still supported, but should be
 considered obsolete.
@@ -494,6 +492,8 @@ as they are for the main template file.
 
 =back
 
+=back
+
 =cut
 
 
@@ -629,6 +629,7 @@ The return value is undefined when using the "print_to" option.
 This method is not supported in HTML::Template::Pro.
 
 =begin comment
+
 This method allow you to get information about the template structure.
 It can be called in a number of ways.  The simplest usage of query is
 simply to check whether a parameter name exists in the template, using

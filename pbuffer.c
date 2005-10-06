@@ -26,7 +26,7 @@ char* pbuffer_string() {
 char* pbuffer_resize(size_t size) {
   if (StrBuffer.bufsize< size) {
     StrBuffer.bufsize=2*size; /* aggresive memory allocation to prevent frequent requests*/
-    realloc (StrBuffer.buffer,StrBuffer.bufsize * sizeof(char));
+    StrBuffer.buffer=realloc (StrBuffer.buffer,StrBuffer.bufsize * sizeof(char));
   }
   return StrBuffer.buffer;
 }

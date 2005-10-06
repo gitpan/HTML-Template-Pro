@@ -383,7 +383,7 @@ struct tmplpro_param process_tmplpro_options (SV* PerlSelfPtr) {
   hashvalptr=hv_fetch(SelfHash, "filter", 6, 0); /* 6=strlen("filter") */
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVAV))
     die("FATAL:output:filter not found");
-  if (av_len(SvRV(*hashvalptr))>=0) param.filters=1;
+  if (av_len((AV*)SvRV(*hashvalptr))>=0) param.filters=1;
   /* end setting param_map */
 
   param.selfpath=NULL; /* we are not included by somthing */

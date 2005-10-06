@@ -495,7 +495,7 @@ Here's a list of supported comparison operators:
 
 =item * E<lt>=E<gt>
 
-=back 4
+=back
 
 =item * String Comparisons
 
@@ -515,9 +515,9 @@ Here's a list of supported comparison operators:
 
 =item * cmp
 
-=back 4
+=back
 
-=back 4
+=back
 
 =head1 MATHEMATICS
 
@@ -537,7 +537,7 @@ The basic operators are supported:
 
 =item * ^ (not supported in HTML::Template::Expr)
 
-=back 4
+=back
 
 There are also some mathy functions.  See the FUNCTIONS section below.
 
@@ -551,7 +551,7 @@ Boolean logic is available:
 
 =item * || (synonym: or)
 
-=back 4
+=back
 
 =head1 REGULAR EXPRESSION SUPPORT
 
@@ -567,7 +567,7 @@ Standart regexp syntax:
 
 =item * !~
 
-=back 4
+=back
 
 =head1 FUNCTIONS
 
@@ -616,7 +616,7 @@ perldoc perlfunc for details.
 
 =item * srand
 
-=back 4
+=back
 
 All functions must be called using full parenthesis.  For example,
 this is a syntax error:

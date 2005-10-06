@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.h,v 1.7 2005/08/19 18:16:42 igor Exp $
+ * $Id: pstring.h,v 1.8 2005/10/06 13:14:59 igor Exp $
  */
 
 #ifndef _PSTRING_H
@@ -14,10 +14,10 @@ typedef struct pstring {
   char* endnext;
 } PSTRING;
 
-PSTRING double_to_pstring (double, char* buf);
-PSTRING int_to_pstring (int,char* buf);
 PSTRING lowercase_pstring (PSTRING);
 int is_pstring_true (PSTRING s);
+PSTRING double_to_pstring (double, char* buf);
+PSTRING int_to_pstring (int,char* buf);
 int pstring_ge(PSTRING, PSTRING);
 int pstring_le(PSTRING, PSTRING);
 int pstring_ne(PSTRING, PSTRING);

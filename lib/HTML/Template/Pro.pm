@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.52';
+$VERSION = '0.53';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -250,6 +250,10 @@ sub _lowercase_keys {
     my $orighash=shift;
     my $newhash={};
     my ($key,$val);
+    unless (UNIVERSAL::isa($orighash, 'HASH')) {
+	Carp::carp "HTML::Template::Pro:_lowercase_keys:in param_tree: found strange parameter $orighash while hash was expected";
+	return;
+    }
     while (($key,$val)=each %$orighash) {
 	if (ref($val)) {
 	    if (UNIVERSAL::isa($val, 'ARRAY')) {

@@ -11,7 +11,7 @@ procore.c
 procore.h
 ppport.h
 pstack.h
-pstack.c
+pstack.inc
 pbuffer.h
 pbuffer.c
 proscope.h
@@ -39,6 +39,8 @@ t/HTML-Template-Expr.t
 t/02basic.t
 t/03complex.t
 t/04register.t
+t/realloc.t
+t/pod.t
 cmp_expr.t
 benchmark.pl.t
 META.yml                                 Module meta-data (added by MakeMaker)
@@ -52,6 +54,8 @@ templates-Pro/test_if3.out
 templates-Pro/test_if3.tmpl
 templates-Pro/test_if4.out
 templates-Pro/test_if4.tmpl
+templates-Pro/test_if5.out
+templates-Pro/test_if5.tmpl
 templates-Pro/test_include1.out
 templates-Pro/test_include1.tmpl
 templates-Pro/test_include2.out
@@ -85,6 +89,7 @@ templates-Pro/test_expr4.out
 templates-Pro/test_expr4.tmpl
 templates-Pro/test_broken1.out
 templates-Pro/test_broken1.tmpl
+templates-Pro/test_malloc.tmpl
 templates/case_loop.tmpl
 templates/context.tmpl
 templates/counter.tmpl

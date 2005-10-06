@@ -5,13 +5,21 @@ struct pstack_entry {
   char* position;
 };
 
+static 
 void pstack_init();
+static 
 void pstack_free();
+static 
 void pstack_push(struct pstack_entry);
+static 
 struct pstack_entry pstack_pop();
+static 
 struct pstack_entry pstack_top();
+static 
 struct pstack_entry* pstack_head();
+static 
 int pstack_notempty();
+static 
 int pstack_selftest();
 
 /*

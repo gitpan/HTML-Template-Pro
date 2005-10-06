@@ -158,6 +158,7 @@ PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
   char* curpos=pstring.begin;
   size_t offset=0;
   size_t buflen=pbuffer_size();
+
   switch (escapeopt) {
   case HTML_TEMPLATE_OPT_ESCAPE_HTML:
     while (curpos<pstring.endnext) {
@@ -232,7 +233,8 @@ void tmpl_log_state (struct tmplpro_state *state, int level)
 {
   tmpl_log(NULL,level, "HTML::Template::Pro:in %cTMPL_%s at pos %d:",
 	  (state->is_tag_closed ? '/' : ' '), 
-	  TAGNAME[state->tag], state->tag_start - state->top);
+	   (state->tag>HTML_TEMPLATE_BAD_TAG && state->tag <=HTML_TEMPLATE_LAST_TAG_USED) ? TAGNAME[state->tag] : "", 
+	   state->tag_start - state->top);
 }
 
 static 
@@ -250,11 +252,11 @@ void tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalu
   if (varvalue.begin==NULL) {
     varvalue=(state->param->GetVarFuncPtr)(state->param, name);
   }
-  if (debuglevel) {
+  if (debuglevel>=TMPL_LOG_DEBUG) {
       if (varvalue.begin!=NULL) {
-      tmpl_log(NULL,TMPL_LOG_DEBUG,"veriable value = %.*s\n",varvalue.endnext-varvalue.begin,varvalue.begin);
+      tmpl_log(state,TMPL_LOG_DEBUG,"variable value = %.*s\n",varvalue.endnext-varvalue.begin,varvalue.begin);
     } else {
-      tmpl_log(NULL,TMPL_LOG_DEBUG,"veriable value = UNDEF\n");
+      tmpl_log(state,TMPL_LOG_DEBUG,"variable value = UNDEF\n");
     }
   }
   if (varvalue.begin==NULL && defvalue.begin!=defvalue.endnext) {
@@ -628,7 +630,8 @@ void process_tmpl_tag(struct tmplpro_state *state)
 
   if (state->is_tag_commented) {
     /* try read comment end */
-    /* jump_over_space(state); it is already done */
+    /* jump_over_space(state); it should be already done :( */
+    jump_over_space(state);
     if (state->cur_pos<state->next_to_end-2 && '-'==*(state->cur_pos) && '-'==*(state->cur_pos+1)) {
       state->cur_pos+=2;
     }
@@ -701,13 +704,15 @@ void process_state (struct tmplpro_state * state)
   char* last_safe_pos=state->next_to_end-TAG_WIDTH_OFFSET;
   pbuffer_init();
   while (state->cur_pos < last_safe_pos) {
-    while (state->cur_pos < last_safe_pos && '<'!=*(state->cur_pos++)) {};
-    if (state->cur_pos >= last_safe_pos) break;
-    state->tag_start=state->cur_pos-1;
+    register char* cur_pos=state->cur_pos;
+    while (cur_pos < last_safe_pos && '<'!=*(cur_pos++)) {};
+    if (cur_pos >= last_safe_pos) break;
+    state->tag_start=cur_pos-1;
     is_tag_closed=0;
     is_tag_commented=0;
-    if (('!'==*(state->cur_pos)) && ('-'==*(state->cur_pos+1)) && ('-'==*(state->cur_pos+2))) {
-      state->cur_pos=state->cur_pos+3;
+    state->cur_pos=cur_pos;
+    if (('!'==*(cur_pos)) && ('-'==*(cur_pos+1)) && ('-'==*(cur_pos+2))) {
+      state->cur_pos+=3;
       jump_over_space(state);
     is_tag_commented=1;
     }
@@ -722,6 +727,7 @@ void process_state (struct tmplpro_state * state)
     }
   }
   (state->param->WriterFuncPtr)(state->last_processed_pos,state->next_to_end);
+
   pbuffer_free();
   if (debuglevel) tmpl_log(NULL,TMPL_LOG_DEBUG,"process_state:finished\n");
 }
@@ -762,6 +768,7 @@ int exec_tmpl (const char* filename, struct tmplpro_param *param)
   state.next_to_end=memarea.endnext;
   if (memarea.begin < memarea.endnext) {
     init_state(&state,param);
+    tmpl_log(&state,TMPL_LOG_DEBUG, "exec_tmpl: loading %s\n",filename);
     process_state(&state);
   }
   /* destroying */
@@ -810,6 +817,7 @@ void param_init(struct tmplpro_param* param)
     param->ExprFuncArglist=NULL;
 }
 
+#include "pstack.inc"
 
 /*
  * Local Variables:

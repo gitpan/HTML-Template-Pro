@@ -69,5 +69,10 @@ Revision history for Perl extension HTML::Template::Pro.
 	- compatibility fixes in Expr
 
 0.52  Thu Sep 30 14:39:00 2005
-	- Expr: fixed bug with empty string passed
+	- Expr: fixed bug with empty string passed (thanks to Stanislav Yadykin)
 	- added filters support
+
+0.53  Tue Oct  5 20:02:15 2005
+	- fixed realloc bug (thanks to Stanislav Yadykin)
+	- fixed comment-like tag bug (thanks to Niklas Bichinger)
+	- fixed incorrect params processing (thanks to Jim Spath)

@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include <assert.h>
-#include "pstack.h"
-#include "tmpllog.h"
 
 #define MAX_ENV_DEPTH 256
 
@@ -12,18 +10,21 @@ int pstack_pos=-1;
 static 
 int pstack_depth=MAX_ENV_DEPTH;
 
+static 
 void pstack_init() {
   pstack_depth=MAX_ENV_DEPTH;
   pstack_pos=-1;
   pstack=(struct pstack_entry*) malloc (pstack_depth * sizeof(struct pstack_entry));
 }
 
+static 
 void pstack_free() {
   pstack_depth=-1;
   pstack_pos=-1;
   free(pstack);
 }
 
+static 
 int pstack_notempty() {
   return pstack_pos>=0;
 }
@@ -33,14 +34,17 @@ void pstack_debug(struct pstack_entry item) {
  tmpl_log(NULL,TMPL_LOG_DEBUG,"vcontext = %d value=%d\n",item.vcontext,item.value);
 }
 
+static 
 struct pstack_entry pstack_top() {
   return *(pstack+pstack_pos);
 }
 
+static 
 struct pstack_entry* pstack_head() {
   return pstack+pstack_pos;
 }
 
+static 
 struct pstack_entry pstack_pop() {
   if (pstack_pos<0) {
     tmpl_log(NULL,TMPL_LOG_ERROR,"stack underflow:tags stack is empty\n");
@@ -53,7 +57,7 @@ struct pstack_entry pstack_pop() {
   return *(pstack+ pstack_pos--);
 }
 
-
+static 
 void pstack_push(struct pstack_entry item) {
   /* overflow check */
   if (++pstack_pos>=pstack_depth) {
@@ -65,6 +69,7 @@ void pstack_push(struct pstack_entry item) {
 }
 
   /* stack tests */
+static 
 int pstack_selftest() {
   struct pstack_entry azz;
   assert(! pstack_notempty());
