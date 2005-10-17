@@ -21,7 +21,11 @@ extern int ScopeLevel;
 
 struct ProLoopState* GetScope(int depth);
 void PopScope();
-void PushScope2(int loops, void *loops_AV);
+/*
+ * maxloop = number of loops - 1 
+ * loops_AV
+ */
+void PushScope2(int maxloop, void *loops_AV);
 void SetRootScope(void* param_HV);
 void Scope_init();
 void Scope_free();

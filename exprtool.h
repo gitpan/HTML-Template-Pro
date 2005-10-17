@@ -60,7 +60,9 @@ void expr_debug(char const *,char const *);
  * for sprintf %f
  * internal expr buffers for conversion int/double --> string 
  */
-extern char left_buffer[40]; 
-extern char right_buffer[40];
+static
+char left_buffer[40]; 
+static
+char right_buffer[40];
 
 #endif /* exprtool.h */

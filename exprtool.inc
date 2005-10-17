@@ -29,9 +29,9 @@
 /* 
  * for sprintf %f
  * internal expr buffers for conversion int/double --> string 
+ * static char left_buffer[40]; 
+ * static char right_buffer[40];
  */
-static char left_buffer[40]; 
-static char right_buffer[40];
 
 static
 exprtype expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {

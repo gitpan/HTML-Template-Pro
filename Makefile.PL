@@ -1,5 +1,6 @@
 use 5.005;
 use ExtUtils::MakeMaker;
+use Config;
 $Verbose = 1;
 
 $O_FILES=qw/procore.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
@@ -56,7 +57,9 @@ Stanislav Yadykin's regexp extension is disabled.
 WriteMakefile(
     NAME              => 'HTML::Template::Pro',
     VERSION_FROM      => 'lib/HTML/Template/Pro.pm', # finds $VERSION
-    PREREQ_PM         => {'File::Spec' => 0}, # e.g., Module::Name => 1.1
+    PREREQ_PM         => {'File::Spec' => 0,
+			  'Test::More' => 0,
+			  }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/HTML/Template/Pro.pm', # retrieve abstract from module
        AUTHOR         => 'I. Yu. Vlasenko <viy@altlinux.org>') : ()),
@@ -69,7 +72,7 @@ WriteMakefile(
 
 sub MY::postamble {
     return <<'MAKE_FRAG';
-expr.c: calc.inc exprtool.inc
+expr.c: calc.inc exprtool.inc exprpstr.inc
 procore\$(OBJ_EXT): loadfile.inc pstack.inc
 
 rpm: dist

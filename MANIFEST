@@ -25,6 +25,8 @@ expr.y
 expr.c                                  old perls can't yacc it
 exprtool.h
 exprtool.inc
+exprpstr.h
+exprpstr.inc
 loadfile.h
 loadfile.inc
 tmpllog.h

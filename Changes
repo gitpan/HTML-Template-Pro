@@ -76,3 +76,6 @@ Revision history for Perl extension HTML::Template::Pro.
 	- fixed realloc bug (thanks to Stanislav Yadykin)
 	- fixed comment-like tag bug (thanks to Niklas Bichinger)
 	- fixed incorrect params processing (thanks to Jim Spath)
+
+0.54  Mon Oct 17 10:08:14 2005 
+	- portability fixes

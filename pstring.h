@@ -9,23 +9,12 @@
 #ifndef _PSTRING_H
 #define _PSTRING_H	1
 
-typedef struct pstring {
+typedef struct PSTRING {
   char* begin;
   char* endnext;
 } PSTRING;
 
 PSTRING lowercase_pstring (PSTRING);
 int is_pstring_true (PSTRING s);
-PSTRING double_to_pstring (double, char* buf);
-PSTRING int_to_pstring (int,char* buf);
-int pstring_ge(PSTRING, PSTRING);
-int pstring_le(PSTRING, PSTRING);
-int pstring_ne(PSTRING, PSTRING);
-int pstring_eq(PSTRING, PSTRING);
-int pstring_gt(PSTRING, PSTRING);
-int pstring_lt(PSTRING, PSTRING);
-
-int re_like(PSTRING, PSTRING);
-int re_notlike(PSTRING, PSTRING);
 
 #endif /* pstring.h */

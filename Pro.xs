@@ -15,9 +15,8 @@ extern "C" {
 
 #include "ppport.h"
 
-#include "pbuffer.h"
-#include "proscope.h"
 #include "procore.h"
+#include "proscope.h"
 
 typedef PerlIO *        OutputStream;
 

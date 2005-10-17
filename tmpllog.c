@@ -22,7 +22,7 @@ static void tmpl_log_default_callback(void* ptr, int level, const char* fmt, va_
     if(level>tmpl_log_level) return;
     //#undef fprintf
     if(print_prefix && state) {
-      tmpl_log_state(state,level);
+      _tmpl_log_state(state,level);
     }
     //#define fprintf please_use_tmpl_log
         

@@ -229,7 +229,7 @@ PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
   }
 }
 
-void tmpl_log_state (struct tmplpro_state *state, int level)
+void _tmpl_log_state (struct tmplpro_state *state, int level)
 {
   tmpl_log(NULL,level, "HTML::Template::Pro:in %cTMPL_%s at pos %d:",
 	  (state->is_tag_closed ? '/' : ' '), 
@@ -762,11 +762,14 @@ int exec_tmpl (const char* filename, struct tmplpro_param *param)
   param->selfpath=filepath;
   if (param->filters) memarea=(param->LoadFileFuncPtr)(filepath);
   else memarea=mmap_load_file(filepath);
-  if (memarea.begin == NULL) return ERR_PRO_CANT_OPEN_FILE;
-  /* mmap size_in_bytes+1 to avoid crash with empty file */
+  if (memarea.begin == NULL) {
+    /* param-> */
+    return ERR_PRO_CANT_OPEN_FILE;
+  }
   state.top =memarea.begin;
   state.next_to_end=memarea.endnext;
   if (memarea.begin < memarea.endnext) {
+    /* to avoid crash with empty file */
     init_state(&state,param);
     tmpl_log(&state,TMPL_LOG_DEBUG, "exec_tmpl: loading %s\n",filename);
     process_state(&state);

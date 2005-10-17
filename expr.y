@@ -6,6 +6,7 @@
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "procore.h"
 #include "exprtool.h"
+#include "exprpstr.h"
   static int yylex (void);
   static void yyerror (char const *);
   /* expr-specific globals needed by yylex */
@@ -401,3 +402,4 @@ yylex (void)
 }
 
 #include "exprtool.inc"
+#include "exprpstr.inc"
