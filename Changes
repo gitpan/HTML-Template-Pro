@@ -79,3 +79,7 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.54  Mon Oct 17 10:08:14 2005 
 	- portability fixes
+
+0.55  Mon Oct 23 00:02:16 2005 
+	- added IMITATE build option
+	  (imitate behavior of HTML::Template even on broken templates)

@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.54
+HTML-Template-Pro version 0.55
 ==============================
 
 DESCRIPTION
@@ -49,8 +49,14 @@ To install this module type the following:
    make test
    make install
 
-If you have no libpcre installed try 
-   perl Makefile.PL PCRE=0
+If you have libpcre installed try 
+   perl Makefile.PL PCRE=1
+
+other optional parameters include DEBUG (build with extra debug level)
+and IMITATE (imitate behavior of HTML::Template even on broken templates)
+
+so a fully fledged build is
+   perl Makefile.PL PCRE=1 DEBUG=1 IMITATE=1
 
 DEPENDENCIES
 

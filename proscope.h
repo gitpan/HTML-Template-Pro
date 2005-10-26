@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu May 26 15:13:10 2005
  *
- * $Id: proscope.h,v 1.2 2005/06/16 17:07:30 igor Exp $
+ * $Id: proscope.h,v 1.3 2005/10/18 10:47:08 igor Exp $
  */
 
 struct ProLoopState {

@@ -496,7 +496,12 @@ PSTRING read_tag_parameter_value (struct tmplpro_state *state)
   modifier_value.begin=cur_pos;
   cur_char=*(cur_pos);
   if (quote_char) {
-    while (quote_char!=cur_char && cur_pos<next_to_end) {
+    while (quote_char!=cur_char 
+#ifdef COMPAT_ON_BROKEN_QUOTE
+/* compatibility mode; HTML::Template doesn't allow '>' inside quotes */
+	   && ('>' != quote_char)
+#endif
+	   && cur_pos<next_to_end) {
       cur_pos++;
       cur_char=*(cur_pos);
     }

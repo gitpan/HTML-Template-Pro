@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.c,v 1.11 2005/09/30 11:00:37 igor Exp $
+ * $Id: exprpstr.inc,v 1.1 2005/10/18 10:47:08 igor Exp $
  */
 
 #include <stdio.h>

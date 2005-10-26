@@ -10,30 +10,36 @@ my $INC='-I.';
 my $DEFINE='';
 my $LIBS='-lm';
 
-my $PCRE=1;
-my $DEBUG=0;
-my $MMAP=1;
-#$PCRE=0 if $^O =~ /win/i;
-$PCRE=has_pcre();
-
+my %DEF={
+    PCRE=>1,
+    DEBUG=>0,
+    MMAP=>1,
+    IMITATE=>0,
+};
+#$DEF{PCRE}=0 if $^O =~ /win/i;
+$DEF{PCRE}=has_pcre();
 
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
-    if ($ARGV[$i]=~/PCRE=(.+)/) {
-	$PCRE=$1;
-    } elsif ($ARGV[$i]=~/DEBUG=(.+)/) {
-	$DEBUG=$1;
-    } elsif ($ARGV[$i]=~/MMAP=(.+)/) {
-	$MMAP=$1;
+    if ($ARGV[$i]=~/^PCRE=(.+)/) {
+	$DEF{PCRE}=$1;
+    } elsif ($ARGV[$i]=~/^DEBUG=(.+)/) {
+	$DEF{DEBUG}=$1;
+    } elsif ($ARGV[$i]=~/^MMAP=(.+)/) {
+	$DEF{MMAP}=$1;
+    } elsif ($ARGV[$i]=~/^IMITATE=(.+)/) {
+	$DEF{'IMITATE'}=$1;
     } else {
 	next;
     }
     splice @ARGV, $i, 1;
+    $i--;
 }
 
-$DEFINE.=' -DDEBUG' if ($DEBUG);
+$DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
+$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE' if ($DEF{'IMITATE'});
 
-if ($PCRE) {
+if ($DEF{PCRE}) {
     $INC.=' -I/usr/include/pcre';
     $DEFINE.=' -DHAVE_PCRE';
     $LIBS.=' -lpcre';
