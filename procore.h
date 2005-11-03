@@ -51,6 +51,10 @@ struct tmplpro_param {
   int case_sensitive;
   int loop_context_vars;
   int strict;
+  /* filters --- indicates whether to use 
+   * external file loader hook specified as LoadFileFuncPtr. 
+   * Set it to 1 if you want to preprocess file with filters
+   * before they'll be processed by exec_tmpl */
   int filters;
   const char* filename; /* template file */
   PSTRING scalarref; /* memory area */
@@ -104,6 +108,10 @@ void procore_done();
 
 /* internal initialization of struct tmplpro_param */
 void param_init(struct tmplpro_param* param);
+
+
+/* private : to hide */
+extern void _tmpl_log_state (struct tmplpro_state *state, int level);
 
 /* 
  * Local Variables:

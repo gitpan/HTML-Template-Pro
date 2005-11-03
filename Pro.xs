@@ -151,16 +151,17 @@ const char* get_filepath (const char* filename, const char* prevfilename) {
   count = call_pv("_get_filepath", G_SCALAR);
   SPAGAIN ;
   if (count != 1) croak("Big troublen") ;
-  POPs;
-  PUTBACK ;
-  FREETMPS ;
-  LEAVE ;
+  perlretval=POPs;
   /* any memory leaks??? */  
   if (SvOK(perlretval)) {
     filepath = SvPV(perlretval, len);
+    SvREFCNT_inc(perlretval);
   } else {
     filepath = NULL;
   }
+  PUTBACK ;
+  FREETMPS ;
+  LEAVE ;
   return filepath;
 }
 
@@ -214,7 +215,7 @@ void* is_expr_userfnc (struct tmplpro_param* param, PSTRING name) {
 }
 
 static 
-inline void free_expr_arglist(struct tmplpro_param* param)
+void free_expr_arglist(struct tmplpro_param* param)
 {
   if (NULL!=param->ExprFuncArglist) {
     av_undef((AV*) param->ExprFuncArglist);

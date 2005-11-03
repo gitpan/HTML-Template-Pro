@@ -26,13 +26,13 @@
 #define HTML_TEMPLATE_OPT_ESCAPE_JS   3
 
 static 
-const char* tagname[]={
+const char* const tagname[]={
     "Bad or unsupported tag", /* 0 */
     "var", "include", "loop", "if", "else", "unless"
 };
 
 static 
-const char* TAGNAME[]={
+const char* const TAGNAME[]={
     "Bad or unsupported tag", /* 0 */
     "VAR", "INCLUDE", "LOOP", "IF", "ELSE", "UNLESS"
 };
@@ -43,12 +43,12 @@ const char* TAGNAME[]={
 static int debuglevel=0;
 
 static 
-const char* innerloopname[]={
+const char* const innerloopname[]={
   "", "first__", "last__", "inner__", "odd__", "counter__"
 };
 
 static 
-const char* INNERLOOPNAME[]={
+const char* const INNERLOOPNAME[]={
   "", "FIRST__", "LAST__", "INNER__", "ODD__", "COUNTER__"
 };
 
@@ -818,11 +818,16 @@ void procore_done()
 /* internal initialization of struct tmplpro_param */
 void param_init(struct tmplpro_param* param)
 {
-    param->cur_includes=0; /* current level of inclusion */
-    param->filters=0; /* use external file loader */
-    param->selfpath=NULL;
-    param->ExprFuncHash=NULL;
-    param->ExprFuncArglist=NULL;
+  /* filling initial struct tmplpro_param with 0 */
+  memset (param, 0, sizeof(struct tmplpro_param));
+  /* current level of inclusion */
+  /* param->cur_includes=0; */
+  /* not to use external file loader */
+  /* param->filters=0; */
+  /* param->selfpath=NULL;
+     param->ExprFuncHash=NULL;
+     param->ExprFuncArglist=NULL;
+  */
 }
 
 #include "pstack.inc"

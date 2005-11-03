@@ -83,3 +83,7 @@ Revision history for Perl extension HTML::Template::Pro.
 0.55  Mon Oct 23 00:02:16 2005 
 	- added IMITATE build option
 	  (imitate behavior of HTML::Template even on broken templates)
+
+0.56  Tue Nov  1 21:45:52 2005
+	- fixed memory leak (thanks to Jim Spath)
+	- ELF symbols cleanup

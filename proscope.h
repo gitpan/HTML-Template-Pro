@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu May 26 15:13:10 2005
  *
- * $Id: proscope.h,v 1.3 2005/10/18 10:47:08 igor Exp $
+ * $Id: proscope.h,v 1.4 2005/11/01 20:15:49 igor Exp $
  */
 
 struct ProLoopState {
@@ -16,15 +16,12 @@ struct ProLoopState {
 
 extern struct ProLoopState* CurrentScope;
 
-extern int ScopeLevel;
-#define CurScopeLevel() ScopeLevel
+extern int _ScopeLevel;
+#define CurScopeLevel() _ScopeLevel
 
 struct ProLoopState* GetScope(int depth);
 void PopScope();
-/*
- * maxloop = number of loops - 1 
- * loops_AV
- */
+/* maxloop = number of loops - 1 in * loops_AV */
 void PushScope2(int maxloop, void *loops_AV);
 void SetRootScope(void* param_HV);
 void Scope_init();

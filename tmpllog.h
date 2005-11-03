@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  1 17:17:37 2005
  *
- * $Id: tmpllog.h,v 1.3 2005/09/30 11:00:37 igor Exp $
+ * $Id: tmpllog.h,v 1.4 2005/11/01 18:56:58 igor Exp $
  */
 
 /* based on FFmpeg av_log API */
@@ -26,3 +26,4 @@ extern void tmpl_vlog(void*, int level, const char *fmt, va_list);
 extern  int tmpl_log_get_level(void);
 extern void tmpl_log_set_level(int);
 extern void tmpl_log_set_callback(void (*)(void*, int, const char*, va_list));
+

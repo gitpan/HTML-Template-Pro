@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.55';
+$VERSION = '0.56';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -25,7 +25,7 @@ push @HTML::Template::Expr::ISA, qw/HTML::Template::Pro/;
 _init();
 # internal frees -- it is better to comment it:
 # when process terminates, memory is freed anyway
-# but END {} can be called between calls (as Speedy do)
+# but END {} can be called between calls (as SpeedyCGI does)
 # END {_done()}
 
 # initialize preset function table
@@ -148,7 +148,10 @@ sub new {
     # merging built_in funcs with user-defined funcs
     $options->{expr_func}={%FUNC, %{$options->{functions}}};
 
-    $options->{options}=$options; # hack to be fully compatible with HTML::Template
+    # hack to be fully compatible with HTML::Template; 
+    # caused serious memory leak. it should be done on XS level, if needed.
+    # &safe_circular_reference($options,'options') ???
+    #$options->{options}=$options; 
     bless $options,$class;
     $options->_call_filters($options->{scalarref}) if $options->{scalarref} and @{$options->{filter}};
     return $options; # == $self
@@ -294,7 +297,7 @@ sub _get_filepath {
 				    );
   }
   carp "HTML::Template::Pro:template $filename not found!"  unless $filepath;
-  $_[1]=$filepath;
+  return $filepath;
 }
 
 sub _find_file {
@@ -355,7 +358,7 @@ sub _load_template {
 sub _call_filters {
   my $self = shift;
   my $template_ref = shift;
-  my $options = $self->{options};
+  my $options = $self;#->{options};
 
   my ($format, $sub);
   foreach my $filter (@{$options->{filter}}) {
@@ -428,11 +431,11 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template and HTML::Template::Expr, designed for heavy upload, 
-resource limitations, abcence of mod_perl.
-It is not intended to be a complete replacement, but to be a fast 
-implementation of HTML::Template if you don't need extended facilities 
-of HTML::Template such as filters or quering. 
+of HTML::Template (as of 2.7) and HTML::Template::Expr (as of 0.0.4). 
+It is not intended to be a complete replacement, 
+but to be a fast implementation of HTML::Template if you don't need 
+quering, the extended facility of HTML::Template.
+Designed for heavy upload, resource limitations, abcence of mod_perl.
 
 HTML::Template work cycle uses 2 steps. First, it loads and parse template.
 Then it accepts param() calls until you call output().

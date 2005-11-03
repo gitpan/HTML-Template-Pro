@@ -3,18 +3,19 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu May 26 15:25:57 2005
  *
- * $Id: proscope.c,v 1.4 2005/09/30 11:00:37 igor Exp $
+ * $Id: proscope.c,v 1.5 2005/11/01 20:15:49 igor Exp $
  */
 
 #include <stdlib.h>
 #include "proscope.h"
 #include "tmpllog.h"
 
-int ScopeLevel=-1;
-int ScopeMax=-1;
+int _ScopeLevel=-1;
+static int ScopeMax=-1;
 
 #define START_NUMBER_OF_NESTED_LOOPS 64
 
+static 
 struct ProLoopState* Scope;
 
 struct ProLoopState* CurrentScope;
@@ -23,17 +24,18 @@ void Scope_init() {
   ScopeMax=START_NUMBER_OF_NESTED_LOOPS;
   Scope=(struct ProLoopState*) malloc (ScopeMax * sizeof(struct ProLoopState));
   if (NULL==Scope) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:Scope_init:internal error:not enough memory\n");
-  ScopeLevel=-1;
+  _ScopeLevel=-1;
 }
 
 void Scope_free() {
   free(Scope);
   ScopeMax=-1;
-  ScopeLevel=-1;
+  _ScopeLevel=-1;
 }
 
+static
 inline void set_CurrentScope () {
-  CurrentScope=Scope+ScopeLevel;
+  CurrentScope=Scope+_ScopeLevel;
 }
 
 struct ProLoopState* GetScope(int depth) {
@@ -41,7 +43,7 @@ struct ProLoopState* GetScope(int depth) {
 }
 
 void PopScope() {
-  if (ScopeLevel>0) ScopeLevel--;
+  if (_ScopeLevel>0) _ScopeLevel--;
   else tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:PopScope:internal error:scope is exhausted\n");
   set_CurrentScope();
 }
@@ -52,8 +54,8 @@ void PushScope2(int maxloop, void *loops_AV) {
     tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:PushScope:internal warning:why scope is empty?\n");
     Scope_init();
   }
-  ++ScopeLevel;
-  if (ScopeLevel>ScopeMax) 
+  ++_ScopeLevel;
+  if (_ScopeLevel>ScopeMax) 
     {
       if (ScopeMax<START_NUMBER_OF_NESTED_LOOPS) ScopeMax=START_NUMBER_OF_NESTED_LOOPS;
       ScopeMax*=2;
@@ -71,7 +73,7 @@ void SetRootScope(void* param_HV) {
     tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:SetRootScope:internal warning:why scope is empty?\n");
     Scope_init();
   }
-  ScopeLevel=0;
+  _ScopeLevel=0;
   set_CurrentScope();
   CurrentScope->param_HV=param_HV;
 }
