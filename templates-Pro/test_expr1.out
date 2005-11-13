@@ -21,4 +21,6 @@ sin(ONE)=0.841471
 strings are true: 
 'aaa' && 'bbb'=1
 'aaa' || 0=1
+minus is handled properly:
+MINUSTEN+8=-2
 </body></html>

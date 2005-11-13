@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:17 2005
  *
- * $Id: exprtool.inc,v 1.2 2005/10/18 10:47:08 igor Exp $
+ * $Id: exprtool.inc,v 1.3 2005/11/08 20:56:38 igor Exp $
  */
 
 /*
@@ -142,8 +142,13 @@ struct exprval exp_read_number (char* *curposptr, char* endchars) {
   int iretval=0;
   double dretval=0;
   int offset=0;
+  int sign=1;
   retval.type=EXPRINT;
   retval.val.intval=0;
+  if ((*curposptr)<endchars && '-' == c) {
+    sign=-1;
+    c = *(++(*curposptr));
+  }
   if (! (c == '.' || isdigit (c))) return retval;
   /* double reader
      yylval.dblval=atof(fill_symbuf(is_float_lex).begin);
@@ -158,7 +163,7 @@ struct exprval exp_read_number (char* *curposptr, char* endchars) {
       } else {
 	/* (*curposptr)--; ??? */
 	expr_debug("uninspected declimal point","");
-	retval.val.dblval=dretval;
+	retval.val.dblval=dretval*sign;
 	retval.type=EXPRDBL;
 	return retval;
       }
@@ -173,10 +178,10 @@ struct exprval exp_read_number (char* *curposptr, char* endchars) {
     c = *(++(*curposptr));
   }
   if (retval.type == EXPRINT) {
-    retval.val.intval=iretval;
+    retval.val.intval=iretval*sign;
   } else {
     if (offset) dretval/=offset;
-    retval.val.dblval=dretval;
+    retval.val.dblval=dretval*sign;
   }
   return retval;
 }

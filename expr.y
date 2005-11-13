@@ -372,10 +372,13 @@ yylex (void)
       } else {
 	/* s = putsym (symbuf, VAR); */
 	PSTRING varvalue;
-	if (param->case_sensitive)
-	 varvalue=(param->GetVarFuncPtr)(param, name);
-	else
-	 varvalue=(param->GetVarFuncPtr)(param, lowercase_pstring(name));
+	if (param->case_sensitive) {
+	  varvalue=(param->GetVarFuncPtr)(param, name);
+	  /* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
+	} else {
+	  varvalue=(param->GetVarFuncPtr)(param, lowercase_pstring(name));
+	  /* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected cvar %s=%s\n", name.begin,varvalue.begin); */
+	}
 	if (varvalue.begin==NULL) {
 	  yylval.numval.val.strval=(PSTRING) {curpos, curpos};
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
