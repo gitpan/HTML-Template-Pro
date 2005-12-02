@@ -1130,7 +1130,7 @@ yyreduce:
 		     expr_retval=yyvsp[0].numval.val.strval;
 		   } else {
 		     expr_to_dbl1(&yyvsp[0].numval); 
-		     expr_retval=double_to_pstring(yyvsp[0].numval.val.dblval,left_buffer);
+		     expr_retval=double_to_pstring(yyvsp[0].numval.val.dblval,left_buffer,sizeof(left_buffer));
 		   }
 		 }
     break;
@@ -1647,7 +1647,8 @@ char* curpos;
  */
 static int is_expect_quote_like;
 
-PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
+PSTRING 
+parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 {
   expr=expression;
   curpos=expr.begin;
@@ -1658,12 +1659,14 @@ PSTRING parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
   return expr_retval;
 }
 
-void expr_debug(char const *msg1, char const *msg2) {
+void 
+expr_debug(char const *msg1, char const *msg2) {
   tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %d: %s %s\n", curpos-expr.begin,msg1,msg2);
 }
 
 static
-PSTRING fill_symbuf (int is_accepted(char)) {
+PSTRING 
+fill_symbuf (int is_accepted(char)) {
   register char c=*curpos;
   static char *symbuf = 0;
   static int symbuf_length = 0;
@@ -1688,12 +1691,16 @@ PSTRING fill_symbuf (int is_accepted(char)) {
   return (PSTRING) {symbuf, symbuf+i};
 }
 
-static int is_alnum_lex (char c)
+static 
+int 
+is_alnum_lex (char c)
 {
   return (c == '_' || isalnum (c));
 }
 
-static int is_not_identifier_ext_end (char c)  
+static 
+int 
+is_not_identifier_ext_end (char c)  
 { 
   return (c != '}');
 } 
@@ -1701,7 +1708,8 @@ static int is_not_identifier_ext_end (char c)
 #define TESTOP(c1,c2,z)  if (c1 == c) { char d=*++curpos; if (c2 != d) return c; else curpos++; return z; }
 #define TESTOP3(c1,c2,c3,num2,str3)  if (c1 == c) { char d=*++curpos; if (c2 == d) {curpos++; return num2;} else if (c3 == d) {curpos++; is_expect_quote_like=1; return str3;} else return c; }
 
-static int
+static 
+int
 yylex (void)
 {
   register char c;

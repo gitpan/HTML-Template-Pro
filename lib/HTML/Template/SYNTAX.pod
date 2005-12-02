@@ -440,6 +440,21 @@ the 'EXPR' tag if bracketed in {}, as, for example, EXPR="{foo.bar} eq 'a'".
 COMPATIBILITY WARNING.
 Currently, this extension is not present in HTML::Template::Expr (as of 0.04).
 
+=head2 INCLUDE extension to Expr
+
+With this extension, you can write something like <TMPL_INCLUDE EXPR="variable">
+ or <TMPL_INCLUDE EXPR="function_call()">, or even
+<TMPL_INCLUDE EXPR="function_call(VAR1,VAR2,func2()) DEFAULT='some_file'">
+
+SECURITY WARNING.
+Using of this extension with untrasted values of variables is a 
+potential security leak (as in <TMPL_INCLUDE EXPR="USER_INPUT"> 
+with USER_INPUT='/etc/passwd').
+Omit it unless you know what you are doing.
+
+COMPATIBILITY WARNING.
+Currently, this extension is not present in HTML::Template::Expr (as of 0.04).
+
 =head2 Constants
 
 Numbers are unquoted strings of numbers and may have a single "." to

@@ -25,6 +25,12 @@
 #define HTML_TEMPLATE_OPT_ESCAPE_URL  2
 #define HTML_TEMPLATE_OPT_ESCAPE_JS   3
 
+#if defined(__GNUC__) && !(defined(PEDANTIC))
+#define INLINE inline
+#else /* !__GNUC__ */
+#define INLINE 
+#endif /* __GNUC__ */
+
 static 
 const char* const tagname[]={
     "Bad or unsupported tag", /* 0 */
@@ -62,7 +68,8 @@ const char* const INNERLOOPNAME[]={
 #define HTML_TEMPLATE_LAST_INNER_LOOP  5
 
 static 
-int try_inner_loop_variable (PSTRING name)
+int 
+try_inner_loop_variable (PSTRING name)
 { 
   int i;
   char* cur_pos;
@@ -89,11 +96,13 @@ int try_inner_loop_variable (PSTRING name)
 }
 
 static 
-PSTRING get_loop_context_vars_value (PSTRING name) {
+PSTRING 
+get_loop_context_vars_value (PSTRING name) {
   static char* FalseString="0";
   static char* TrueString ="1";
-  static char buffer[20]; /* for sprintf %d */
+  static char buffer[20]; /* for snprintf %d */
   int loop;
+  PSTRING retval={NULL,NULL};
   if (CurScopeLevel()>0 
       && name.endnext-name.begin>4
       && '_'==*(name.begin)
@@ -102,27 +111,48 @@ PSTRING get_loop_context_vars_value (PSTRING name) {
     /* we can meet loop variables here -- try it first */
     /* length of its name >4 */
     /* __first__ __last__ __inner__ __odd__ __counter__ */
-    switch (try_inner_loop_variable((PSTRING) {name.begin+2,name.endnext})) {
-    case 0:  return (PSTRING) {NULL,NULL};
-    case HTML_TEMPLATE_INNER_LOOP_VAR_FIRST: if (CurrentScope->loop==0) /* first__ */
-      return (PSTRING) {TrueString, TrueString+1}; else return (PSTRING) {FalseString, FalseString+1}; break;
-    case HTML_TEMPLATE_INNER_LOOP_VAR_LAST: if (CurrentScope->loop==CurrentScope->maxloop) 
-      return (PSTRING) {TrueString, TrueString+1}; else return (PSTRING) {FalseString, FalseString+1}; break;
-    case HTML_TEMPLATE_INNER_LOOP_VAR_ODD: if ((CurrentScope->loop%2)==0) 
-      return (PSTRING) {TrueString, TrueString+1}; else return (PSTRING) {FalseString, FalseString+1}; break;
-    case HTML_TEMPLATE_INNER_LOOP_VAR_INNER: if (CurrentScope->loop>0 && CurrentScope->loop<CurrentScope->maxloop) 
-      return (PSTRING) {TrueString, TrueString+1}; else return (PSTRING) {FalseString, FalseString+1}; break;
+    PSTRING shiftedname; /* (PSTRING) {name.begin+2,name.endnext} */
+    shiftedname.begin=name.begin+2;
+    shiftedname.endnext=name.endnext;
+    switch (try_inner_loop_variable(shiftedname)) {
+    case 0:  break;
+    case HTML_TEMPLATE_INNER_LOOP_VAR_FIRST: 
+      if (CurrentScope->loop==0) {  /* first__ */
+	retval.begin=TrueString; retval.endnext=TrueString+1;
+      } else {
+	retval.begin=FalseString; retval.endnext=FalseString+1;
+      }; break;
+    case HTML_TEMPLATE_INNER_LOOP_VAR_LAST: 
+      if (CurrentScope->loop==CurrentScope->maxloop) {
+	retval.begin=TrueString; retval.endnext=TrueString+1;
+      } else {
+	retval.begin=FalseString; retval.endnext=FalseString+1;
+      }; break;
+    case HTML_TEMPLATE_INNER_LOOP_VAR_ODD: 
+      if ((CurrentScope->loop%2)==0) {
+	retval.begin=TrueString; retval.endnext=TrueString+1;
+      } else {
+	retval.begin=FalseString; retval.endnext=FalseString+1;
+      }; break;
+    case HTML_TEMPLATE_INNER_LOOP_VAR_INNER: 
+      if (CurrentScope->loop>0 && CurrentScope->loop<CurrentScope->maxloop) {
+	retval.begin=TrueString; retval.endnext=TrueString+1;
+      } else {
+	retval.begin=FalseString; retval.endnext=FalseString+1;
+      }; break;
     case HTML_TEMPLATE_INNER_LOOP_VAR_COUNTER: 
       loop=CurrentScope->loop+1;
-      sprintf(buffer,"%d",loop);
-      return (PSTRING) {buffer, buffer+strlen(buffer)}; break;
+      snprintf(buffer,sizeof(buffer),"%d",loop);
+      retval.begin=buffer; retval.endnext=buffer+strlen(buffer);
+      break;
     }
   }
-  return (PSTRING) {NULL,NULL};
+  return retval;
 }
 
 static 
-int is_string(struct tmplpro_state *state, const char* pattern,const char* PATTERN)
+int 
+is_string(struct tmplpro_state *state, const char* pattern,const char* PATTERN)
 {
   char* cur_pos=state->cur_pos;
   while (*pattern && cur_pos<state->next_to_end) {
@@ -141,19 +171,24 @@ int is_string(struct tmplpro_state *state, const char* pattern,const char* PATTE
 
 
 static 
-inline void jump_over_space(struct tmplpro_state *state)
+INLINE 
+void 
+jump_over_space(struct tmplpro_state *state)
 {
   while (isspace(*(state->cur_pos)) && state->cur_pos<state->next_to_end) {state->cur_pos++;};
 }
 
 static 
-inline void jump_to_char(struct tmplpro_state *state, char c)
+INLINE
+void 
+jump_to_char(struct tmplpro_state *state, char c)
 {
   while (c!=*(state->cur_pos) && state->cur_pos<state->next_to_end) {state->cur_pos++;};
 }
 
 static 
-PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
+PSTRING 
+escape_pstring (PSTRING pstring, int escapeopt) {
   char* buf=pbuffer_resize(2*(pstring.endnext-pstring.begin+1));
   char* curpos=pstring.begin;
   size_t offset=0;
@@ -179,7 +214,7 @@ PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
       }
       offset+=bufdelta;
     }
-    return (PSTRING) {buf,buf+offset};
+    break;
   case HTML_TEMPLATE_OPT_ESCAPE_JS:
     while (curpos<pstring.endnext) {
       char curchar=*curpos++;
@@ -198,10 +233,8 @@ PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
       }
       offset+=bufdelta;
     }
-    return (PSTRING) {buf,buf+offset};
+    break;
   case HTML_TEMPLATE_OPT_ESCAPE_URL: 
-    // return pstring;
-
     while (curpos<pstring.endnext) {
       char curchar=*curpos++;
       int bufdelta=1;
@@ -224,12 +257,14 @@ PSTRING escape_pstring (PSTRING pstring, int escapeopt) {
       }
       offset+=bufdelta;
     }
-    return (PSTRING) {buf,buf+offset};
+    break;
   default : return pstring;
   }
+  return (PSTRING) {buf,buf+offset};
 }
 
-void _tmpl_log_state (struct tmplpro_state *state, int level)
+void 
+_tmpl_log_state (struct tmplpro_state *state, int level)
 {
   tmpl_log(NULL,level, "HTML::Template::Pro:in %cTMPL_%s at pos %d:",
 	  (state->is_tag_closed ? '/' : ' '), 
@@ -238,7 +273,8 @@ void _tmpl_log_state (struct tmplpro_state *state, int level)
 }
 
 static 
-void tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, int escapeopt)
+void 
+tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, int escapeopt)
 {
   PSTRING varvalue ={NULL, NULL};
   /* registering variable could be inside GetVarFuncPtr */
@@ -269,12 +305,14 @@ void tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalu
 }
 
 static 
-void tag_handler_include (struct tmplpro_state *state, PSTRING name)
+void 
+tag_handler_include (struct tmplpro_state *state, PSTRING name, PSTRING defvalue)
 {
   struct tmplpro_param* param;
   char* filename;
   const char* selfpath;
   int x;
+  PSTRING varvalue=name;
   if (! state->is_visible) return;
   param=state->param;
   if (param->no_includes) {
@@ -282,12 +320,20 @@ void tag_handler_include (struct tmplpro_state *state, PSTRING name)
     return;
   }
   if (param->max_includes && param->max_includes < param->cur_includes) return;
-  param->cur_includes++; 
-  filename =(char*) malloc(name.endnext-name.begin+1);
-  for (x=0;x<name.endnext-name.begin;x++) {
-    *(filename+x)=*(name.begin+x);
+  param->cur_includes++;
+
+  if (state->is_expr) {
+    varvalue=parse_expr(name, param);
+  } else 
+    if (varvalue.begin==varvalue.endnext && defvalue.begin!=defvalue.endnext)
+      varvalue=defvalue;
+  /* pstrdup */
+  filename =(char*) malloc(varvalue.endnext-varvalue.begin+1);
+  for (x=0;x<varvalue.endnext-varvalue.begin;x++) {
+    *(filename+x)=*(varvalue.begin+x);
   }
-  *(filename+(name.endnext-name.begin))=0;
+  *(filename+(varvalue.endnext-varvalue.begin))=0;
+  /* end pstrdup */
   selfpath=param->selfpath; /* saving current file name */
   exec_tmpl (filename, param);
   free (filename);
@@ -297,7 +343,8 @@ void tag_handler_include (struct tmplpro_state *state, PSTRING name)
 }
 
 static 
-int is_var_true(struct tmplpro_state *state, PSTRING name) 
+int 
+is_var_true(struct tmplpro_state *state, PSTRING name) 
 {
   register int ifval=-1;
   if (state->is_expr) {
@@ -314,7 +361,8 @@ int is_var_true(struct tmplpro_state *state, PSTRING name)
 }
 
 static 
-void tag_handler_if (struct tmplpro_state *state, PSTRING name)
+void 
+tag_handler_if (struct tmplpro_state *state, PSTRING name)
 {
   struct pstack_entry iftag;
   iftag.tag=HTML_TEMPLATE_TAG_IF;
@@ -332,7 +380,8 @@ void tag_handler_if (struct tmplpro_state *state, PSTRING name)
 }
 
 static 
-void tag_handler_unless (struct tmplpro_state *state, PSTRING name)
+void 
+tag_handler_unless (struct tmplpro_state *state, PSTRING name)
 {
   struct pstack_entry iftag;
   iftag.tag=HTML_TEMPLATE_TAG_UNLESS;
@@ -351,13 +400,16 @@ void tag_handler_unless (struct tmplpro_state *state, PSTRING name)
 }
 
 static 
-inline int test_stack (int tag)
+INLINE
+int
+test_stack (int tag)
 {
   return (pstack_notempty() && (pstack_head()->tag==tag));
 }
 
 static 
-void tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
+void 
+tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
 {
   if (stack_tag_type) {
     if (pstack_notempty()) {
@@ -372,7 +424,8 @@ void tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
 }
 
 static 
-void tag_handler_closeif (struct tmplpro_state *state)
+void 
+tag_handler_closeif (struct tmplpro_state *state)
 {
   struct pstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_IF)) {
@@ -385,7 +438,8 @@ void tag_handler_closeif (struct tmplpro_state *state)
 }
 
 static 
-void tag_handler_closeunless (struct tmplpro_state *state)
+void 
+tag_handler_closeunless (struct tmplpro_state *state)
 {
   struct pstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_UNLESS)) {
@@ -398,7 +452,8 @@ void tag_handler_closeunless (struct tmplpro_state *state)
 }
 
 static 
-void tag_handler_else (struct tmplpro_state *state)
+void 
+tag_handler_else (struct tmplpro_state *state)
 {
   struct pstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_IF) && 
@@ -417,7 +472,8 @@ void tag_handler_else (struct tmplpro_state *state)
 }
 
 static 
-int next_loop (struct tmplpro_state* state) {
+int 
+next_loop (struct tmplpro_state* state) {
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"next_loop:before NextLoopFuncPtr\n");
 #endif
@@ -428,7 +484,8 @@ int next_loop (struct tmplpro_state* state) {
 }
 
 static 
-void tag_handler_loop (struct tmplpro_state *state, PSTRING name)
+void 
+tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 {
   struct pstack_entry iftag;
   iftag.tag=HTML_TEMPLATE_TAG_LOOP;
@@ -451,7 +508,8 @@ void tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 }
 
 static 
-void tag_handler_closeloop (struct tmplpro_state *state)
+void 
+tag_handler_closeloop (struct tmplpro_state *state)
 {
   struct pstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_LOOP)) {
@@ -473,13 +531,15 @@ void tag_handler_closeloop (struct tmplpro_state *state)
 }
 
 static 
-void tag_handler_unknown (struct tmplpro_state *state)
+void 
+tag_handler_unknown (struct tmplpro_state *state)
 {
-  // TODO warning code
+  tmpl_log(state,TMPL_LOG_ERROR,"tag_handler_unknown: unknown tag\n");
 }
 
 static 
-PSTRING read_tag_parameter_value (struct tmplpro_state *state)
+PSTRING 
+read_tag_parameter_value (struct tmplpro_state *state)
 {
   PSTRING modifier_value;
   char cur_char;
@@ -532,7 +592,8 @@ PSTRING read_tag_parameter_value (struct tmplpro_state *state)
 }
 
 static 
-int try_tag_parameter (struct tmplpro_state *state,const char *modifier,const char *MODIFIER)
+int 
+try_tag_parameter (struct tmplpro_state *state,const char *modifier,const char *MODIFIER)
 {
   jump_over_space(state);
   if (is_string(state, modifier, MODIFIER)) {
@@ -549,7 +610,8 @@ int try_tag_parameter (struct tmplpro_state *state,const char *modifier,const ch
 }
 
 static 
-void try_tmpl_var_options (struct tmplpro_state *state, PSTRING* OptEscape, PSTRING* OptDefault)
+void 
+try_tmpl_var_options (struct tmplpro_state *state, PSTRING* OptEscape, PSTRING* OptDefault)
 {
   static const char* escapeopt="escape";
   static const char* ESCAPEOPT="ESCAPE";
@@ -567,7 +629,8 @@ void try_tmpl_var_options (struct tmplpro_state *state, PSTRING* OptEscape, PSTR
 
 
 static 
-void process_tmpl_tag(struct tmplpro_state *state)
+void 
+process_tmpl_tag(struct tmplpro_state *state)
 {
   char* tag_start=state->tag_start;
   int is_tag_closed=state->is_tag_closed;
@@ -578,9 +641,9 @@ void process_tmpl_tag(struct tmplpro_state *state)
   static const char* expropt="expr";
   static const char* EXPROPT="EXPR";
 
-  PSTRING OptName  = (PSTRING) {NULL,NULL};
-  PSTRING OptDefault=(PSTRING) {NULL,NULL};
-  PSTRING OptEscape= (PSTRING) {NULL,NULL};
+  PSTRING OptName  = {NULL,NULL};
+  PSTRING OptDefault={NULL,NULL};
+  PSTRING OptEscape= {NULL,NULL};
 
   int i;
   for (i=HTML_TEMPLATE_FIRST_TAG_USED; i<=HTML_TEMPLATE_LAST_TAG_USED; i++) {
@@ -617,7 +680,9 @@ void process_tmpl_tag(struct tmplpro_state *state)
   } else {
     /* reading parameter */
     state->is_expr=0;
-    if (tag_type==HTML_TEMPLATE_TAG_VAR) {
+    if (tag_type==HTML_TEMPLATE_TAG_VAR
+	 || tag_type==HTML_TEMPLATE_TAG_INCLUDE
+	) {
       try_tmpl_var_options(state,&OptEscape,&OptDefault);
     }
 
@@ -628,7 +693,9 @@ void process_tmpl_tag(struct tmplpro_state *state)
     }
     OptName=read_tag_parameter_value(state);
 
-    if (tag_type==HTML_TEMPLATE_TAG_VAR) {
+    if (tag_type==HTML_TEMPLATE_TAG_VAR
+	|| tag_type==HTML_TEMPLATE_TAG_INCLUDE
+	) {
       try_tmpl_var_options(state,&OptEscape,&OptDefault);
     }
   }
@@ -646,13 +713,13 @@ void process_tmpl_tag(struct tmplpro_state *state)
   } else {
     tmpl_log(state,TMPL_LOG_ERROR,"end tag:found %c instead of > at pos %d\n",*state->cur_pos,state->cur_pos-state->top);
   }
-  // flush run chars (if in SHOW mode)
+  /* flush run chars (if in SHOW mode) */
   if (state->is_visible) {
     (state->param->WriterFuncPtr)(state->last_processed_pos,tag_start);
     state->last_processed_pos=state->cur_pos;
   }
-  // call tag_specific handler by array of handlers
-  // var_tag_handler(..)
+  /* TODO: call tag_specific handler by array of handlers 
+     var_tag_handler(..) */
   if (is_tag_closed) {
     switch (tag_type) {
     case HTML_TEMPLATE_TAG_IF:	tag_handler_closeif(state);break;
@@ -692,7 +759,7 @@ void process_tmpl_tag(struct tmplpro_state *state)
     case HTML_TEMPLATE_TAG_UNLESS:	tag_handler_unless(state,OptName);break;
     case HTML_TEMPLATE_TAG_ELSE:	tag_handler_else(state);	break;
     case HTML_TEMPLATE_TAG_LOOP:	tag_handler_loop(state,OptName);break;
-    case HTML_TEMPLATE_TAG_INCLUDE:	tag_handler_include(state,OptName);break;
+    case HTML_TEMPLATE_TAG_INCLUDE:	tag_handler_include(state,OptName,OptDefault);break;
     default:	tag_handler_unknown(state);break;
     }
   }
@@ -700,7 +767,8 @@ void process_tmpl_tag(struct tmplpro_state *state)
 }
 
 static 
-void process_state (struct tmplpro_state * state)
+void 
+process_state (struct tmplpro_state * state)
 {
   static const char* metatag="tmpl_";
   static const char* METATAG="TMPL_";
@@ -738,7 +806,8 @@ void process_state (struct tmplpro_state * state)
 }
 
 static 
-void init_state (struct tmplpro_state *state, struct tmplpro_param *param)
+void 
+init_state (struct tmplpro_state *state, struct tmplpro_param *param)
 {
   debuglevel=param->debug;
   tmpl_log_set_level(debuglevel);
@@ -752,7 +821,8 @@ void init_state (struct tmplpro_state *state, struct tmplpro_param *param)
 /* for mmap_load_file & mmap_unload_file */
 #include "loadfile.inc"
 
-int exec_tmpl (const char* filename, struct tmplpro_param *param)
+int 
+exec_tmpl (const char* filename, struct tmplpro_param *param)
 {
   struct tmplpro_state state;
   int mmapstatus;
@@ -785,7 +855,8 @@ int exec_tmpl (const char* filename, struct tmplpro_param *param)
   return 0;
 }
 
-int exec_tmpl_from_memory (PSTRING memarea, struct tmplpro_param *param)
+int 
+exec_tmpl_from_memory (PSTRING memarea, struct tmplpro_param *param)
 {
   struct tmplpro_state state;
   param->selfpath=NULL; /* no upper file */
@@ -797,7 +868,8 @@ int exec_tmpl_from_memory (PSTRING memarea, struct tmplpro_param *param)
   return 0;
 }
 
-void procore_init()
+void 
+procore_init()
 {
   /* to save time on malloc/free at each included template */
   pbuffer_init();
@@ -807,7 +879,8 @@ void procore_init()
   expr_init();
 }
 
-void procore_done()
+void 
+procore_done()
 {
   pstack_free();
   Scope_free();
@@ -816,7 +889,8 @@ void procore_done()
 }
 
 /* internal initialization of struct tmplpro_param */
-void param_init(struct tmplpro_param* param)
+void 
+param_init(struct tmplpro_param* param)
 {
   /* filling initial struct tmplpro_param with 0 */
   memset (param, 0, sizeof(struct tmplpro_param));

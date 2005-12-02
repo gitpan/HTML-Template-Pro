@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:04 2005
  *
- * $Id: exprtool.h,v 1.12 2005/10/18 10:47:08 igor Exp $
+ * $Id: exprtool.h,v 1.13 2005/11/22 20:44:20 igor Exp $
  */
 
 #ifndef _EXPRTOOL_H
@@ -57,7 +57,7 @@ static
 void expr_debug(char const *,char const *);
 
 /* 
- * for sprintf %f
+ * for snprintf %f
  * internal expr buffers for conversion int/double --> string 
  */
 static

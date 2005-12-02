@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:17 2005
  *
- * $Id: exprtool.inc,v 1.3 2005/11/08 20:56:38 igor Exp $
+ * $Id: exprtool.inc,v 1.6 2005/11/30 23:01:35 igor Exp $
  */
 
 /*
@@ -27,14 +27,15 @@
 }
 
 /* 
- * for sprintf %f
+ * for snprintf %f
  * internal expr buffers for conversion int/double --> string 
  * static char left_buffer[40]; 
  * static char right_buffer[40];
  */
 
 static
-exprtype expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
+exprtype 
+expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(val1);
   EXPR_CHECK_NUMBER(val2);
   if (val1->type == EXPRINT && val2->type == EXPRINT)
@@ -53,7 +54,8 @@ exprtype expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
 }
 
 static
-exprtype expr_to_int_or_dbl_logop (struct exprval* val1, struct exprval* val2) {
+exprtype 
+expr_to_int_or_dbl_logop (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_LOGICAL(val1);
   EXPR_CHECK_LOGICAL(val2);
   if (val1->type == EXPRINT && val2->type == EXPRINT)
@@ -72,7 +74,8 @@ exprtype expr_to_int_or_dbl_logop (struct exprval* val1, struct exprval* val2) {
 }
 
 static
-void expr_to_dbl (struct exprval* val1, struct exprval* val2) {
+void 
+expr_to_dbl (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(val1);
   EXPR_CHECK_NUMBER(val2);
   if (val1->type == EXPRINT) {
@@ -86,7 +89,8 @@ void expr_to_dbl (struct exprval* val1, struct exprval* val2) {
 }
 
 static
-void expr_to_dbl1 (struct exprval* val1) {
+void 
+expr_to_dbl1 (struct exprval* val1) {
   EXPR_CHECK_NUMBER(val1);
   if (val1->type == EXPRINT) {
     val1->type=EXPRDBL;
@@ -95,48 +99,52 @@ void expr_to_dbl1 (struct exprval* val1) {
 }
 
 static
-void expr_to_int (struct exprval* val1, struct exprval* val2) {
+void 
+expr_to_int (struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(val1);
   EXPR_CHECK_NUMBER(val2);
   if (val1->type == EXPRDBL) {
     val1->type=EXPRINT;
     val1->val.intval=val1->val.dblval;
-    //expnum_debug(*val1, "WARN:converting to `int' from `double'");
+    /* expnum_debug(*val1, "WARN:converting to `int' from `double'"); */
   }
   if (val2->type == EXPRDBL) {
     val2->type=EXPRINT;
     val2->val.intval=val2->val.dblval;
-    //expnum_debug(*val1, "WARN:converting to `int' from `double'");
+    /* expnum_debug(*val2, "WARN:converting to `int' from `double'"); */
   }
 }
 
 static
-void expr_to_str (struct exprval* val1, struct exprval* val2) {
+void 
+expr_to_str (struct exprval* val1, struct exprval* val2) {
   switch (val1->type) {
   case EXPRPSTR: break;
-  case EXPRINT: val1->val.strval=int_to_pstring(val1->val.intval,left_buffer); break;
-  case EXPRDBL: val1->val.strval=double_to_pstring(val1->val.dblval,left_buffer); break;
+  case EXPRINT: val1->val.strval=int_to_pstring(val1->val.intval,left_buffer,sizeof(left_buffer)); break;
+  case EXPRDBL: val1->val.strval=double_to_pstring(val1->val.dblval,left_buffer,sizeof(left_buffer)); break;
   default: expnum_debug(*val1, "FATAL:internal expr string error. please report\n");
   }
   val1->type = EXPRPSTR;
 
   switch (val2->type) {
   case EXPRPSTR: break;
-  case EXPRINT: val2->val.strval=int_to_pstring(val2->val.intval,right_buffer); break;
-  case EXPRDBL: val2->val.strval=double_to_pstring(val2->val.dblval,right_buffer); break;
+  case EXPRINT: val2->val.strval=int_to_pstring(val2->val.intval,right_buffer,sizeof(right_buffer)); break;
+  case EXPRDBL: val2->val.strval=double_to_pstring(val2->val.dblval,right_buffer,sizeof(right_buffer)); break;
   default: expnum_debug(*val2, "FATAL:internal expr string error. please report\n");
   }
   val2->type = EXPRPSTR;
 }
 
 static
-inline int is_float_lex (char c)
+int 
+is_float_lex (char c)
 {
   return (c == '.' || isdigit (c));
 }
 
 static
-struct exprval exp_read_number (char* *curposptr, char* endchars) {
+struct exprval 
+exp_read_number (char* *curposptr, char* endchars) {
   char c = **curposptr;
   struct exprval retval;
   int iretval=0;
@@ -187,7 +195,8 @@ struct exprval exp_read_number (char* *curposptr, char* endchars) {
 }
 
 static
-void expr_to_num (struct exprval* val1)
+void 
+expr_to_num (struct exprval* val1)
 {
   if (val1->type == EXPRPSTR) {
     char* curpos=val1->val.strval.begin;
@@ -196,7 +205,8 @@ void expr_to_num (struct exprval* val1)
 }
 
 static
-void expr_to_bool (struct exprval* val1)
+void 
+expr_to_bool (struct exprval* val1)
 {
   if (val1->type == EXPRPSTR) {
     char* begin=val1->val.strval.begin;
@@ -215,7 +225,8 @@ void expr_to_bool (struct exprval* val1)
   }
 }
 
-void expnum_debug (struct exprval val, char* msg) 
+void 
+expnum_debug (struct exprval val, char* msg) 
 {
   tmpl_log(NULL,TMPL_LOG_DEBUG,"--> debug %s:type %c ",msg,val.type);
   if (val.type == EXPRINT)

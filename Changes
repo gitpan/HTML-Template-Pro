@@ -91,3 +91,8 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.57  Tue Nov  8 22:57:02 2005
 	- fixed bug in Expr with negative variables (thanks to Stanislav Yadykin)
+
+0.58  Wed Nov 30 23:56:36 2005
+	- added support for Expr and Default in Include tag
+	  (thanks to Mike Greenish)
+	- improvements in portability

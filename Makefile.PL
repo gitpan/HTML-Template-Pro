@@ -21,14 +21,8 @@ $DEF{PCRE}=has_pcre();
 
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
-    if ($ARGV[$i]=~/^PCRE=(.+)/) {
-	$DEF{PCRE}=$1;
-    } elsif ($ARGV[$i]=~/^DEBUG=(.+)/) {
-	$DEF{DEBUG}=$1;
-    } elsif ($ARGV[$i]=~/^MMAP=(.+)/) {
-	$DEF{MMAP}=$1;
-    } elsif ($ARGV[$i]=~/^IMITATE=(.+)/) {
-	$DEF{'IMITATE'}=$1;
+    if ($ARGV[$i]=~/^(PCRE|PEDANTIC|DEBUG|MMAP|IMITATE)=(.+)/) {
+	$DEF{$1}=$2;
     } else {
 	next;
     }
@@ -37,7 +31,8 @@ for ($i=0; $i<@ARGV; $i++)  {
 }
 
 $DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
-$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE' if ($DEF{'IMITATE'});
+$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -pedantic' if ($DEF{'IMITATE'});
+$DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
 
 if ($DEF{PCRE}) {
     $INC.=' -I/usr/include/pcre';

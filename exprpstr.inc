@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: exprpstr.inc,v 1.1 2005/10/18 10:47:08 igor Exp $
+ * $Id: exprpstr.inc,v 1.2 2005/11/22 20:55:34 igor Exp $
  */
 
 #include <stdio.h>
@@ -11,10 +11,10 @@
 #include "pstring.h"
 #include "tmpllog.h"
 
-PSTRING double_to_pstring (double number, char buffer[]) {
+PSTRING double_to_pstring (double number, char buffer[], size_t bufsize) {
   size_t len=0;
   size_t tmplen=0;
-  sprintf(buffer,"%f",number);
+  snprintf(buffer,bufsize,"%f",number);
   len=strlen(buffer);
   tmplen=len;
   /* removing trailing 0 as 2.00000... */
@@ -26,9 +26,9 @@ PSTRING double_to_pstring (double number, char buffer[]) {
   return (PSTRING) {buffer, buffer+len};
 }
 
-PSTRING int_to_pstring (int number, char buffer[]) {
+PSTRING int_to_pstring (int number, char buffer[], size_t bufsize) {
   size_t len=0;
-  sprintf(buffer,"%d",number);
+  snprintf(buffer, bufsize,"%d",number);
   len=strlen(buffer);
   return (PSTRING) {buffer, buffer+len};
 }

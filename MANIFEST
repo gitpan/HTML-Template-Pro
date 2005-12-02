@@ -89,6 +89,8 @@ templates-Pro/test_expr3.out
 templates-Pro/test_expr3.tmpl
 templates-Pro/test_expr4.out
 templates-Pro/test_expr4.tmpl
+templates-Pro/test_expr5.out
+templates-Pro/test_expr5.tmpl
 templates-Pro/test_broken1.out
 templates-Pro/test_broken1.tmpl
 templates-Pro/test_malloc.tmpl

@@ -65,14 +65,15 @@ PSTRING get_perl_var_value (struct tmplpro_param* param, PSTRING name) {
   STRLEN len=0;
   char *value;
   SV** hashvalptr;
+  PSTRING retval={NULL,NULL};
   /* walking on nested loops */
   hashvalptr=walk_through_nested_loops(param, name);
-  if ((hashvalptr==NULL) || (! SvOK(*hashvalptr))) {
-    return (PSTRING) {NULL,NULL};
-  } else {
+  if ((hashvalptr!=NULL) && SvOK(*hashvalptr)) {
     value=SvPV(*hashvalptr, len);
-    return (PSTRING) {value,value+len};
+    retval.begin=value;
+    retval.endnext=value+len;
   }
+  return retval;
 }
 
 static 
@@ -254,7 +255,9 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
   I32 numretval;
   I32 arrlen=av_len((AV *) param->ExprFuncArglist);
   struct exprval retval = {EXPRPSTR};
-  retval.val.strval=(PSTRING) {empty,empty};
+  /* retval.val.strval=(PSTRING) {empty,empty}; */
+  retval.val.strval.begin=empty;
+  retval.val.strval.endnext=empty;
   if (hashvalptr==NULL) {
     die ("FATAL INTERNAL ERROR:Call_EXPR:function called but not exists");
     return retval;
@@ -288,9 +291,12 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
 	STRLEN len=0;
 	retval.type=EXPRPSTR;
 	strval =SvPV(svretval, len);
-	// hack !!!
+	/* hack !!! */
 	SvREFCNT_inc(svretval);
-	retval.val.strval=(PSTRING) {strval, strval +len};
+	/* non-portable */
+	/* retval.val.strval=(PSTRING) {strval, strval +len}; */
+	retval.val.strval.begin=strval;
+	retval.val.strval.endnext=strval +len;
       }
     } else {
       warn ("user defined function returned undef");
@@ -319,15 +325,18 @@ PSTRING get_string_from_hash(HV* TheHash, char* key) {
   SV** hashvalptr=hv_fetch(TheHash, key, strlen(key), 0);
   STRLEN len=0;
   char * begin;
-  if (hashvalptr==NULL) return (PSTRING) {NULL,NULL};
+  PSTRING retval={NULL,NULL};
+  if (hashvalptr==NULL) return retval;
   if (SvROK(*hashvalptr)) {
     /* if (SvTYPE(SvRV(*hashvalptr))!=SVt_PV) return (PSTRING) {NULL,NULL}; */
     begin=SvPV(SvRV(*hashvalptr),len);
   } else {
-    if (! SvPOK(*hashvalptr)) return (PSTRING) {NULL,NULL};
+    if (! SvPOK(*hashvalptr)) return retval;
     begin=SvPV(*hashvalptr,len);
   }
-  return (PSTRING) {begin, begin+len};
+  retval.begin=begin;
+  retval.endnext=begin+len;
+  return retval;
 }
 
 static 

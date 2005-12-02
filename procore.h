@@ -45,17 +45,17 @@ typedef void*   (*is_expr_userfnc_func) (struct tmplpro_param* param, PSTRING na
 
 struct tmplpro_param {
   int global_vars;
-  int no_includes;
   int max_includes;
   int debug;
-  int case_sensitive;
-  int loop_context_vars;
-  int strict;
+  flag no_includes;
+  flag case_sensitive;
+  flag loop_context_vars;
+  flag strict;
   /* filters --- indicates whether to use 
    * external file loader hook specified as LoadFileFuncPtr. 
    * Set it to 1 if you want to preprocess file with filters
    * before they'll be processed by exec_tmpl */
-  int filters;
+  flag filters;
   const char* filename; /* template file */
   PSTRING scalarref; /* memory area */
   /* currently used in Perl code */

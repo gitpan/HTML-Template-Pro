@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  8 17:16:48 2005
  *
- * $Id: loadfile.inc,v 1.1 2005/09/30 11:00:37 igor Exp $
+ * $Id: loadfile.inc,v 1.3 2005/12/02 07:24:50 igor Exp $
  */
 
 #ifdef WIN32
@@ -17,7 +17,8 @@ static
 HANDLE hFile;
 
 static 
-PSTRING mmap_load_file (const char* filepath) {
+PSTRING 
+mmap_load_file (const char* filepath) {
   LPCTSTR lpvMem;
   DWORD size_in_bytes;
   PSTRING memarea =(PSTRING) {NULL,NULL};
@@ -63,7 +64,8 @@ PSTRING mmap_load_file (const char* filepath) {
 }
 
 static 
-int mmap_unload_file (PSTRING memarea) {
+int 
+mmap_unload_file (PSTRING memarea) {
   UnmapViewOfFile((void *)memarea.begin);
   CloseHandle(hMapObject);
   CloseHandle(hFile);
@@ -79,13 +81,14 @@ int mmap_unload_file (PSTRING memarea) {
 #include <unistd.h> /* close */
 
 static 
-PSTRING mmap_load_file (const char* filepath) {
+PSTRING 
+mmap_load_file (const char* filepath) {
   int fd;
   struct stat st;
   size_t size_in_bytes;
-  PSTRING memarea;
+  PSTRING memarea={NULL,NULL};
   fd = open(filepath, O_RDONLY);
-  if (fd == -1) return (PSTRING){NULL,NULL};
+  if (fd == -1) return memarea; /* {NULL,NULL} */
   fstat(fd, &st);
   size_in_bytes = st.st_size;
   /* mmap size_in_bytes+1 to avoid crash with empty file */
@@ -96,7 +99,8 @@ PSTRING mmap_load_file (const char* filepath) {
 }
 
 static 
-int mmap_unload_file (PSTRING memarea) {
+int 
+mmap_unload_file (PSTRING memarea) {
   /* destroying */
   return munmap((void *)memarea.begin, memarea.endnext-memarea.begin);
 }
