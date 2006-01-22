@@ -96,3 +96,6 @@ Revision history for Perl extension HTML::Template::Pro.
 	- added support for Expr and Default in Include tag
 	  (thanks to Mike Greenish)
 	- improvements in portability
+
+0.59  Sun Jan 22 21:46:23 EET 2006
+	- portability cleanup

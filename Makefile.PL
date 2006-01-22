@@ -84,6 +84,20 @@ index.html: README Makefile
 	cat $< >> $@
 	echo '</pre></body></html>' >> $@
 
+TARBALL=emacspeak-${LABEL}.tar.bz2
+RPM=/usr/src/redhat/RPMS/i386/emacspeak-${LABEL}-1.i386.rpm
+SF_HOME='raman@emacspeak.sf.net:~/www-emacspeak/htdocs'
+sourceforge:
+	mv emacspeak.tar.bz2 $(TARBALL)
+	( echo 'anonymous';	\
+	  echo prompt;		\
+	  echo hash;		\
+	  echo cd incoming;	\
+	  echo put $(TARBALL);	\
+	  echo put $(RPM);	\
+	  echo quit ) | /usr/bin/ftp upload.sourceforge.net
+	scp $(RPM) $(TARBALL) $(SF_HOME)
+ 
 
 MAKE_FRAG
 }
@@ -117,10 +131,10 @@ sub try_compile_and_link {
 	my $cc=$Config{'cc'};
 	$cc||='cc';
 	if ($^O eq 'VMS') {
-            my $perl_core = $Config{'installarchlib'};
-            $perl_core =~ s/\]$/.CORE]/;
-            $cccmd = "$cc /include=(perl_root:[000000],$perl_core) $tmp.c"; 
-        }
+	    my $perl_core = $Config{'installarchlib'};
+	    $perl_core =~ s/\]$/.CORE]/;
+	    $cccmd = "$cc /include=(perl_root:[000000],$perl_core) $tmp.c"; 
+	}
 	$cccmd = "$cc -o $tmp $ccflags $tmp.c @$LIBS"
 	 unless (defined $cccmd);
     print "trying $cccmd\n";
@@ -128,12 +142,12 @@ sub try_compile_and_link {
 	if ($^O eq 'VMS') {
 	    $ok = -s "$tmp$obj_ext" && -x _;
 	    unlink("$tmp.c", "$tmp$obj_ext");
-        }
-        else
-        {
+	}
+	else
+	{
 	    $ok = -s $tmp && -x _;
 	    unlink("$tmp.c", $tmp);
-        }
+	}
     }
     
     $ok;

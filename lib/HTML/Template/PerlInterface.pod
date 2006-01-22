@@ -4,6 +4,10 @@ HTML::Template::PerlInterface - perl interface of HTML::Template::Pro
 
 =head1 SYNOPSIS
 
+This help is only on perl interface of HTML::Template::Pro.
+For syntax of html template files you should see 
+L<HTML::Template::SYNTAX/SYNOPSIS>.
+
 First you make a template - this is just a normal HTML file with a few
 extra tags, the simplest being <TMPL_VAR>
 

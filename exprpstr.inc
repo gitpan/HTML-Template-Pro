@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: exprpstr.inc,v 1.2 2005/11/22 20:55:34 igor Exp $
+ * $Id: exprpstr.inc,v 1.3 2006/01/22 19:57:02 igor Exp $
  */
 
 #include <stdio.h>
@@ -14,6 +14,7 @@
 PSTRING double_to_pstring (double number, char buffer[], size_t bufsize) {
   size_t len=0;
   size_t tmplen=0;
+  PSTRING retval;
   snprintf(buffer,bufsize,"%f",number);
   len=strlen(buffer);
   tmplen=len;
@@ -23,14 +24,19 @@ PSTRING double_to_pstring (double number, char buffer[], size_t bufsize) {
     tmplen--;
     len=tmplen;
   }
-  return (PSTRING) {buffer, buffer+len};
+  retval.begin=buffer;
+  retval.endnext=buffer+len;
+  return retval;
 }
 
 PSTRING int_to_pstring (int number, char buffer[], size_t bufsize) {
   size_t len=0;
+  PSTRING retval;
   snprintf(buffer, bufsize,"%d",number);
   len=strlen(buffer);
-  return (PSTRING) {buffer, buffer+len};
+  retval.begin=buffer;
+  retval.endnext=buffer+len;
+  return retval;
 }
 
 
@@ -100,7 +106,7 @@ int re_like(PSTRING a, PSTRING b) {
   char* pattern=(char*)malloc(b.endnext-b.begin);
   strncpy(pattern, b.begin, (b.endnext-b.begin));
   *(pattern+(b.endnext-b.begin))=0;
-  re = pcre_compile(pattern, 0, &error, &erroffset, NULL); // default character set
+  re = pcre_compile(pattern, 0, &error, &erroffset, NULL); /* default character set */
   free(pattern);
   if (re==NULL) {
     tmpl_log(NULL,TMPL_LOG_ERROR, "PCRE compilation failed at offset %d: %s\n",

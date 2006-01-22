@@ -1,3 +1,4 @@
+Q:
 > I have one quick question. I am unclear 
 > how Template and Template::Pro interact.
 > 
@@ -17,6 +18,7 @@
 > my $template = HTML::Template::Pro->new( filename => $tmp_file )
 > 
 
+A:
 use HTML::Template::Pro;
 then, if you don't 'use HTML::Template;'
 both are equivalent.
@@ -50,3 +52,9 @@ I also used mixing it in the same file for benchmark.pl.t
 :)
 
 
+Q:
+> I am considering using your html::template::pro and I have a question
+> about the tmpl_include tag.  Is it possible to put a template variable 
+> inside the file tag?
+A:
+It is possible through EXPR="", for example, <tmpl_include expr="variable">.

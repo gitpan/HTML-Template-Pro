@@ -193,7 +193,7 @@ escape_pstring (PSTRING pstring, int escapeopt) {
   char* curpos=pstring.begin;
   size_t offset=0;
   size_t buflen=pbuffer_size();
-
+  PSTRING retval;
   switch (escapeopt) {
   case HTML_TEMPLATE_OPT_ESCAPE_HTML:
     while (curpos<pstring.endnext) {
@@ -260,7 +260,9 @@ escape_pstring (PSTRING pstring, int escapeopt) {
     break;
   default : return pstring;
   }
-  return (PSTRING) {buf,buf+offset};
+  retval.begin=buf;
+  retval.endnext=buf+offset;
+  return retval;
 }
 
 void 

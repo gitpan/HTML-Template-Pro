@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+2*17 };
+BEGIN { plan tests => 1+2*(17+4) };
 #use HTML::Template;
 use HTML::Template::Pro;
 ok(1); # If we made it this far, we're ok.
@@ -36,6 +36,11 @@ if ($ENV{HTMLTEMPLATEPROBROKEN}) {
     test_tmpl('test_broken', @varset1, @refset1);
 }
 
+test_tmpl('test_esc1', @varset1, @varset2);
+test_tmpl('test_esc2', @varset1, @varset2);
+test_tmpl('test_esc3', @varset1, @varset2);
+test_tmpl('test_esc4', @varset1, @varset2);
+
 test_tmpl('test_var1', @varset1);
 test_tmpl('test_var2', @varset1);
 test_tmpl('test_var3', @varset1, @varset2);
@@ -53,8 +58,10 @@ test_tmpl('test_loop3', @varset1, @refset1);
 test_tmpl('test_loop4', @varset1, @refset1);
 test_tmpl('test_loop5', @varset1, @refset1);
 
-close (STDERR);
-open (STDERR, '>/dev/null');
+if ( -w '/dev/null') {
+    close (STDERR);
+    open (STDERR, '>/dev/null');
+}
 test_tmpl('test_broken1', @varset1, @refset1);
 # not a test -- to see warnings on broken tmpl
 # test_tmpl('test_broken', @varset1, @refset1);
@@ -63,22 +70,46 @@ test_tmpl('test_broken1', @varset1, @refset1);
 # -------------------------
 
 sub test_tmpl {
-    my $testname=shift;
+    my $file=shift;
     my $tmpl;
-    my $output;
-    print "\n--------------- Test: $testname ---------------------\n";
+    print "\n--------------- Test: $file ---------------------\n";
     chdir 'templates-Pro';
-    my $file=$testname;
 #    $tmpl=HTML::Template->new(filename=>$file.'.tmpl', die_on_bad_params=>0, strict=>0);
     $tmpl=HTML::Template::Pro->new(filename=>$file.'.tmpl', loop_context_vars=>1, case_sensitive=>0,debug=>$DEBUG);
-    open (OUTFILE, ">$file.raw");
     $tmpl->param(@_);
-    $tmpl->output(print_to => *OUTFILE);
-    close (OUTFILE);
-    ok(`cat $file.raw` eq `cat $file.out`) && unlink "$file.raw";
-    $output=$tmpl->output();
-    ok (defined $output and $output eq `cat $file.out`);
+    &dryrun($tmpl,$file);
     chdir '..';
+}
+
+sub dryrun {
+    my $tmpl=shift;
+    my $file=shift;
+    open (OUTFILE, ">$file.raw") || die "can't open $file.raw: $!";
+    binmode (OUTFILE);
+    $tmpl->output(print_to => *OUTFILE);
+    close (OUTFILE) || die "can't close $file.raw: $!";
+    my $files_equal=&catfile("$file.raw") eq &catfile("$file.out");
+    if ($files_equal) {
+	ok($files_equal) && unlink "$file.raw";
+    } else {
+	if (-x '/usr/bin/diff') {
+	    print STDERR `diff -u $file.out $file.raw`;
+	} else {
+	    print STDERR "# >>> ---$file.raw---\n$output\n>>> ---end $file.raw---\n";
+	}
+    }
+    my $output=$tmpl->output();
+    ok (defined $output and $output eq &catfile("$file.out"));
+}
+
+sub catfile {
+    my $file=shift;
+    open (INFILE, $file) || die "can't open $file: $!";
+    binmode (INFILE);
+    local $/;
+    my $catfile=<INFILE>;
+    close (INFILE) || die "can't close $file: $!";
+    return $catfile;
 }
 
 ### Local Variables: 

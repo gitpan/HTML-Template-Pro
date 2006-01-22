@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.c,v 1.12 2005/10/18 10:47:08 igor Exp $
+ * $Id: pstring.c,v 1.13 2006/01/22 19:57:02 igor Exp $
  */
 
 #include <stdio.h>
@@ -17,11 +17,14 @@ PSTRING lowercase_pstring (PSTRING pstring) {
   char* buf=pbuffer_resize(size+1);
   char* inbuf=buf;
   char* i=pstring.begin;
+  PSTRING retval;
   while (i<pstring.endnext) {
     *inbuf++=tolower(*i++);
   }
   *inbuf=0;
-  return (PSTRING) {buf, buf+size};
+  retval.begin=buf;
+  retval.endnext=buf+size;
+  return retval;
 }
 
 int is_pstring_true (PSTRING s) {

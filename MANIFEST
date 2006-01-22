@@ -94,6 +94,14 @@ templates-Pro/test_expr5.tmpl
 templates-Pro/test_broken1.out
 templates-Pro/test_broken1.tmpl
 templates-Pro/test_malloc.tmpl
+templates-Pro/test_esc1.out
+templates-Pro/test_esc1.tmpl
+templates-Pro/test_esc2.out
+templates-Pro/test_esc2.tmpl
+templates-Pro/test_esc3.out
+templates-Pro/test_esc3.tmpl
+templates-Pro/test_esc4.out
+templates-Pro/test_esc4.tmpl
 templates/case_loop.tmpl
 templates/context.tmpl
 templates/counter.tmpl
