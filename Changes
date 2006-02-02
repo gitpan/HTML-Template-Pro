@@ -98,4 +98,9 @@ Revision history for Perl extension HTML::Template::Pro.
 	- improvements in portability
 
 0.59  Sun Jan 22 21:46:23 EET 2006
-	- portability cleanup
+	- improvements in portability
+
+0.60  Thu Feb  2 14:36:26 EET 2006
+	- portability changes for Win32 (thanks to Viacheslav Sheveliov)
+	- portability changes for hpux-pa-risc
+	- tests data integrity test in Makefile.PL

@@ -34,7 +34,7 @@ tmpllog.c
 Pro.xs
 README
 README.ru
-README.win
+README.win32
 t/HTML-Template-Pro.t
 t/HTML-Template.t
 t/HTML-Template-Expr.t
@@ -46,6 +46,7 @@ t/pod.t
 cmp_expr.t
 benchmark.pl.t
 META.yml                                 Module meta-data (added by MakeMaker)
+test_crlf.out
 perl-HTML-Template-Pro.spec
 templates-Pro/test_broken.tmpl
 templates-Pro/test_if1.out

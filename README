@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.58
+HTML-Template-Pro version 0.60
 ==============================
 
 DESCRIPTION
@@ -38,8 +38,8 @@ don't consumes memory for caches and use mmap() for reading templates on disk.
 INSTALLATION
 
 This module is tested on Linux and FreeBSD. There are success reports 
-on MacOS X and Solaris. Windows users should look at README.win.
-It currently requires POSIX mmap() system call, 
+on MacOS X and Solaris. Windows users should look at README.win32.
+For Unixes it currently requires POSIX mmap() system call, 
 which may be unavaliable on some systems.
 
 To install this module type the following:

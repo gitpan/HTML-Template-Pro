@@ -55,6 +55,33 @@ Stanislav Yadykin's regexp extension is disabled.
 ";
 }
 
+### --------------------------------------
+### testing whether sources are consistent
+### --------------------------------------
+
+unless ((stat('test_crlf.out'))[7] == 47) {
+    my @tests_to_skip=('HTML-Template-Pro.t', 'HTML-Template.t', 'realloc.t');
+    print <<ENDTEXT;
+#=================================
+#
+#          WARNING!!!
+#   test data are corrupted!
+#   may be CRLF conversion?
+#   skipping most of tests!!!!
+#   skipped: 
+#   @tests_to_skip
+#
+#=================================
+ENDTEXT
+    sleep(2);
+    chdir 't';
+    # test that fail with corrupted data
+    unlink @tests_to_skip;
+    chdir '..';
+}
+
+
+
 WriteMakefile(
     NAME              => 'HTML::Template::Pro',
     VERSION_FROM      => 'lib/HTML/Template/Pro.pm', # finds $VERSION
@@ -84,19 +111,17 @@ index.html: README Makefile
 	cat $< >> $@
 	echo '</pre></body></html>' >> $@
 
-TARBALL=emacspeak-${LABEL}.tar.bz2
-RPM=/usr/src/redhat/RPMS/i386/emacspeak-${LABEL}-1.i386.rpm
-SF_HOME='raman@emacspeak.sf.net:~/www-emacspeak/htdocs'
-sourceforge:
-	mv emacspeak.tar.bz2 $(TARBALL)
+TARBALL=HTML-Template-Pro-$(VERSION).tar.gz
+SF_HOME='viy2@html-tmpl-pro.sf.net:~/www-html-tmpl-pro/htdocs'
+sourceforge: tardist index.html
 	( echo 'anonymous';	\
 	  echo prompt;		\
 	  echo hash;		\
 	  echo cd incoming;	\
 	  echo put $(TARBALL);	\
-	  echo put $(RPM);	\
 	  echo quit ) | /usr/bin/ftp upload.sourceforge.net
-	scp $(RPM) $(TARBALL) $(SF_HOME)
+	ssh-add ~/.ssh/id_dsa.sf
+	scp index.html $(SF_HOME)
  
 
 MAKE_FRAG

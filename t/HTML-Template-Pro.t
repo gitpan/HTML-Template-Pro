@@ -20,7 +20,7 @@ my $DEBUG=$ENV{HTMLTEMPLATEPRODEBUG};
 $DEBUG||=0;
 
 my @varset1=(VAR1=>VAR1,VAR2=>VAR2,VAR3=>VAR3,VAR10=>VAR10);
-my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\nend");
+my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\012end");
 my @refset1=(
 HASHREF0=>[],
 HASHREF2=>[{},{}],
@@ -93,7 +93,7 @@ sub dryrun {
 	ok($files_equal) && unlink "$file.raw";
     } else {
 	if (-x '/usr/bin/diff') {
-	    print STDERR `diff -u $file.out $file.raw`;
+	    print STDERR `diff -C 3 $file.out $file.raw`;
 	} else {
 	    print STDERR "# >>> ---$file.raw---\n$output\n>>> ---end $file.raw---\n";
 	}

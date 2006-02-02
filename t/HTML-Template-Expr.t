@@ -59,7 +59,7 @@ sub dryrun {
 	ok($files_equal) && unlink "$file.raw";
     } else {
 	if (-x '/usr/bin/diff') {
-	    print STDERR `diff -u $file.out $file.raw`;
+	    print STDERR `diff -C 3 $file.out $file.raw`;
 	} else {
 	    print STDERR "# >>> ---$file.raw---\n$output\n>>> ---end $file.raw---\n";
 	}

@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  8 17:16:48 2005
  *
- * $Id: loadfile.inc,v 1.3 2005/12/02 07:24:50 igor Exp $
+ * $Id: loadfile.inc,v 1.4 2006/02/02 13:12:18 igor Exp $
  */
 
 #ifdef WIN32
@@ -36,13 +36,13 @@ mmap_load_file (const char* filepath) {
       printf("Could not open file (error %d)\n", GetLastError());
       return memarea;
     }
-  size_in_bytes= GetFileSize(hFile, NULL);
+  size_in_bytes = GetFileSize(hFile, NULL);
   hMapObject = CreateFileMapping( 
            hFile, 
-           NULL,                 // no security attributes
-           PAGE_READONLY,       // read/write access
-           0,                    // size: high 32-bits
-           SHMEMSIZE,            // size: low 32-bits
+           NULL,          // no security attributes
+           PAGE_READONLY, // read/write access
+           0,             // size: high 32-bits
+           size_in_bytes, // size: low 32-bits
            NULL);     // name of map object
   if (hMapObject != NULL) {
 	// Get a pointer to the file-mapped shared memory.

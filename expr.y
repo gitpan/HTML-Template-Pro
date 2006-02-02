@@ -249,7 +249,8 @@ parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
 {
   expr=expression;
   curpos=expr.begin;
-  expr_retval=(PSTRING) {expression.begin, expression.begin};
+  expr_retval.begin=expression.begin;
+  expr_retval.endnext=expression.begin;
   param=param_arg;
   is_expect_quote_like=1;
   yyparse ();
@@ -268,6 +269,7 @@ fill_symbuf (int is_accepted(char)) {
   static char *symbuf = 0;
   static int symbuf_length = 0;
   int i=0;
+  PSTRING retval;
   /* Initially make the buffer long enough
      for a 40-character symbol name.  */
   if (symbuf_length == 0)
@@ -285,7 +287,9 @@ fill_symbuf (int is_accepted(char)) {
     }
   while (curpos<=expr.endnext && is_accepted(c));
   symbuf[i] = '\0';
-  return (PSTRING) {symbuf, symbuf+i};
+  retval.begin=symbuf;
+  retval.endnext=symbuf+i;
+  return retval;
 }
 
 static 
@@ -320,7 +324,8 @@ yylex (void)
     PSTRING strvalue;
     char terminal_quote=c;
     curpos++;
-    strvalue = (PSTRING) {curpos, curpos};
+    strvalue.begin = curpos;
+    strvalue.endnext = curpos;
     while (curpos<expr.endnext && 
 	   (
 	    /* it's buggy, but Expr 0.0.4 compatible :( */
@@ -388,7 +393,9 @@ yylex (void)
 	  /* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected cvar %s=%s\n", name.begin,varvalue.begin); */
 	}
 	if (varvalue.begin==NULL) {
-	  yylval.numval.val.strval=(PSTRING) {curpos, curpos};
+	  /*yylval.numval.val.strval=(PSTRING) {curpos, curpos};*/
+	  yylval.numval.val.strval.begin=curpos;
+	  yylval.numval.val.strval.endnext=curpos;
 	  if (param->strict) expr_debug("non-initialized variable", name.begin);
 	} else yylval.numval.val.strval=varvalue;
 	yylval.numval.type=EXPRPSTR;
