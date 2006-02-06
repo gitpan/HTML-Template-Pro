@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.60';
+$VERSION = '0.61';
 
 bootstrap HTML::Template::Pro $VERSION;
 

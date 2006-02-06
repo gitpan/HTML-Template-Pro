@@ -6,7 +6,8 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+2*(17+4) };
+BEGIN {plan tests => 1+2*(17+4) };
+use File::Spec;
 #use HTML::Template;
 use HTML::Template::Pro;
 ok(1); # If we made it this far, we're ok.
@@ -58,8 +59,10 @@ test_tmpl('test_loop3', @varset1, @refset1);
 test_tmpl('test_loop4', @varset1, @refset1);
 test_tmpl('test_loop5', @varset1, @refset1);
 
-if ( -w '/dev/null') {
+my $devnull=File::Spec->devnull();
+if (defined $devnull) {
     close (STDERR);
+    #open(STDERR, '>>', $devnull); # is better, but seems not for perl 5.005
     open (STDERR, '>/dev/null');
 }
 test_tmpl('test_broken1', @varset1, @refset1);

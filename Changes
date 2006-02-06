@@ -104,3 +104,7 @@ Revision history for Perl extension HTML::Template::Pro.
 	- portability changes for Win32 (thanks to Viacheslav Sheveliov)
 	- portability changes for hpux-pa-risc
 	- tests data integrity test in Makefile.PL
+
+0.61  Sat Feb  4 21:34:56 EET 2006
+        - Win32 support (thanks to Viacheslav Sheveliov)
+	  now HTML::Template::Pro should work on Win32.

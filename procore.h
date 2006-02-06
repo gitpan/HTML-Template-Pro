@@ -3,6 +3,13 @@
 #include "pstring.h"
 #include "tmpllog.h"
 
+/* MS VC++ support;
+ * thanks to Viacheslav Sheveliov <slavash@aha.ru>
+ */
+#ifdef _MSC_VER
+#  define snprintf _snprintf
+#endif
+
 typedef int flag;
 
 struct tmplpro_state;

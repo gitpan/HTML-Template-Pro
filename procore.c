@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include <unistd.h>
+#ifndef WIN32
+#  include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>

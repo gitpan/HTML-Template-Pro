@@ -3,74 +3,79 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  8 17:16:48 2005
  *
- * $Id: loadfile.inc,v 1.4 2006/02/02 13:12:18 igor Exp $
+ * $Id: loadfile.inc,v 1.5 2006/02/04 19:37:39 igor Exp $
  */
 
 #ifdef WIN32
+/* 
+ * the win32 code of Viacheslav Sheveliov <slavash@aha.ru>
+ * 
+ */
 
 #include <windows.h>
 #include <stdio.h>
 
-static 
-HANDLE hMapObject;
-static 
-HANDLE hFile;
+static PSTRING mmap_load_file(const char *filepath) {
+        PSTRING memarea = { NULL, NULL };
+        HANDLE hFile, hMapObject = NULL;
 
-static 
-PSTRING 
-mmap_load_file (const char* filepath) {
-  LPCTSTR lpvMem;
-  DWORD size_in_bytes;
-  PSTRING memarea =(PSTRING) {NULL,NULL};
- 
-  hFile = CreateFile(TEXT(filepath),    // file to open
-                   GENERIC_READ,          // open for reading
-                   FILE_SHARE_READ,       // share for reading
-                   NULL,                  // default security
-                   OPEN_EXISTING,         // existing file only
-                   FILE_ATTRIBUTE_NORMAL, // normal file
-                   NULL);                 // no attr. template
- 
-  if (hFile == INVALID_HANDLE_VALUE)
-    { 
-      printf("Could not open file (error %d)\n", GetLastError());
-      return memarea;
-    }
-  size_in_bytes = GetFileSize(hFile, NULL);
-  hMapObject = CreateFileMapping( 
-           hFile, 
-           NULL,          // no security attributes
-           PAGE_READONLY, // read/write access
-           0,             // size: high 32-bits
-           size_in_bytes, // size: low 32-bits
-           NULL);     // name of map object
-  if (hMapObject != NULL) {
-	// Get a pointer to the file-mapped shared memory.
-	lpvMem = (LPTSTR) MapViewOfFile( 
-	hMapObject,     // object to map view of
-	FILE_MAP_READ, // read/write access
-	0,              // high offset:  map from
-	0,              // low offset:   beginning
-	0);             // default: map entire file
-	if (lpvMem == NULL) {
-	  CloseHandle(hMapObject);
-	}
-  }
-  if (lpvMem) {
-    memarea.begin = (char *) lpvMem;
-    memarea.endnext=memarea.begin+size_in_bytes;
-  }
-  return memarea;
+        hFile = CreateFile(
+                TEXT(filepath), 
+                GENERIC_READ, 
+                FILE_SHARE_READ, 
+                NULL,                      
+                OPEN_EXISTING, 
+                FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, 
+                NULL
+        );
+
+        if (hFile != INVALID_HANDLE_VALUE) {
+                hMapObject = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
+
+                if (hMapObject) {
+                        // Get a pointer to the file-mapped shared memory.
+                        LPCTSTR lpvMem = (LPTSTR) MapViewOfFile(hMapObject, FILE_MAP_READ, 0, 0, 0);
+
+                        if (lpvMem) {       
+                                // Everything OK!
+
+                                memarea.begin = (char *) lpvMem;
+                                memarea.endnext = memarea.begin + GetFileSize(hFile, NULL);
+                                // After MapViewOfFile we don't need file handles no more.
+                                // Undocumented, but it works! (In read-only mode?)
+                                CloseHandle(hMapObject);
+                                CloseHandle(hFile);
+
+                                return memarea;
+
+                        }
+                }
+        }
+
+        // Something goes wrong
+
+        {
+                // Save last error code, before any system call
+                DWORD dwLastError = GetLastError();
+
+                // Report error, if file size != 0
+                // Mapping of zero-length file cause CreateFileMapping to fail.
+                // So skip error messages in this case.
+                if (hFile == INVALID_HANDLE_VALUE || GetFileSize(hFile, NULL) != 0)
+                        fprintf(stderr, "Could not open file '%s'. (system error#%d)\n", filepath, dwLastError);
+
+        }
+        // Close all opened handles
+        if (hMapObject) CloseHandle(hMapObject);
+        if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);  
+
+        return memarea;
 }
 
-static 
-int 
-mmap_unload_file (PSTRING memarea) {
-  UnmapViewOfFile((void *)memarea.begin);
-  CloseHandle(hMapObject);
-  CloseHandle(hFile);
-  return 0;
-};
+// What is better?
+/* static int mmap_unload_file(PSTRING memarea) { return UnmapViewOfFile((LPCVOID) memarea.begin) ? 0 : -1; }; */
+// or
+#define mmap_unload_file(map) (UnmapViewOfFile((LPCVOID) map.begin) ? 0 : -1)
 
 #else /* unix!!! :) */
 

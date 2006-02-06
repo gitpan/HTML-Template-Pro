@@ -16,7 +16,7 @@ my %DEF={
     MMAP=>1,
     IMITATE=>0,
 };
-#$DEF{PCRE}=0 if $^O =~ /win/i;
+#$DEF{PCRE}=0 if $^O =~ /MSWin32/;
 $DEF{PCRE}=has_pcre();
 
 my $i;
