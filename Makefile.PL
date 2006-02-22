@@ -18,6 +18,15 @@ my %DEF={
 };
 #$DEF{PCRE}=0 if $^O =~ /MSWin32/;
 $DEF{PCRE}=has_pcre();
+if ($^O eq 'os2' or $^O eq 'dos') {
+    $DEF{MMAP}=0;
+} elsif ($^O eq 'MSWin32') {
+    # win 32 mmap is disabled by default
+#    $DEF{MMAP}=1;
+    $DEF{MMAP}=0;
+} else {
+    $DEF{MMAP}=has_mmap();
+}
 
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
@@ -30,8 +39,10 @@ for ($i=0; $i<@ARGV; $i++)  {
     $i--;
 }
 
+#$DEF{MMAP}=0 if $^O =~ /MSWin32/ and $DEF{'IMITATE'};
 $DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
-$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -pedantic' if ($DEF{'IMITATE'});
+$DEFINE.=' -DMMAP' if ($DEF{MMAP});
+$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE' if ($DEF{'IMITATE'});
 $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
 
 if ($DEF{PCRE}) {
@@ -180,7 +191,7 @@ sub try_compile_and_link {
 
 sub has_pcre {
     print "looking for pcre...\n";
-    return 1 if try_compile_and_link('
+    if (try_compile_and_link('
 #include <pcre.h>
     static int foo()
     {
@@ -190,7 +201,47 @@ sub has_pcre {
     {
 	foo();
     }
-',undef, '-I/usr/include/pcre -lpcre');
+',undef, '-I/usr/include/pcre -lpcre')){
+	print "pcre found.\n";
+	return 1;
+    }
+    print "pcre not found.\n";
+    return 0;
+}
+
+sub has_mmap {
+    print "looking for mmap...\n";
+    if (try_compile_and_link('
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+static
+char*
+mmap_load_file (const char* filepath) {
+  int fd;
+  struct stat st;
+  size_t size_in_bytes;
+  char* memarea=NULL;
+  fd = open(filepath, O_RDONLY);
+  if (fd == -1) return memarea; /* {NULL,NULL} */
+  fstat(fd, &st);
+  size_in_bytes = st.st_size;
+  /* mmap size_in_bytes+1 to avoid crash with empty file */
+  memarea = (char *) mmap(0, size_in_bytes+1,  PROT_READ,  MAP_SHARED, fd, 0);
+  close(fd);
+  return memarea;
+}
+    int main (int argc, char** argv)
+    {
+	mmap_load_file("file");
+    }
+',undef, '')){
+	print "mmap found.\n";
+	return 1;
+    }
+    print "mmap not found.\n";
     return 0;
 }
 

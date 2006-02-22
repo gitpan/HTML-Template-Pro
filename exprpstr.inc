@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: exprpstr.inc,v 1.3 2006/01/22 19:57:02 igor Exp $
+ * $Id: exprpstr.inc,v 1.4 2006/02/21 18:58:56 igor Exp $
  */
 
 #include <stdio.h>
@@ -11,7 +11,9 @@
 #include "pstring.h"
 #include "tmpllog.h"
 
-PSTRING double_to_pstring (double number, char buffer[], size_t bufsize) {
+static
+PSTRING 
+double_to_pstring (double number, char buffer[], size_t bufsize) {
   size_t len=0;
   size_t tmplen=0;
   PSTRING retval;
@@ -29,7 +31,9 @@ PSTRING double_to_pstring (double number, char buffer[], size_t bufsize) {
   return retval;
 }
 
-PSTRING int_to_pstring (int number, char buffer[], size_t bufsize) {
+static
+PSTRING 
+int_to_pstring (int number, char buffer[], size_t bufsize) {
   size_t len=0;
   PSTRING retval;
   snprintf(buffer, bufsize,"%d",number);
@@ -39,37 +43,45 @@ PSTRING int_to_pstring (int number, char buffer[], size_t bufsize) {
   return retval;
 }
 
-
-
-int pstring_ge(PSTRING a, PSTRING b) {
+static
+int 
+pstring_ge(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) >= *(--in_b) ) return 1; else return 0;
 }
 
-int pstring_le(PSTRING a, PSTRING b) {
+static
+int 
+pstring_le(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) <= *(--in_b) ) return 1; else return 0;
 }
 
-int pstring_ne(PSTRING a, PSTRING b) {
+static
+int 
+pstring_ne(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 0; else return 1;
 }
 
-int pstring_eq(PSTRING a, PSTRING b) {
+static
+int 
+pstring_eq(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 1; else return 0;
 }
 
-int pstring_gt(PSTRING a, PSTRING b) {
+static
+int 
+pstring_gt(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
@@ -77,7 +89,9 @@ int pstring_gt(PSTRING a, PSTRING b) {
       || (*(--in_a) > *(--in_b)) ) return 1; else return 0;
 }
 
-int pstring_lt(PSTRING a, PSTRING b) {
+static
+int 
+pstring_lt(PSTRING a, PSTRING b) {
   char* in_a=a.begin;
   char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
@@ -85,18 +99,24 @@ int pstring_lt(PSTRING a, PSTRING b) {
       ||  *(--in_a) < *(--in_b) ) return 1; else return 0;
 }
 
-int re_notlike(PSTRING a, PSTRING b) {
+static
+int 
+re_notlike(PSTRING a, PSTRING b) {
   return ! re_like(a,b);
 }
 
 #ifndef HAVE_PCRE
-int re_like(PSTRING a, PSTRING b) {
+static
+int 
+re_like(PSTRING a, PSTRING b) {
     tmpl_log(NULL,TMPL_LOG_ERROR," (sorry, Stanislav Yadykin extension is disabled at compile time) \n");
   return 0;
 }
 #else
 #include <pcre.h>
-int re_like(PSTRING a, PSTRING b) {
+static
+int 
+re_like(PSTRING a, PSTRING b) {
   pcre* re;
   int ovector[30];
   int rc, erroffset;

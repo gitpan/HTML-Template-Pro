@@ -108,3 +108,7 @@ Revision history for Perl extension HTML::Template::Pro.
 0.61  Sat Feb  4 21:34:56 EET 2006
         - Win32 support (thanks to Viacheslav Sheveliov)
 	  now HTML::Template::Pro should work on Win32.
+
+0.62  Tue Feb 21 21:56:58 EET 2006
+        - added support for absence of mmap
+	- extra compatibility mode for Win32.

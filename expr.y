@@ -257,6 +257,7 @@ parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
   return expr_retval;
 }
 
+static
 void 
 expr_debug(char const *msg1, char const *msg2) {
   tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %d: %s %s\n", curpos-expr.begin,msg1,msg2);

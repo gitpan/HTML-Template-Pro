@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.60
+HTML-Template-Pro version 0.62
 ==============================
 
 DESCRIPTION
@@ -39,8 +39,9 @@ INSTALLATION
 
 This module is tested on Linux and FreeBSD. There are success reports 
 on MacOS X and Solaris. Windows users should look at README.win32.
-For Unixes it currently requires POSIX mmap() system call, 
-which may be unavaliable on some systems.
+For Unixes it currently use POSIX mmap() system call, 
+which may be unavaliable on some systems. 
+In such case add argument MMAP=0 to perl Makefile.PL.
 
 To install this module type the following:
 
@@ -53,7 +54,8 @@ If you have libpcre installed try
    perl Makefile.PL PCRE=1
 
 other optional parameters include DEBUG (build with extra debug level)
-and IMITATE (imitate behavior of HTML::Template even on broken templates)
+and IMITATE (imitate behavior of HTML::Template in all circumstances,
+even on broken templates, for a little cost of  perfomance)
 
 so a fully fledged build is
    perl Makefile.PL PCRE=1 DEBUG=1 IMITATE=1

@@ -3,8 +3,11 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  8 17:16:48 2005
  *
- * $Id: loadfile.inc,v 1.5 2006/02/04 19:37:39 igor Exp $
+ * $Id: loadfile.inc,v 1.7 2006/02/22 19:54:44 igor Exp $
  */
+
+
+#ifdef MMAP
 
 #ifdef WIN32
 /* 
@@ -110,5 +113,55 @@ mmap_unload_file (PSTRING memarea) {
   return munmap((void *)memarea.begin, memarea.endnext-memarea.begin);
 }
 
-#endif
+#endif /* WIN32/UNIX */
 
+#else 
+/*
+ * system seems to have no mmap ;
+ * we use standard C buffered read
+ */
+#include <stdio.h> 
+static 
+PSTRING 
+mmap_load_file (const char* filepath) {
+  FILE *stream;
+  size_t size_in_bytes=0;
+  size_t realsize;
+  size_t chunksize=4096;
+  size_t memsize=chunksize;
+  PSTRING memarea={NULL,NULL};
+  char* writepoint;
+  /* text mode for HTML::Template compatibility */
+  stream = fopen(filepath, "r");
+  if (stream == NULL) return memarea; /* {NULL,NULL} */
+  /* mmap size_in_bytes+1 to avoid crash with empty file */
+  memarea.begin=(char*) malloc(memsize+1);
+  writepoint=memarea.begin;
+
+  while (1) {
+    realsize=fread(writepoint, 1, chunksize, stream);
+    size_in_bytes+=realsize;
+    if (realsize==chunksize) {
+      writepoint+=chunksize;
+      if (size_in_bytes+chunksize>memsize) {
+	memsize*=2;
+	memarea.begin=(char*) realloc(memarea.begin, memsize+1);
+	writepoint=memarea.begin+size_in_bytes;
+      }
+    } else {
+      fclose(stream);
+      memarea.endnext=memarea.begin+size_in_bytes;
+      return memarea;
+    }
+  }
+}
+
+static 
+int 
+mmap_unload_file (PSTRING memarea) {
+  /* destroying */
+  free(memarea.begin);
+  return 0;
+}
+
+#endif /* MMAP */
