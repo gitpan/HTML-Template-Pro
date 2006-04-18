@@ -914,7 +914,7 @@ Example:
 
       <TMPL_UNLESS NAME="__odd__">
         This outputs every other pass, on the even passes.
-      </TMPL_IF>
+      </TMPL_UNLESS>
 
       <TMPL_IF NAME="__inner__">
         This outputs on passes that are neither first nor last.
@@ -924,7 +924,7 @@ Example:
 
       <TMPL_IF NAME="__last__">
         This only outputs on the last pass.
-      <TMPL_IF>
+      </TMPL_IF>
    </TMPL_LOOP>
 
 One use of this feature is to provide a "separator" similar in effect
@@ -1040,6 +1040,12 @@ specified.
 
 The specified filters will be called for any TMPL_INCLUDEed files just
 as they are for the main template file.
+
+=item * 
+
+default_escape - Set this parameter to "HTML", "URL" or "JS" and
+HTML::Template will apply the specified escaping to all variables
+unless they declare a different escape in the template.
 
 =back
 

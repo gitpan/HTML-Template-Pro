@@ -15,8 +15,6 @@ typedef int flag;
 struct tmplpro_state;
 struct tmplpro_param;
 
-extern void tmpl_log_state (struct tmplpro_state *state, int level);
-
 /* -------- Expr extension------------ */
 typedef char exprtype;
 #define EXPRINT 'i'
@@ -31,7 +29,7 @@ struct exprval {
     PSTRING strval;
   } val;
 };
-void expnum_debug (struct exprval val, char* msg);
+void _tmplpro_expnum_debug (struct exprval val, char* msg);
 /* ------- end Expr extension -------- */
 
 typedef void    (*writerfunc) (char* begin, char* endnext);
@@ -50,6 +48,11 @@ typedef void    (*push_expr_arglist_func) (struct tmplpro_param* param, struct e
 typedef struct exprval (*call_expr_userfnc_func) (struct tmplpro_param* param, void* extfunc);
 typedef void*   (*is_expr_userfnc_func) (struct tmplpro_param* param, PSTRING name);
 
+#define HTML_TEMPLATE_OPT_ESCAPE_NO   0
+#define HTML_TEMPLATE_OPT_ESCAPE_HTML 1
+#define HTML_TEMPLATE_OPT_ESCAPE_URL  2
+#define HTML_TEMPLATE_OPT_ESCAPE_JS   3
+
 struct tmplpro_param {
   int global_vars;
   int max_includes;
@@ -63,12 +66,13 @@ struct tmplpro_param {
    * Set it to 1 if you want to preprocess file with filters
    * before they'll be processed by exec_tmpl */
   flag filters;
+  int default_escape; /* one of HTML_TEMPLATE_OPT_ESCAPE_* */
   const char* filename; /* template file */
   PSTRING scalarref; /* memory area */
   /* currently used in Perl code */
   /* int search_path_on_include; */
   /* still unsupported  */
-  int die_on_bad_params;
+  flag die_on_bad_params;
   /* int vanguard_compatibility_mode; */
   /* hooks to perl or other container */
   /* HTML::Template hooks */
@@ -107,15 +111,8 @@ struct tmplpro_state {
   char* tag_start; 
 };
 
-int exec_tmpl (const char* filename, struct tmplpro_param* ProParams);
-int exec_tmpl_from_memory (PSTRING memarea, struct tmplpro_param* param);
-
-void procore_init();
-void procore_done();
-
-/* internal initialization of struct tmplpro_param */
-void param_init(struct tmplpro_param* param);
-
+int tmplpro_exec_tmpl (const char* filename, struct tmplpro_param* ProParams);
+int tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param* param);
 
 /* private : to hide */
 extern void _tmpl_log_state (struct tmplpro_state *state, int level);

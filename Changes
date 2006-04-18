@@ -112,3 +112,11 @@ Revision history for Perl extension HTML::Template::Pro.
 0.62  Tue Feb 21 21:56:58 EET 2006
         - added support for absence of mmap
 	- extra compatibility mode for Win32.
+
+0.63  Thu Apr 13 23:10:34 EEST 2006
+        - fixed bug in escape=url (thanks to Naoya Ito)
+	- ABI design start
+
+0.64  Tue Apr 18 22:42:08 EEST 2006
+        - synced with HTML::Template 2.8.
+        - New: added default_escape option from HTML::Template 2.8

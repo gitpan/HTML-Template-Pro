@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.62';
+$VERSION = '0.64';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -431,11 +431,14 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template (as of 2.7) and HTML::Template::Expr (as of 0.0.4). 
+of HTML::Template (as of 2.8) and HTML::Template::Expr (as of 0.0.5). 
 It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
 quering, the extended facility of HTML::Template.
 Designed for heavy upload, resource limitations, abcence of mod_perl.
+
+HTML::Template::Pro has complete support of filters and HTML::Template::Expr's 
+tag EXPR="<expression>", including user-defined functions.
 
 HTML::Template work cycle uses 2 steps. First, it loads and parse template.
 Then it accepts param() calls until you call output().
@@ -477,7 +480,8 @@ I. Vlasenko, E<lt>viy@altlinux.orgE<gt>
 
 with contributions of
 Bruni Emiliano, <info@ebruni.it>
-Stanislav Yadykin <tosick at altlinux.ru>
+Stanislav Yadykin, <tosick at altlinux.ru>
+Viacheslav Sheveliov <slavash at aha.ru>
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -486,7 +490,7 @@ Pieces of code in Pro.pm and documentation of HTML::Template are
 copyright (C) 2000-2002 Sam Tregar (sam@tregar.com)
 
 The template syntax, interface conventions and a large piece of documentation 
-of HTML::Template::Pro are based on CPAN mopule HTML::Template 
+of HTML::Template::Pro are based on CPAN module HTML::Template 
 by Sam Tregar, sam@tregar.com.
 
 This library is free software; you can redistribute it and/or modify

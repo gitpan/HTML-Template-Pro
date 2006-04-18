@@ -22,11 +22,6 @@
 #define HTML_TEMPLATE_TAG_UNLESS  6
 #define HTML_TEMPLATE_LAST_TAG_USED  6
 
-#define HTML_TEMPLATE_OPT_ESCAPE_NO   0
-#define HTML_TEMPLATE_OPT_ESCAPE_HTML 1
-#define HTML_TEMPLATE_OPT_ESCAPE_URL  2
-#define HTML_TEMPLATE_OPT_ESCAPE_JS   3
-
 #if defined(__GNUC__) && !(defined(PEDANTIC))
 #define INLINE inline
 #else /* !__GNUC__ */
@@ -68,6 +63,7 @@ const char* const INNERLOOPNAME[]={
 
 #define HTML_TEMPLATE_FIRST_INNER_LOOP 1
 #define HTML_TEMPLATE_LAST_INNER_LOOP  5
+
 
 static 
 int 
@@ -238,7 +234,7 @@ escape_pstring (PSTRING pstring, int escapeopt) {
     break;
   case HTML_TEMPLATE_OPT_ESCAPE_URL: 
     while (curpos<pstring.endnext) {
-      char curchar=*curpos++;
+      unsigned char curchar=*curpos++;
       int bufdelta=1;
       if (offset>=buflen) {
 	buf=pbuffer_resize(2*offset);
@@ -255,7 +251,7 @@ escape_pstring (PSTRING pstring, int escapeopt) {
 	  ) 
 	*(buf+offset)=curchar;
       else {
-	bufdelta=3; sprintf(buf+offset,"%%%02X",(int) curchar);
+	bufdelta=3; sprintf(buf+offset,"%%%.2X",(int) curchar);
       }
       offset+=bufdelta;
     }
@@ -339,7 +335,7 @@ tag_handler_include (struct tmplpro_state *state, PSTRING name, PSTRING defvalue
   *(filename+(varvalue.endnext-varvalue.begin))=0;
   /* end pstrdup */
   selfpath=param->selfpath; /* saving current file name */
-  exec_tmpl (filename, param);
+  tmplpro_exec_tmpl (filename, param);
   free (filename);
   param->selfpath=selfpath;
   param->cur_includes--; 
@@ -599,17 +595,17 @@ static
 int 
 try_tag_parameter (struct tmplpro_state *state,const char *modifier,const char *MODIFIER)
 {
+  char* initial_pos=state->cur_pos;
   jump_over_space(state);
   if (is_string(state, modifier, MODIFIER)) {
     jump_over_space(state);
     if ('='==*(state->cur_pos)) {
       state->cur_pos++;
-    } else {
-      tmpl_log(state,TMPL_LOG_ERROR,"found %c instead of = at pos %d\n",*state->cur_pos,state->cur_pos-state->top);
+      jump_over_space(state);
+      return 1;
     }
-    jump_over_space(state);
-    return 1;
   }
+  state->cur_pos=initial_pos;
   return 0;
 }
 
@@ -733,7 +729,8 @@ process_tmpl_tag(struct tmplpro_state *state)
     
     }
   } else {
-    int escape = HTML_TEMPLATE_OPT_ESCAPE_NO;
+    /* int escape = HTML_TEMPLATE_OPT_ESCAPE_NO; */
+    int escape = state->param->default_escape;
     if (tag_type!= HTML_TEMPLATE_TAG_INCLUDE &&
 	0==state->is_expr &&
 	0==state->param->case_sensitive) OptName=lowercase_pstring(OptName);
@@ -826,7 +823,7 @@ init_state (struct tmplpro_state *state, struct tmplpro_param *param)
 #include "loadfile.inc"
 
 int 
-exec_tmpl (const char* filename, struct tmplpro_param *param)
+tmplpro_exec_tmpl (const char* filename, struct tmplpro_param *param)
 {
   struct tmplpro_state state;
   int mmapstatus;
@@ -860,7 +857,7 @@ exec_tmpl (const char* filename, struct tmplpro_param *param)
 }
 
 int 
-exec_tmpl_from_memory (PSTRING memarea, struct tmplpro_param *param)
+tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param *param)
 {
   struct tmplpro_state state;
   param->selfpath=NULL; /* no upper file */
@@ -873,7 +870,7 @@ exec_tmpl_from_memory (PSTRING memarea, struct tmplpro_param *param)
 }
 
 void 
-procore_init()
+tmplpro_procore_init()
 {
   /* to save time on malloc/free at each included template */
   pbuffer_init();
@@ -884,7 +881,7 @@ procore_init()
 }
 
 void 
-procore_done()
+tmplpro_procore_done()
 {
   pstack_free();
   Scope_free();
@@ -892,20 +889,31 @@ procore_done()
   expr_free();
 }
 
+
 /* internal initialization of struct tmplpro_param */
-void 
-param_init(struct tmplpro_param* param)
+struct tmplpro_param* 
+tmplpro_param_init()
 {
+  struct tmplpro_param* param=(struct tmplpro_param*) malloc (sizeof(struct tmplpro_param));
+  if (param==NULL) return param;
   /* filling initial struct tmplpro_param with 0 */
   memset (param, 0, sizeof(struct tmplpro_param));
   /* current level of inclusion */
   /* param->cur_includes=0; */
   /* not to use external file loader */
-  /* param->filters=0; */
+  /* param->filters=0;
+     param->default_escape=HTML_TEMPLATE_OPT_ESCAPE_NO; */
   /* param->selfpath=NULL;
      param->ExprFuncHash=NULL;
      param->ExprFuncArglist=NULL;
   */
+  return param;
+}
+
+void
+tmplpro_param_free(struct tmplpro_param* param)
+{
+  free(param);
 }
 
 #include "pstack.inc"

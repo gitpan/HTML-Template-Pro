@@ -7,6 +7,7 @@ MANIFEST
 ARTISTIC
 GPL
 FAQ
+tmplpro.h                          main header for library API
 procore.c
 procore.h
 ppport.h
@@ -35,14 +36,16 @@ Pro.xs
 README
 README.ru
 README.win32
-t/HTML-Template-Pro.t
-t/HTML-Template.t
-t/HTML-Template-Expr.t
+t/01coderefs.t
 t/02basic.t
+t/02random.t
 t/03complex.t
 t/04register.t
-t/realloc.t
+t/HTML-Template-Expr.t
+t/HTML-Template-Pro.t
+t/HTML-Template.t
 t/pod.t
+t/realloc.t
 cmp_expr.t
 benchmark.pl.t
 META.yml                                 Module meta-data (added by MakeMaker)
@@ -107,6 +110,7 @@ templates/case_loop.tmpl
 templates/context.tmpl
 templates/counter.tmpl
 templates/default.tmpl
+templates/default_escape.tmpl
 templates/double_loop.tmpl
 templates/escape.tmpl
 templates/global-loops.tmpl

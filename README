@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.62
+HTML-Template-Pro version 0.64
 ==============================
 
 DESCRIPTION
@@ -11,7 +11,7 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template (as of 2.7) and HTML::Template::Expr (as of 0.0.4). 
+of HTML::Template (as of 2.8) and HTML::Template::Expr (as of 0.0.5). 
 It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
 quering, the extended facility of HTML::Template.
@@ -38,7 +38,7 @@ don't consumes memory for caches and use mmap() for reading templates on disk.
 INSTALLATION
 
 This module is tested on Linux and FreeBSD. There are success reports 
-on MacOS X and Solaris. Windows users should look at README.win32.
+on MacOS X, Solaris, Windows. Windows users should look at README.win32.
 For Unixes it currently use POSIX mmap() system call, 
 which may be unavaliable on some systems. 
 In such case add argument MMAP=0 to perl Makefile.PL.
@@ -55,9 +55,9 @@ If you have libpcre installed try
 
 other optional parameters include DEBUG (build with extra debug level)
 and IMITATE (imitate behavior of HTML::Template in all circumstances,
-even on broken templates, for a little cost of  perfomance)
+even on broken templates, for a little cost of  perfomance).
 
-so a fully fledged build is
+So a fully fledged build is
    perl Makefile.PL PCRE=1 DEBUG=1 IMITATE=1
 
 DEPENDENCIES
@@ -96,7 +96,7 @@ Pieces of code in Pro.pm and documentation of HTML::Template are
 copyright (C) 2000-2002 Sam Tregar (sam@tregar.com)
 
 The template syntax, interface conventions and a large piece of documentation 
-of HTML::Template::Pro are based on CPAN mopule HTML::Template 
+of HTML::Template::Pro are based on CPAN module HTML::Template 
 by Sam Tregar, sam@tregar.com.
 
 This library is free software; you can redistribute it and/or modify

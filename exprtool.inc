@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:17 2005
  *
- * $Id: exprtool.inc,v 1.6 2005/11/30 23:01:35 igor Exp $
+ * $Id: exprtool.inc,v 1.7 2006/04/17 18:34:04 igor Exp $
  */
 
 /*
@@ -15,14 +15,14 @@
 #define EXPR_CHECK_NUMBER(ptr)   switch (ptr->type) { \
   case EXPRINT: case EXPRDBL: break; \
   case EXPRPSTR: expr_to_num(ptr); break; \
-  default: expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
+  default: _tmplpro_expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
   ptr->type = EXPRINT; \
 }
 
 #define EXPR_CHECK_LOGICAL(ptr)   switch (ptr->type) { \
   case EXPRINT: case EXPRDBL: break; \
   case EXPRPSTR: expr_to_bool(ptr); break; \
-  default: expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
+  default: _tmplpro_expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
   ptr->type = EXPRINT; \
 }
 
@@ -106,12 +106,12 @@ expr_to_int (struct exprval* val1, struct exprval* val2) {
   if (val1->type == EXPRDBL) {
     val1->type=EXPRINT;
     val1->val.intval=val1->val.dblval;
-    /* expnum_debug(*val1, "WARN:converting to `int' from `double'"); */
+    /* _tmplpro_expnum_debug(*val1, "WARN:converting to `int' from `double'"); */
   }
   if (val2->type == EXPRDBL) {
     val2->type=EXPRINT;
     val2->val.intval=val2->val.dblval;
-    /* expnum_debug(*val2, "WARN:converting to `int' from `double'"); */
+    /* _tmplpro_expnum_debug(*val2, "WARN:converting to `int' from `double'"); */
   }
 }
 
@@ -122,7 +122,7 @@ expr_to_str (struct exprval* val1, struct exprval* val2) {
   case EXPRPSTR: break;
   case EXPRINT: val1->val.strval=int_to_pstring(val1->val.intval,left_buffer,sizeof(left_buffer)); break;
   case EXPRDBL: val1->val.strval=double_to_pstring(val1->val.dblval,left_buffer,sizeof(left_buffer)); break;
-  default: expnum_debug(*val1, "FATAL:internal expr string error. please report\n");
+  default: _tmplpro_expnum_debug(*val1, "FATAL:internal expr string error. please report\n");
   }
   val1->type = EXPRPSTR;
 
@@ -130,7 +130,7 @@ expr_to_str (struct exprval* val1, struct exprval* val2) {
   case EXPRPSTR: break;
   case EXPRINT: val2->val.strval=int_to_pstring(val2->val.intval,right_buffer,sizeof(right_buffer)); break;
   case EXPRDBL: val2->val.strval=double_to_pstring(val2->val.dblval,right_buffer,sizeof(right_buffer)); break;
-  default: expnum_debug(*val2, "FATAL:internal expr string error. please report\n");
+  default: _tmplpro_expnum_debug(*val2, "FATAL:internal expr string error. please report\n");
   }
   val2->type = EXPRPSTR;
 }
@@ -226,7 +226,7 @@ expr_to_bool (struct exprval* val1)
 }
 
 void 
-expnum_debug (struct exprval val, char* msg) 
+_tmplpro_expnum_debug (struct exprval val, char* msg) 
 {
   tmpl_log(NULL,TMPL_LOG_DEBUG,"--> debug %s:type %c ",msg,val.type);
   if (val.type == EXPRINT)

@@ -21,7 +21,7 @@ my $DEBUG=$ENV{HTMLTEMPLATEPRODEBUG};
 $DEBUG||=0;
 
 my @varset1=(VAR1=>VAR1,VAR2=>VAR2,VAR3=>VAR3,VAR10=>VAR10);
-my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\012end");
+my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\012end", STUFF2=>'Срср пур');
 my @refset1=(
 HASHREF0=>[],
 HASHREF2=>[{},{}],
