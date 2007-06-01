@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: pstring.h,v 1.9 2005/10/18 10:47:08 igor Exp $
+ * $Id$
  */
 
 #ifndef _PSTRING_H
@@ -15,6 +15,7 @@ typedef struct PSTRING {
 } PSTRING;
 
 PSTRING lowercase_pstring (PSTRING);
+void lowercase_pstring_inplace (PSTRING s);
 int is_pstring_true (PSTRING s);
 
 #endif /* pstring.h */

@@ -272,6 +272,17 @@ _tmpl_log_state (struct tmplpro_state *state, int level)
 	   state->tag_start - state->top);
 }
 
+PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name) {
+  PSTRING varvalue ={NULL, NULL};
+  if (param->loop_context_vars) {
+    varvalue=get_loop_context_vars_value(name);
+  }
+  if (varvalue.begin==NULL) {
+    varvalue=(param->GetVarFuncPtr)(param, name);
+  }
+  return varvalue;
+}
+
 static 
 void 
 tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, int escapeopt)
@@ -282,12 +293,7 @@ tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, in
   if (state->is_expr) {
     varvalue=parse_expr(name, state->param);
   } else 
-    if (state->param->loop_context_vars) {
-      varvalue=get_loop_context_vars_value(name);
-    }
-  if (varvalue.begin==NULL) {
-    varvalue=(state->param->GetVarFuncPtr)(state->param, name);
-  }
+    varvalue=get_variable_value(state->param, name);
   if (debuglevel>=TMPL_LOG_DEBUG) {
       if (varvalue.begin!=NULL) {
       tmpl_log(state,TMPL_LOG_DEBUG,"variable value = %.*s\n",varvalue.endnext-varvalue.begin,varvalue.begin);

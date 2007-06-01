@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:04 2005
  *
- * $Id: exprtool.h,v 1.13 2005/11/22 20:44:20 igor Exp $
+ * $Id$
  */
 
 #ifndef _EXPRTOOL_H

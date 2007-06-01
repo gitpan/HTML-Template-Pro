@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  1 17:17:37 2005
  *
- * $Id: tmpllog.h,v 1.4 2005/11/01 18:56:58 igor Exp $
+ * $Id$
  */
 
 /* based on FFmpeg av_log API */

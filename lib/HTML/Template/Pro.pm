@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.64';
+$VERSION = '0.65';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -243,10 +243,16 @@ sub param {
 }
 
 sub register_function {
-  my($class, $name, $sub) = @_;
-  croak("HTML::Template::Pro : args 3 of register_function must be subroutine reference\n")
+  my($self, $name, $sub) = @_;
+  croak("HTML::Template::Pro : last arg of register_function must be subroutine reference\n")
     unless ref($sub) eq 'CODE';
-  $FUNC{$name} = $sub;
+  if (ref $self) {
+      # per object call
+      $self->{expr_func}->{$name} = $sub;
+  } else {
+      # per class call
+      $FUNC{$name} = $sub;
+  }
 }
 
 sub _lowercase_keys {

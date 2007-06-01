@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Sat Apr 15 21:15:24 2006
  *
- * $Id: tmplpro.h,v 1.1 2006/04/17 18:34:04 igor Exp $
+ * $Id$
  */
 
 

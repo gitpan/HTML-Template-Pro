@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Fri Jul  1 20:11:51 2005
  *
- * $Id: exprpstr.h,v 1.2 2005/11/22 20:55:34 igor Exp $
+ * $Id$
  */
 
 #ifndef _EXPRPSTR_H

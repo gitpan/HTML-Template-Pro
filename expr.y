@@ -78,7 +78,7 @@ numEXP: NUM			{ $$ = $1;			}
 		   expr_to_int(&$1,&$3);
 		   $$.val.intval = $1.val.intval % $3.val.intval;
 		 }
-/*| numEXP '/' numEXP		{ $$ = $1 / $3;    }*/
+/* old division; now always return double (due to compains 1/3==0)
 | numEXP '/' numEXP
                  {
 		   switch ($$.type=expr_to_int_or_dbl(&$1,&$3)) {
@@ -101,6 +101,19 @@ numEXP: NUM			{ $$ = $1;			}
                      }
 		   }
 		   ;break;
+		 }
+*/
+| numEXP '/' numEXP
+                 {
+		   $$.type=EXPRDBL;
+		   expr_to_dbl(&$1,&$3);
+                   if ($3.val.dblval)
+                     $$.val.dblval = $1.val.dblval / $3.val.dblval;
+                   else
+                     {
+                       $$.val.dblval = 0;
+		       expr_debug("division by zero","");
+                     }
 		 }
 | '-' numEXP  %prec NEG
 		 { 
@@ -365,7 +378,8 @@ yylex (void)
   is_identifier_ext = (int) (c == '{'); 
 
   /* Char starts an identifier => read the name.       */
-  if (isalpha (c) || is_identifier_ext)
+  /* variables with _leading_underscore are allowed too */
+  if (isalpha (c) || c=='_' || is_identifier_ext)
     {
       symrec *s;
       PSTRING name;
@@ -384,15 +398,13 @@ yylex (void)
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {
-	/* s = putsym (symbuf, VAR); */
 	PSTRING varvalue;
-	if (param->case_sensitive) {
-	  varvalue=(param->GetVarFuncPtr)(param, name);
-	  /* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
-	} else {
-	  varvalue=(param->GetVarFuncPtr)(param, lowercase_pstring(name));
-	  /* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected cvar %s=%s\n", name.begin,varvalue.begin); */
+	/* TODO: support for inner_loop_var */
+	if (! param->case_sensitive) {
+	  lowercase_pstring_inplace(name);
 	}
+	varvalue=get_variable_value(param, name);
+	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
 	if (varvalue.begin==NULL) {
 	  /*yylval.numval.val.strval=(PSTRING) {curpos, curpos};*/
 	  yylval.numval.val.strval.begin=curpos;

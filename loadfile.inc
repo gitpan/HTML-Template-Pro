@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu Sep  8 17:16:48 2005
  *
- * $Id: loadfile.inc,v 1.7 2006/02/22 19:54:44 igor Exp $
+ * $Id$
  */
 
 

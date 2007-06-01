@@ -117,6 +117,8 @@ int tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param* param);
 /* private : to hide */
 extern void _tmpl_log_state (struct tmplpro_state *state, int level);
 
+PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name);
+
 /* 
  * Local Variables:
  * mode: c 

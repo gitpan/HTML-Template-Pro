@@ -1,6 +1,6 @@
 /* -*- c -*- 
  * File: calc.c
- * $Id: calc.inc,v 1.1 2005/09/30 11:00:37 igor Exp $
+ * $Id$
  */
 #include <string.h>
 

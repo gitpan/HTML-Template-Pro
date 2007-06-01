@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Mon Jul 25 15:29:17 2005
  *
- * $Id: exprtool.inc,v 1.7 2006/04/17 18:34:04 igor Exp $
+ * $Id$
  */
 
 /*

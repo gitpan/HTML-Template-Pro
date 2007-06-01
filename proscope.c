@@ -3,7 +3,7 @@
  * Author: Igor Vlasenko <vlasenko@imath.kiev.ua>
  * Created: Thu May 26 15:25:57 2005
  *
- * $Id: proscope.c,v 1.6 2005/11/30 23:01:35 igor Exp $
+ * $Id$
  */
 
 #include <stdlib.h>
