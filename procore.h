@@ -2,6 +2,7 @@
 
 #include "pstring.h"
 #include "tmpllog.h"
+#include "proscope.h"
 
 /* MS VC++ support;
  * thanks to Viacheslav Sheveliov <slavash@aha.ru>
@@ -12,7 +13,6 @@
 
 typedef int flag;
 
-struct tmplpro_state;
 struct tmplpro_param;
 
 /* -------- Expr extension------------ */
@@ -33,15 +33,22 @@ void _tmplpro_expnum_debug (struct exprval val, char* msg);
 /* ------- end Expr extension -------- */
 
 typedef void    (*writerfunc) (char* begin, char* endnext);
-typedef PSTRING (*get_variable_func) (struct tmplpro_param* param, PSTRING name);
-typedef int (*is_variable_true_func) (struct tmplpro_param* param, PSTRING name);
-typedef int (*init_loop_func) (struct tmplpro_state* state, PSTRING name);
-typedef int (*next_loop_func) (struct tmplpro_state* state);
+
+typedef int (*init_loop_func) (struct scope_stack*, PSTRING name);
+typedef int (*next_loop_func) (struct ProLoopState*);
+
+typedef ABSTRACT_VALUE* (*get_ABSTRACT_VALUE_func) (ABSTRACT_MAP*, PSTRING name);
+typedef PSTRING (*ABSTRACT_VALUE2PSTRING_func) (ABSTRACT_VALUE*);
+typedef int (*is_ABSTRACT_VALUE_TRUE_func) (ABSTRACT_VALUE*);
+
+/* TODO: implement this code inside H::T::Pro */
 typedef const char* (*find_file_func) (const char* filename, const char* prevfilename);
+
 /* optional; we can use wrapper to load file and apply its filters before running itself */
 /* note that this function should allocate region 1 byte nore than the file size	 */
 typedef PSTRING (*load_file_func) (const char* filename);
 typedef int     (*unload_file_func) (PSTRING memarea);
+
 /* those are needed for EXPR= extension */
 typedef void    (*init_expr_arglist_func) (struct tmplpro_param* param);
 typedef void    (*push_expr_arglist_func) (struct tmplpro_param* param, struct exprval);
@@ -77,8 +84,10 @@ struct tmplpro_param {
   /* hooks to perl or other container */
   /* HTML::Template hooks */
   writerfunc WriterFuncPtr;
-  get_variable_func GetVarFuncPtr;
-  is_variable_true_func IsVarTrueFuncPtr;
+  get_ABSTRACT_VALUE_func getAbstractValFuncPtr;
+  ABSTRACT_VALUE2PSTRING_func abstractVal2pstringFuncPtr;
+  /* user-supplied --- optional; we use it for full emulation of perl quirks */
+  is_ABSTRACT_VALUE_TRUE_func isAbstractValTrueFuncPtr;
   init_loop_func InitLoopFuncPtr;
   next_loop_func NextLoopFuncPtr;
   find_file_func FindFileFuncPtr;
@@ -93,31 +102,22 @@ unload_file_func UnloadFileFuncPtr;
   void* ExprFuncArglist;
   /* private */
   int cur_includes; /* internal counter of include depth */
-  const char* selfpath; /* file that included this file or empty string */
-};
+  const char* selfpath; /* file that has included this file, or empty string */
+  /* hack until param and state will be merged */
+  ABSTRACT_MAP* rootHV;
 
-struct tmplpro_state {
-  flag  is_visible;
-  char* top;
-  char* next_to_end;
-  char* last_processed_pos;
-  char* cur_pos;
-  struct tmplpro_param* param;
-  /* current tag */
-  int   tag;
-  flag  is_tag_closed;
-  flag  is_tag_commented;
-  flag  is_expr;
-  char* tag_start; 
+
 };
 
 int tmplpro_exec_tmpl (const char* filename, struct tmplpro_param* ProParams);
 int tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param* param);
 
-/* private : to hide */
-extern void _tmpl_log_state (struct tmplpro_state *state, int level);
 
-PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name);
+/* private : to hide */
+struct tmplpro_state;
+
+PSTRING get_variable_value (struct tmplpro_state *state, PSTRING name);
+
 
 /* 
  * Local Variables:

@@ -65,4 +65,11 @@ char left_buffer[40];
 static
 char right_buffer[40];
 
+/* 
+ * TODO: 
+ * growable multiple pstring buffer
+ * 
+ */
+
+
 #endif /* exprtool.h */

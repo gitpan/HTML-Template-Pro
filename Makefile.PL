@@ -42,7 +42,7 @@ for ($i=0; $i<@ARGV; $i++)  {
 #$DEF{MMAP}=0 if $^O =~ /MSWin32/ and $DEF{'IMITATE'};
 $DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
 $DEFINE.=' -DMMAP' if ($DEF{MMAP});
-$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE' if ($DEF{'IMITATE'});
+$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
 $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
 
 if ($DEF{PCRE}) {
@@ -63,6 +63,23 @@ perl Makefile.PL PCRE=0
 build with libpcre is disabled.
 =================================================
 Stanislav Yadykin's regexp extension is disabled.
+";
+}
+
+if ($DEF{IMITATE}) {
+    print "
+=====================================================================
+Compatibility mode for syntactically incorrect templates is enabled.
+Note, that this mode could be a bit slower than default but it will be
+useful if you rely on HTML::Template behaviour in undefined cases.
+=====================================================================
+";
+} else {
+    print "
+=====================================================================
+Compatibility mode for syntactically incorrect templates is disabled.
+It is the fast default.
+=====================================================================
 ";
 }
 
@@ -116,6 +133,9 @@ procore\$(OBJ_EXT): loadfile.inc pstack.inc
 
 rpm: dist
 	rpmbuild -ta --clean --target i586-alt-linux HTML-Template-Pro-$(VERSION).tar.gz
+
+MANIFEST.git::
+	git-ls-index > MANIFEST.git
 
 index.html: README Makefile
 	echo '<html><body><p><a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=138507&amp;type=5" width="210" height="62" border="0" alt="SourceForge.net Logo" /></a><br> <a href="http://sourceforge.net/projects/html-tmpl-pro/">SourceForge Summary page of the project</a><br><a href="http://www.imath.kiev.ua/~vlasenko/">Home page of the author</a><br><a href="http://prdownloads.sourceforge.net/html-tmpl-pro/HTML-Template-Pro-$(VERSION).tar.gz?download">Download</a><p><pre>' > $@

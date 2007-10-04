@@ -1,41 +1,29 @@
 #include "pbuffer.h"
 
-struct pbuffer {
-  size_t initcount;
-  size_t bufsize;
-  char*  buffer;
-};
+/* reentrant pbuffer functions */
 
-static 
-struct pbuffer StrBuffer;
+size_t pbuffer_size(pbuffer* pBuffer) {
+  return pBuffer->bufsize;
+}
+char* pbuffer_init(pbuffer* pBuffer) {
+  pBuffer->bufsize=256;
+  pBuffer->buffer=(char*) malloc (pBuffer->bufsize * sizeof(char));
+  return pBuffer->buffer;
+}
+char* pbuffer_string(pbuffer* pBuffer) {
+  return pBuffer->buffer;
+}
+char* pbuffer_resize(pbuffer* pBuffer, size_t size) {
+  if (pBuffer->bufsize< size) {
+    pBuffer->bufsize=2*size; /* aggresive memory allocation to prevent frequent requests*/
+    pBuffer->buffer=realloc (pBuffer->buffer,pBuffer->bufsize * sizeof(char));
+  }
+  return pBuffer->buffer;
+}
 
-size_t pbuffer_size() {
-  return StrBuffer.bufsize;
-}
-char* pbuffer_init() {
-  if (0==StrBuffer.initcount) {
-    StrBuffer.bufsize=256;
-    StrBuffer.buffer=(char*) malloc (StrBuffer.bufsize * sizeof(char));
-  }
-  StrBuffer.initcount++;
-  return StrBuffer.buffer;
-}
-char* pbuffer_string() {
-  return StrBuffer.buffer;
-}
-char* pbuffer_resize(size_t size) {
-  if (StrBuffer.bufsize< size) {
-    StrBuffer.bufsize=2*size; /* aggresive memory allocation to prevent frequent requests*/
-    StrBuffer.buffer=realloc (StrBuffer.buffer,StrBuffer.bufsize * sizeof(char));
-  }
-  return StrBuffer.buffer;
-}
-void  pbuffer_free() {
-  if (0!=StrBuffer.initcount) StrBuffer.initcount--;
-  if (0==StrBuffer.initcount) {
-    StrBuffer.bufsize=0;
-    free(StrBuffer.buffer);
-  }
+void  pbuffer_free(pbuffer* pBuffer) {
+  pBuffer->bufsize=0;
+  free(pBuffer->buffer);
 }
 
 /*

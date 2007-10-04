@@ -12,9 +12,9 @@
 #include "pbuffer.h"
 #include "pstring.h"
 
-PSTRING lowercase_pstring (PSTRING pstring) {
+PSTRING lowercase_pstring (pbuffer* pBuffer ,PSTRING pstring) {
   size_t size=pstring.endnext-pstring.begin;
-  char* buf=pbuffer_resize(size+1);
+  char* buf=pbuffer_resize(pBuffer, size+1);
   char* inbuf=buf;
   char* i=pstring.begin;
   PSTRING retval;

@@ -10,64 +10,59 @@
 #include "proscope.h"
 #include "tmpllog.h"
 
-int _ScopeLevel=-1;
-static int ScopeMax=-1;
-
 #define START_NUMBER_OF_NESTED_LOOPS 64
 
-static 
-struct ProLoopState* Scope;
-
-struct ProLoopState* CurrentScope;
 
 void 
-Scope_init() {
-  ScopeMax=START_NUMBER_OF_NESTED_LOOPS;
-  Scope=(struct ProLoopState*) malloc (ScopeMax * sizeof(struct ProLoopState));
-  if (NULL==Scope) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:Scope_init:internal error:not enough memory\n");
-  _ScopeLevel=-1;
+Scope_init(struct scope_stack* scopestack) {
+  scopestack->max=START_NUMBER_OF_NESTED_LOOPS;
+  scopestack->root=(struct ProLoopState*) malloc ((scopestack->max) * sizeof(struct ProLoopState));
+  if (NULL==scopestack->root) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:Scope_init:internal error:not enough memory\n");
+  scopestack->level=-1;
 }
 
 void 
-Scope_free() {
-  free(Scope);
-  ScopeMax=-1;
-  _ScopeLevel=-1;
+Scope_free(struct scope_stack* scopestack) {
+  free(scopestack->root);
+  scopestack->max=-1;
+  scopestack->level=-1;
 }
 
-static
-void 
-set_CurrentScope () {
-  CurrentScope=Scope+_ScopeLevel;
+int curScopeLevel(struct scope_stack* scopestack) {
+  return scopestack->level;
+}
+
+struct ProLoopState* getCurrentScope(struct scope_stack* scopestack) {
+  return scopestack->root+scopestack->level;
 }
 
 struct ProLoopState* 
-GetScope(int depth) {
-  return &(Scope[depth]);
+getScope(struct scope_stack* scopestack, int depth) {
+  return &(scopestack->root)[depth];
 }
 
 void 
-PopScope() {
-  if (_ScopeLevel>0) _ScopeLevel--;
+popScope(struct scope_stack* scopestack) {
+  if (scopestack->level>0) scopestack->level--;
   else tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:PopScope:internal error:scope is exhausted\n");
-  set_CurrentScope();
 }
 
 void 
-PushScope2(int maxloop, void *loops_AV) {
-  if (ScopeMax<0) {
+pushScope2(struct scope_stack* scopestack, int maxloop, void *loops_AV) {
+  struct ProLoopState* CurrentScope;
+  if (scopestack->max<0) {
     
     tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:PushScope:internal warning:why scope is empty?\n");
-    Scope_init();
+    Scope_init(scopestack);
   }
-  ++_ScopeLevel;
-  if (_ScopeLevel>ScopeMax) 
+  ++scopestack->level;
+  if (scopestack->level>scopestack->max) 
     {
-      if (ScopeMax<START_NUMBER_OF_NESTED_LOOPS) ScopeMax=START_NUMBER_OF_NESTED_LOOPS;
-      ScopeMax*=2;
-      Scope=(struct ProLoopState*) realloc (Scope, ScopeMax * sizeof(struct ProLoopState));
+      if (scopestack->max<START_NUMBER_OF_NESTED_LOOPS) scopestack->max=START_NUMBER_OF_NESTED_LOOPS;
+      scopestack->max*=2;
+      scopestack->root=(struct ProLoopState*) realloc (scopestack->root, (scopestack->max) * sizeof(struct ProLoopState));
     }
-  set_CurrentScope();
+  CurrentScope=scopestack->root+scopestack->level;
   CurrentScope->loop=-1;
   CurrentScope->maxloop = maxloop;
   CurrentScope->loops_AV=loops_AV;
@@ -75,12 +70,11 @@ PushScope2(int maxloop, void *loops_AV) {
 }
 
 void 
-SetRootScope(void* param_HV) {
-  if (ScopeMax<0) {
+setRootScope(struct scope_stack* scopestack, void* param_HV) {
+  if (scopestack->max<0) {
     tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:SetRootScope:internal warning:why scope is empty?\n");
-    Scope_init();
+    Scope_init(scopestack);
   }
-  _ScopeLevel=0;
-  set_CurrentScope();
-  CurrentScope->param_HV=param_HV;
+  scopestack->level=0;
+  scopestack->root->param_HV=param_HV;
 }

@@ -16,7 +16,6 @@ extern "C" {
 #include "ppport.h"
 
 #include "tmplpro.h"
-#include "proscope.h"
 
 typedef PerlIO *        OutputStream;
 
@@ -41,77 +40,65 @@ static void write_chars_to_file (char* begin, char* endnext) {
   }
 }
 
-/* endnext points on next character to end of interval as in c++ */
+/* endnext points on next to end character of the interval */
 static void write_chars_to_string (char* begin, char* endnext) {
   sv_catpvn(OutputString, begin, endnext-begin);
 }
 
-static 
-SV ** walk_through_nested_loops (struct tmplpro_param* param, PSTRING name) {
-  int PrevHash;
-  SV** hashvalptr=hv_fetch((HV*) CurrentScope->param_HV,name.begin, name.endnext-name.begin, 0);
-  if ((0==param->global_vars) || (hashvalptr)) return hashvalptr;
-  PrevHash=CurScopeLevel()-1;
-  while (PrevHash>=0) {
-    hashvalptr=hv_fetch((HV*)(GetScope(PrevHash)->param_HV),name.begin, name.endnext-name.begin, 0);
-    if (hashvalptr!=NULL) return hashvalptr;
-    PrevHash--;
-  }
-  return NULL;
+static
+ABSTRACT_VALUE* get_ABSTRACT_VALUE_impl (ABSTRACT_MAP* ptr_HV, PSTRING name) {
+  return hv_fetch((HV*) ptr_HV,name.begin, name.endnext-name.begin, 0);
 }
 
-static 
-PSTRING get_perl_var_value (struct tmplpro_param* param, PSTRING name) {
+static
+PSTRING ABSTRACT_VALUE2PSTRING_impl (ABSTRACT_VALUE* valptr) {
   STRLEN len=0;
-  char *value;
-  SV** hashvalptr;
   PSTRING retval={NULL,NULL};
-  /* walking on nested loops */
-  hashvalptr=walk_through_nested_loops(param, name);
-  if ((hashvalptr!=NULL) && SvOK(*hashvalptr)) {
-    value=SvPV(*hashvalptr, len);
-    retval.begin=value;
-    retval.endnext=value+len;
+  SV* SVval;
+  if (valptr==NULL) return retval;
+  SVval = *((SV**) valptr);
+  if (SvOK(SVval)) {
+    retval.begin=SvPV(SVval, len);
+    retval.endnext=retval.begin+len;
   }
   return retval;
 }
 
-static 
-int is_perl_value_true (struct tmplpro_param* param, PSTRING name) {
-  SV** hashvalptr;
-  hashvalptr=walk_through_nested_loops(param, name);
-  if (hashvalptr==NULL) return 0;
-  if (SvROK(*hashvalptr)) {
+static
+int is_ABSTRACT_VALUE_TRUE_impl (ABSTRACT_VALUE* valptr) {
+  SV* SVval;
+  if (valptr==NULL) return 0;
+  SVval = *((SV**) valptr);
+  if (SvROK(SVval)) {
     /* arrayptr : in HTML::Template, true if len(array)>0 */
-    if ((SvTYPE(SvRV(*hashvalptr)) == SVt_PVAV)
-	&& (av_len((AV *)SvRV(*hashvalptr))<0)) {
+    if ((SvTYPE(SvRV(SVval)) == SVt_PVAV)
+	&& (av_len((AV *)SvRV(SVval))<0)) {
       return 0;
-    } else {
-      return 1;
-    }
+    } else return 1;
   }
-  if(SvTRUE(*hashvalptr)) return 1;
+  if(SvTRUE(SVval)) return 1;
   return 0;
 }
 
 static 
-int perl_next_loop (struct tmplpro_state* state) {
+int perl_next_loop (struct ProLoopState* currentScope) {
   SV** arrayvalptr;
-  arrayvalptr=av_fetch((AV*)CurrentScope->loops_AV, CurrentScope->loop, 0);
+  arrayvalptr=av_fetch((AV*)currentScope->loops_AV, currentScope->loop, 0);
   if ((arrayvalptr==NULL) || (!SvROK(*arrayvalptr)) || (SvTYPE(SvRV(*arrayvalptr)) != SVt_PVHV)) {
     warn("PARAM:LOOP:next_loop:hash pointer was expected but not found");
     return 0;
   } else {
-    CurrentScope->param_HV=(HV *)SvRV(*arrayvalptr);
+    currentScope->param_HV=(HV *)SvRV(*arrayvalptr);
     return 1;
   }
 }
 
 static 
-int perl_init_loop (struct tmplpro_state* state, PSTRING name) {
+int perl_init_loop (struct scope_stack* variable_scope, PSTRING name) {
   AV* loops_AV;
   int maxloop;
-  SV** hashvalptr=hv_fetch((HV*)CurrentScope->param_HV,name.begin, name.endnext-name.begin, 0);
+  struct ProLoopState* currentScope = getCurrentScope(variable_scope);
+  SV** hashvalptr=hv_fetch((HV*)currentScope->param_HV,name.begin, name.endnext-name.begin, 0);
   if (hashvalptr==NULL) {
     return 0;
   } else {
@@ -124,7 +111,7 @@ int perl_init_loop (struct tmplpro_state* state, PSTRING name) {
     loops_AV=(AV *)SvRV(*hashvalptr);
     maxloop=av_len(loops_AV);
     if (maxloop < 0) return 0; 
-    PushScope2(maxloop, loops_AV);
+    pushScope2(variable_scope, maxloop, loops_AV);
     return 1;
   }
 }
@@ -349,8 +336,9 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   struct tmplpro_param* param=tmplpro_param_init();
   /*   setting initial hooks */
   param->WriterFuncPtr=&write_chars_to_string;
-  param->GetVarFuncPtr=&get_perl_var_value;
-  param->IsVarTrueFuncPtr=&is_perl_value_true;
+  param->getAbstractValFuncPtr=&get_ABSTRACT_VALUE_impl;
+  param->abstractVal2pstringFuncPtr=&ABSTRACT_VALUE2PSTRING_impl;
+  param->isAbstractValTrueFuncPtr=&is_ABSTRACT_VALUE_TRUE_impl;
   param->InitLoopFuncPtr=&perl_init_loop;
   param->NextLoopFuncPtr=&perl_next_loop;
   param->FindFileFuncPtr=&get_filepath;
@@ -385,7 +373,10 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   hashvalptr=hv_fetch(SelfHash, "param_map", 9, 0); /* 9=strlen("param_map") */
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
     die("FATAL:output:param_map not found");
-  SetRootScope((HV *)SvRV(*hashvalptr));
+
+  //setRootScope((HV *)SvRV(*hashvalptr));
+  param->rootHV = (HV *)SvRV(*hashvalptr);
+
   /* end setting param_map */
 
   /* setting filter */

@@ -59,6 +59,11 @@ test_tmpl('test_loop3', @varset1, @refset1);
 test_tmpl('test_loop4', @varset1, @refset1);
 test_tmpl('test_loop5', @varset1, @refset1);
 
+# todo: use config.h and grep defines from here
+# if IMITATE==1 (-DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG)
+#test_tmpl('test_if6',  @varset1);
+#
+
 my $devnull=File::Spec->devnull();
 if (defined $devnull) {
     close (STDERR);

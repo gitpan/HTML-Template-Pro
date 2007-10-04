@@ -6,6 +6,4 @@
  * $Id$
  */
 
-void expr_init(void);
-void expr_free(void);
-PSTRING parse_expr(PSTRING line, struct tmplpro_param* param);
+PSTRING parse_expr(PSTRING line, struct tmplpro_state* state);

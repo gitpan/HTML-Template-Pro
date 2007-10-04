@@ -10,6 +10,7 @@
 
 #include "procore.h"
 #include "tmpllog.h"
+#include "prostate.h"
 #include <stdio.h>
 #include <string.h>
 

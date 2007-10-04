@@ -5,17 +5,18 @@
 #include <ctype.h> /* for yylex alnum */
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "procore.h"
+#include "prostate.h"
 #include "exprtool.h"
 #include "exprpstr.h"
   static int yylex (void);
   static void yyerror (char const *);
   /* expr-specific globals needed by yylex */
   static PSTRING expr_retval;
-  static struct tmplpro_param* param;
+  static struct tmplpro_state* state;
   %}
 %union {
   struct exprval numval;   /* For returning numbers.  */
-  symrec  *tptr;   /* For returning symbol-table pointers.  */
+  const symrec_const  *tptr;   /* For returning symbol-table pointers.  */
   PSTRING strname;  /* for user-defined function name */
   void* extfunc;  /* for user-defined function name */
 
@@ -52,22 +53,22 @@ line: numEXP
 /* | error { yyerrok;                  } */
 
 numEXP: NUM			{ $$ = $1;			}
-| VAR				{ $$.type=EXPRDBL; $$.val.dblval = $1->value.var; }
+| VAR				{ $$.type=EXPRDBL; $$.val.dblval = $1->var; }
 /*| VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
 | EXTFUNC '(' arglist ')'
                  {
-		   $$ = param->CallExprUserfncFuncPtr(param, $1);
+		   $$ = state->param->CallExprUserfncFuncPtr(state->param, $1);
 		 }
 | EXTFUNC '(' ')'
                  {
-		   param->InitExprArglistFuncPtr(param);
-		   $$ = param->CallExprUserfncFuncPtr(param, $1);
+		   state->param->InitExprArglistFuncPtr(state->param);
+		   $$ = state->param->CallExprUserfncFuncPtr(state->param, $1);
 		 }
 | FNCT '(' numEXP ')'		
                  {
 		   $$.type=EXPRDBL;
 		   expr_to_dbl1(&$3);
-		   $$.val.dblval = (*($1->value.fnctptr))($3.val.dblval); 
+		   $$.val.dblval = (*($1->fnctptr))($3.val.dblval); 
 		 }
 | numEXP '+' numEXP		{ DO_MATHOP($$,+,$1,$3);	}
 | numEXP '-' numEXP		{ DO_MATHOP($$,-,$1,$3);	}
@@ -157,13 +158,13 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP reNOTLIKE numEXP	{ DO_TXTOP($$,re_notlike,$1,$3);}
 ;
 
-/*arglist: {param->InitExprArglistFuncPtr(param);}
+/*arglist: {state->param->InitExprArglistFuncPtr(state->param);}
   | numEXP 	 	 { */
 arglist: numEXP 	 	 { 
-  param->InitExprArglistFuncPtr(param);
-  param->PushExprArglistFuncPtr(param,$1);
+  state->param->InitExprArglistFuncPtr(state->param);
+  state->param->PushExprArglistFuncPtr(state->param,$1);
 }
-| arglist ',' numEXP	 { param->PushExprArglistFuncPtr(param,$3);	 }
+| arglist ',' numEXP	 { state->param->PushExprArglistFuncPtr(state->param,$3);	 }
 ;
 
 /* End of grammar.  */
@@ -176,74 +177,34 @@ yyerror (char const *s)
   expr_debug("not a valid expression:", s);
 }
 
-static      
-struct builtin_func
-{
-  char const *fname;
-  double (*fnct) (double);
-} const arith_fncts[] =
-  {
-    {"sin",  sin},
-    {"cos",  cos},
-    {"atan", atan},
-    {"log",   log},
-    {"exp",  exp},
-    {"sqrt", sqrt},
-     {0, 0}
-  };
-
 static
-struct builtin_ops
-{
-  char const *oname;
-  int const optag;
-} const binary_ops[] =
+const symrec_const
+const builtin_symrec[] =
   {
-    {"eq",  strEQ},
-    {"ne",  strNE},
-    {"gt",  strGT},
-    {"ge",  strGE},
-    {"lt",  strLT},
-    {"le",  strLE},
-    {"cmp", strCMP},
-    {"or",  OR},
-    {"and",AND},
-    {"not",NOT},
-     {0, 0}
+    /* built-in funcs */
+    {"sin", FNCT,	0,	  sin},
+    {"cos", FNCT,	0,	  cos},
+    {"atan", FNCT,	0,	 atan},
+    {"log", FNCT,	0,	  log},
+    {"exp", FNCT,	0,	  exp},
+    {"sqrt", FNCT,	0,	 sqrt},
+
+    /* built-in ops */
+    {"eq",  strEQ,	0,	NULL},
+    {"ne",  strNE,	0,	NULL},
+    {"gt",  strGT,	0,	NULL},
+    {"ge",  strGE,	0,	NULL},
+    {"lt",  strLT,	0,	NULL},
+    {"le",  strLE,	0,	NULL},
+    {"cmp", strCMP,	0,	NULL},
+    {"or",  OR,	0,	NULL},
+    {"and",AND,	0,	NULL},
+    {"not",NOT,	0,	NULL},
+    /* end mark */
+    {0, 0, 0}
   };
 
 #include "calc.inc"
-
-/* Put arithmetic functions in table.  */
-static 
-void
-initsym (void)
-{
-  int i;
-  symrec *ptr;
-  for (i = 0; arith_fncts[i].fname != 0; i++)
-    {
-      ptr = putsym (arith_fncts[i].fname, FNCT);
-      ptr->value.fnctptr = arith_fncts[i].fnct;
-    }
-  for (i = 0; binary_ops[i].oname != 0; i++)
-    {
-      ptr = putsym (binary_ops[i].oname, binary_ops[i].optag);
-      ptr->value.fnctptr = NULL;
-    }
-}
-     
-void
-expr_init (void)
-{
-  initsym();
-}
-
-void
-expr_free(void)
-{
-  freesym ();
-}
 
 static
 PSTRING expr;
@@ -258,13 +219,13 @@ char* curpos;
 static int is_expect_quote_like;
 
 PSTRING 
-parse_expr (PSTRING expression, struct tmplpro_param* param_arg)
+parse_expr (PSTRING expression, struct tmplpro_state* state_arg)
 {
   expr=expression;
   curpos=expr.begin;
   expr_retval.begin=expression.begin;
   expr_retval.endnext=expression.begin;
-  param=param_arg;
+  state=state_arg;
   is_expect_quote_like=1;
   yyparse ();
   return expr_retval;
@@ -381,7 +342,7 @@ yylex (void)
   /* variables with _leading_underscore are allowed too */
   if (isalpha (c) || c=='_' || is_identifier_ext)
     {
-      symrec *s;
+      const symrec_const *s;
       PSTRING name;
       if (is_identifier_ext) {
 	curpos++; /* jump over { */
@@ -390,26 +351,25 @@ yylex (void)
       } else {
 	name=fill_symbuf(is_alnum_lex);
       }
-      s = getsym (name.begin);
+      s = getsym (builtin_symrec, name.begin);
       if (s != 0) {
 	yylval.tptr = s;
 	return s->type;
-      } else if ((yylval.extfunc=(param->IsExprUserfncFuncPtr)(param, name))) {
+      } else if ((yylval.extfunc=(state->param->IsExprUserfncFuncPtr)(state->param, name))) {
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {
 	PSTRING varvalue;
-	/* TODO: support for inner_loop_var */
-	if (! param->case_sensitive) {
+	if (! state->param->case_sensitive) {
 	  lowercase_pstring_inplace(name);
 	}
-	varvalue=get_variable_value(param, name);
+	varvalue=get_variable_value(state, name);
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
 	if (varvalue.begin==NULL) {
 	  /*yylval.numval.val.strval=(PSTRING) {curpos, curpos};*/
 	  yylval.numval.val.strval.begin=curpos;
 	  yylval.numval.val.strval.endnext=curpos;
-	  if (param->strict) expr_debug("non-initialized variable", name.begin);
+	  if (state->param->strict) expr_debug("non-initialized variable", name.begin);
 	} else yylval.numval.val.strval=varvalue;
 	yylval.numval.type=EXPRPSTR;
 	return NUM;

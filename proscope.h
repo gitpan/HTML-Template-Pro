@@ -6,24 +6,35 @@
  * $Id$
  */
 
+#ifndef _PROSCOPE_H
+#define _PROSCOPE_H	1
+
+typedef void ABSTRACT_ARRAY;
+typedef void ABSTRACT_MAP;
+typedef void ABSTRACT_VALUE;
+
+struct scope_stack {
+  int level;
+  int max;
+  struct ProLoopState* root;
+};
+
 struct ProLoopState {
   int  loop; 		/* current loop */
   int  maxloop;		/* max loop number */
   /* objects are wrapper-specific so pointer is void */
-  void *loops_AV;	/* pointer to array of loop's dictionaries */
-  void *param_HV;	/* pointer to dictionary of current loop   */
+  ABSTRACT_ARRAY* loops_AV;	/* pointer to array of loop's dictionaries */
+  ABSTRACT_MAP*   param_HV;	/* pointer to dictionary of current loop   */
 };
 
-extern struct ProLoopState* CurrentScope;
-
-extern int _ScopeLevel;
-#define CurScopeLevel() _ScopeLevel
-
-struct ProLoopState* GetScope(int depth);
-void PopScope();
+int curScopeLevel(struct scope_stack*);
+struct ProLoopState* getCurrentScope(struct scope_stack*);
+struct ProLoopState* getScope(struct scope_stack*, int depth);
+void popScope();
 /* maxloop = number of loops - 1 in * loops_AV */
-void PushScope2(int maxloop, void *loops_AV);
-void SetRootScope(void* param_HV);
-void Scope_init();
-void Scope_free();
+void pushScope2(struct scope_stack*, int maxloop, void *loops_AV);
+void setRootScope(struct scope_stack*, void* param_HV);
+void Scope_init(struct scope_stack* scopestack);
+void Scope_free(struct scope_stack* scopestack);
 
+#endif /* _PROSCOPE_H */
