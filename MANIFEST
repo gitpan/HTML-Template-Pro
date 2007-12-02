@@ -1,9 +1,10 @@
+.gitignore
 ARTISTIC
 Changes
 FAQ
 GPL
 MANIFEST
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml
 Makefile.PL
 Pro.xs
 README
@@ -13,7 +14,7 @@ benchmark.pl.t
 calc.h
 calc.inc
 cmp_expr.t
-expr.c                                  old perls can't yacc it
+expr.c
 expr.h
 expr.y
 exprpstr.h
@@ -34,8 +35,6 @@ procore.h
 proscope.c
 proscope.h
 prostate.h
-pstack.h
-pstack.inc
 pstring.c
 pstring.h
 t/01coderefs.t
@@ -55,6 +54,8 @@ t/templates/loop.tmpl
 t/templates/negative.tmpl
 t/templates/numerics.tmpl
 t/templates/register.tmpl
+tagstack.h
+tagstack.inc
 templates-Pro/empty.incl
 templates-Pro/test_broken.tmpl
 templates-Pro/test_broken1.out
@@ -81,6 +82,10 @@ templates-Pro/test_expr6.out
 templates-Pro/test_expr6.tmpl
 templates-Pro/test_expr7.out
 templates-Pro/test_expr7.tmpl
+templates-Pro/test_expr8.out
+templates-Pro/test_expr8.tmpl
+templates-Pro/test_expr9.out
+templates-Pro/test_expr9.tmpl
 templates-Pro/test_if1.out
 templates-Pro/test_if1.tmpl
 templates-Pro/test_if2.out
@@ -161,4 +166,4 @@ templates/vanguard2.tmpl
 test_crlf.out
 tmpllog.c
 tmpllog.h
-tmplpro.h                          main header for library API
+tmplpro.h

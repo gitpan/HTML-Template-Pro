@@ -33,10 +33,10 @@ double_to_pstring (double number, char buffer[], size_t bufsize) {
 
 static
 PSTRING 
-int_to_pstring (int number, char buffer[], size_t bufsize) {
+int_to_pstring (EXPR_int number, char buffer[], size_t bufsize) {
   size_t len=0;
   PSTRING retval;
-  snprintf(buffer, bufsize,"%d",number);
+  snprintf(buffer, bufsize,"%" EXPR_modifier "d" , number);
   len=strlen(buffer);
   retval.begin=buffer;
   retval.endnext=buffer+len;

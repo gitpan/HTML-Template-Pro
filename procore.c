@@ -8,7 +8,7 @@
 
 #include "procore.h"
 #include "prostate.h"
-#include "pstack.h"
+#include "tagstack.h"
 #include "pbuffer.h"
 #include "proscope.h"
 #include "expr.h"
@@ -313,7 +313,7 @@ tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, in
     varvalue=get_variable_value(state, name);
   if (debuglevel>=TMPL_LOG_DEBUG) {
       if (varvalue.begin!=NULL) {
-      tmpl_log(state,TMPL_LOG_DEBUG,"variable value = %.*s\n",varvalue.endnext-varvalue.begin,varvalue.begin);
+	tmpl_log(state,TMPL_LOG_DEBUG,"variable value = %.*s\n",(int)(varvalue.endnext-varvalue.begin),varvalue.begin);
     } else {
       tmpl_log(state,TMPL_LOG_DEBUG,"variable value = UNDEF\n");
     }
@@ -395,7 +395,7 @@ static
 void 
 tag_handler_if (struct tmplpro_state *state, PSTRING name)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   iftag.tag=HTML_TEMPLATE_TAG_IF;
   iftag.vcontext=state->is_visible;
   iftag.position=state->cur_pos; /* unused */
@@ -406,7 +406,7 @@ tag_handler_if (struct tmplpro_state *state, PSTRING name)
     iftag.value=0;
     state->is_visible=0;
   }
-  pstack_push(&(state->tag_stack), iftag);
+  tagstack_push(&(state->tag_stack), iftag);
   if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"tag_handler_if:visible context =%d value=%d ",iftag.vcontext,iftag.value);
 }
 
@@ -414,17 +414,17 @@ static
 void 
 tag_handler_unless (struct tmplpro_state *state, PSTRING name)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   iftag.tag=HTML_TEMPLATE_TAG_UNLESS;
   iftag.vcontext=state->is_visible;
   iftag.position=state->cur_pos; /* unused */
   if (is_var_true(state,name)) {
     iftag.value=0;
-    pstack_push(&(state->tag_stack), iftag);
+    tagstack_push(&(state->tag_stack), iftag);
     state->is_visible=0;
   } else {
     iftag.value=1;
-    pstack_push(&(state->tag_stack), iftag);
+    tagstack_push(&(state->tag_stack), iftag);
     /* state->is_visible is not touched */
   }
   if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"unless:visible context =%d value=%d ",iftag.vcontext,iftag.value);
@@ -435,7 +435,7 @@ INLINE
 int
 test_stack (int tag)
 {
-  //  return (pstack_notempty(&(state->tag_stack)) && (pstack_head(&(state->tag_stack))->tag==tag));
+  //  return (tagstack_notempty(&(state->tag_stack)) && (tagstack_head(&(state->tag_stack))->tag==tag));
   return 1;
 }
 
@@ -444,8 +444,8 @@ void
 tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
 {
   if (stack_tag_type) {
-    if (pstack_notempty(&(state->tag_stack))) {
-      struct pstack_entry iftag=pstack_top(&(state->tag_stack));
+    if (tagstack_notempty(&(state->tag_stack))) {
+      struct tagstack_entry iftag=tagstack_top(&(state->tag_stack));
       if (iftag.tag!=stack_tag_type) {
 	tmpl_log(state,TMPL_LOG_ERROR, "ERROR: tag mismatch with %s\n",TAGNAME[iftag.tag]);
       }
@@ -459,12 +459,12 @@ static
 void 
 tag_handler_closeif (struct tmplpro_state *state)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_IF)) {
     tag_stack_debug(state,HTML_TEMPLATE_TAG_IF);
     return;
   }
-  iftag=pstack_pop(&(state->tag_stack));
+  iftag=tagstack_pop(&(state->tag_stack));
   if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
   state->is_visible=iftag.vcontext;
 }
@@ -473,12 +473,12 @@ static
 void 
 tag_handler_closeunless (struct tmplpro_state *state)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_UNLESS)) {
     tag_stack_debug(state,HTML_TEMPLATE_TAG_UNLESS);
     return;
   }
-  iftag=pstack_pop(&(state->tag_stack));
+  iftag=tagstack_pop(&(state->tag_stack));
   if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
   state->is_visible=iftag.vcontext;
 }
@@ -487,13 +487,13 @@ static
 void 
 tag_handler_else (struct tmplpro_state *state)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_IF) && 
       ! test_stack(HTML_TEMPLATE_TAG_UNLESS)) {
     tag_stack_debug(state,HTML_TEMPLATE_TAG_ELSE);
     return;
   }
-  iftag=pstack_top(&(state->tag_stack));
+  iftag=tagstack_top(&(state->tag_stack));
   if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
   if (iftag.value) {
     state->is_visible=0;
@@ -520,7 +520,7 @@ static
 void 
 tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   iftag.tag=HTML_TEMPLATE_TAG_LOOP;
   iftag.vcontext=state->is_visible;
   iftag.value=0;
@@ -537,19 +537,19 @@ tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"tag_handler_loop:after InitLoopFuncPtr\n");
 #endif
-  pstack_push(&(state->tag_stack), iftag);
+  tagstack_push(&(state->tag_stack), iftag);
 }
 
 static 
 void 
 tag_handler_closeloop (struct tmplpro_state *state)
 {
-  struct pstack_entry iftag;
+  struct tagstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_LOOP)) {
     tag_stack_debug(state,HTML_TEMPLATE_TAG_LOOP);
     return;
   }
-  iftag=pstack_top(&(state->tag_stack));
+  iftag=tagstack_top(&(state->tag_stack));
   if (iftag.value==1 && next_loop(state)) {
     /* continue loop */
     state->cur_pos=iftag.position;
@@ -557,7 +557,7 @@ tag_handler_closeloop (struct tmplpro_state *state)
     return;
   } else {
     /* finish loop */
-    iftag=pstack_pop(&(state->tag_stack));
+    iftag=tagstack_pop(&(state->tag_stack));
     state->is_visible=iftag.vcontext;
     state->last_processed_pos=state->cur_pos;
   }
@@ -792,7 +792,7 @@ process_tmpl_tag(struct tmplpro_state *state)
 	  escape = HTML_TEMPLATE_OPT_ESCAPE_NO;
 	  break;
 	default:
-	  tmpl_log(state,TMPL_LOG_ERROR, " unsupported value of ESCAPE=%.*s\n",OptEscape.endnext-OptEscape.begin,OptEscape.begin);
+	  tmpl_log(state,TMPL_LOG_ERROR, " unsupported value of ESCAPE=%.*s\n",(int)(OptEscape.endnext-OptEscape.begin),OptEscape.begin);
 	}
       }
       tag_handler_var(state,OptName,OptDefault,escape);
@@ -817,8 +817,9 @@ process_state (struct tmplpro_state * state)
   flag is_tag_closed;
   flag is_tag_commented;
   char* last_safe_pos=state->next_to_end-TAG_WIDTH_OFFSET;
-  pstack_init(&(state->tag_stack));
+  tagstack_init(&(state->tag_stack));
   pbuffer_init(&(state->str_buffer));
+  pbuffer_init(&(state->expr_pusharg_buffer));
   Scope_init(&state->var_scope_stack);
   // hack (until param and state will merge ???)
   setRootScope(&state->var_scope_stack,state->param->rootHV);
@@ -850,8 +851,9 @@ process_state (struct tmplpro_state * state)
   (state->param->WriterFuncPtr)(state->last_processed_pos,state->next_to_end);
 
   Scope_free(&state->var_scope_stack);
+  pbuffer_free(&(state->expr_pusharg_buffer));
   pbuffer_free(&(state->str_buffer));
-  pstack_free(&(state->tag_stack));
+  tagstack_free(&(state->tag_stack));
   if (debuglevel) tmpl_log(NULL,TMPL_LOG_DEBUG,"process_state:finished\n");
 }
 
@@ -922,7 +924,7 @@ void
 tmplpro_procore_init()
 {
   /* to save time on malloc/free at each included template */
-  /* pstack_selftest(); */
+  /* tagstack_selftest(); */
 }
 
 void 
@@ -957,7 +959,7 @@ tmplpro_param_free(struct tmplpro_param* param)
   free(param);
 }
 
-#include "pstack.inc"
+#include "tagstack.inc"
 
 /*
  * Local Variables:

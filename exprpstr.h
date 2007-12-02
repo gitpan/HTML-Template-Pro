@@ -12,7 +12,7 @@
 static
 PSTRING double_to_pstring (double, char* buf, size_t bufsize);
 static
-PSTRING int_to_pstring (int, char* buf, size_t bufsize);
+PSTRING int_to_pstring (EXPR_int, char* buf, size_t bufsize);
 static
 int pstring_ge(PSTRING, PSTRING);
 static

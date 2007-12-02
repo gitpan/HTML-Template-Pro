@@ -12,16 +12,16 @@
 #include <stdio.h> // for printf
 */
 
-#define EXPR_CHECK_NUMBER(ptr)   switch (ptr->type) { \
+#define EXPR_CHECK_NUMBER(state, ptr)   switch (ptr->type) {	\
   case EXPRINT: case EXPRDBL: break; \
-  case EXPRPSTR: expr_to_num(ptr); break; \
+  case EXPRPSTR: expr_to_num(state, ptr); break;				\
   default: _tmplpro_expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
   ptr->type = EXPRINT; \
 }
 
-#define EXPR_CHECK_LOGICAL(ptr)   switch (ptr->type) { \
+#define EXPR_CHECK_LOGICAL(state, ptr)   switch (ptr->type) {	\
   case EXPRINT: case EXPRDBL: break; \
-  case EXPRPSTR: expr_to_bool(ptr); break; \
+  case EXPRPSTR: expr_to_bool(state, ptr); break;			\
   default: _tmplpro_expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
   ptr->type = EXPRINT; \
 }
@@ -35,9 +35,9 @@
 
 static
 exprtype 
-expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
-  EXPR_CHECK_NUMBER(val1);
-  EXPR_CHECK_NUMBER(val2);
+expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
+  EXPR_CHECK_NUMBER(state, val1);
+  EXPR_CHECK_NUMBER(state, val2);
   if (val1->type == EXPRINT && val2->type == EXPRINT)
     return EXPRINT;
   if (val1->type == EXPRDBL && val2->type == EXPRDBL)
@@ -55,9 +55,9 @@ expr_to_int_or_dbl (struct exprval* val1, struct exprval* val2) {
 
 static
 exprtype 
-expr_to_int_or_dbl_logop (struct exprval* val1, struct exprval* val2) {
-  EXPR_CHECK_LOGICAL(val1);
-  EXPR_CHECK_LOGICAL(val2);
+expr_to_int_or_dbl_logop (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
+  EXPR_CHECK_LOGICAL(state, val1);
+  EXPR_CHECK_LOGICAL(state, val2);
   if (val1->type == EXPRINT && val2->type == EXPRINT)
     return EXPRINT;
   if (val1->type == EXPRDBL && val2->type == EXPRDBL)
@@ -75,9 +75,9 @@ expr_to_int_or_dbl_logop (struct exprval* val1, struct exprval* val2) {
 
 static
 void 
-expr_to_dbl (struct exprval* val1, struct exprval* val2) {
-  EXPR_CHECK_NUMBER(val1);
-  EXPR_CHECK_NUMBER(val2);
+expr_to_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
+  EXPR_CHECK_NUMBER(state, val1);
+  EXPR_CHECK_NUMBER(state, val2);
   if (val1->type == EXPRINT) {
     val1->type=EXPRDBL;
     val1->val.dblval=val1->val.intval;
@@ -90,8 +90,8 @@ expr_to_dbl (struct exprval* val1, struct exprval* val2) {
 
 static
 void 
-expr_to_dbl1 (struct exprval* val1) {
-  EXPR_CHECK_NUMBER(val1);
+expr_to_dbl1 (struct tmplpro_state* state, struct exprval* val1) {
+  EXPR_CHECK_NUMBER(state, val1);
   if (val1->type == EXPRINT) {
     val1->type=EXPRDBL;
     val1->val.dblval=val1->val.intval;
@@ -100,9 +100,9 @@ expr_to_dbl1 (struct exprval* val1) {
 
 static
 void 
-expr_to_int (struct exprval* val1, struct exprval* val2) {
-  EXPR_CHECK_NUMBER(val1);
-  EXPR_CHECK_NUMBER(val2);
+expr_to_int (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
+  EXPR_CHECK_NUMBER(state, val1);
+  EXPR_CHECK_NUMBER(state, val2);
   if (val1->type == EXPRDBL) {
     val1->type=EXPRINT;
     val1->val.intval=val1->val.dblval;
@@ -144,12 +144,12 @@ is_float_lex (char c)
 
 static
 struct exprval 
-exp_read_number (char* *curposptr, char* endchars) {
+exp_read_number (struct tmplpro_state* state, char* *curposptr, char* endchars) {
   char c = **curposptr;
   struct exprval retval;
-  int iretval=0;
+  EXPR_int iretval=0;
   double dretval=0;
-  int offset=0;
+  EXPR_int offset=0;
   int sign=1;
   retval.type=EXPRINT;
   retval.val.intval=0;
@@ -170,7 +170,7 @@ exp_read_number (char* *curposptr, char* endchars) {
 	offset=1;
       } else {
 	/* (*curposptr)--; ??? */
-	expr_debug("uninspected declimal point","");
+	expr_debug(state, "uninspected declimal point","");
 	retval.val.dblval=dretval*sign;
 	retval.type=EXPRDBL;
 	return retval;
@@ -196,23 +196,23 @@ exp_read_number (char* *curposptr, char* endchars) {
 
 static
 void 
-expr_to_num (struct exprval* val1)
+expr_to_num (struct tmplpro_state* state, struct exprval* val1)
 {
   if (val1->type == EXPRPSTR) {
     char* curpos=val1->val.strval.begin;
-    *val1=exp_read_number (&curpos, val1->val.strval.endnext);
+    *val1=exp_read_number (state, &curpos, val1->val.strval.endnext);
   }
 }
 
 static
 void 
-expr_to_bool (struct exprval* val1)
+expr_to_bool (struct tmplpro_state* state, struct exprval* val1)
 {
   if (val1->type == EXPRPSTR) {
     char* begin=val1->val.strval.begin;
     char* end=val1->val.strval.endnext;
     char* curpos=begin;
-    *val1=exp_read_number (&curpos, end);
+    *val1=exp_read_number (state, &curpos, end);
     if (val1->type == EXPRINT) {
       if (val1->val.intval || (curpos == end)) return;
       else val1->val.intval=1; /* strings are true in perl */
@@ -230,12 +230,40 @@ _tmplpro_expnum_debug (struct exprval val, char* msg)
 {
   tmpl_log(NULL,TMPL_LOG_DEBUG,"--> debug %s:type %c ",msg,val.type);
   if (val.type == EXPRINT)
-    tmpl_log(NULL,TMPL_LOG_DEBUG,"ival=%d\n",val.val.intval);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"ival=%" EXPR_modifier "d\n",val.val.intval);
   else if (val.type == EXPRDBL)
     tmpl_log(NULL,TMPL_LOG_DEBUG,"dval=%f\n",val.val.dblval);
   else if (val.type == EXPRPSTR) {
-    tmpl_log(NULL,TMPL_LOG_DEBUG,"sval=%.*s\n",val.val.strval.endnext-val.val.strval.begin,val.val.strval.begin);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"sval=%.*s\n",(int)(val.val.strval.endnext-val.val.strval.begin),val.val.strval.begin);
   } else {
-    tmpl_log(NULL,TMPL_LOG_DEBUG,"ival=%d\n",val.val.intval);
+    tmpl_log(NULL,TMPL_LOG_DEBUG,"ival=%" EXPR_modifier "d\n",val.val.intval);
   }
+}
+
+/* 
+ * checks if it is stringval and unescape it if the flag is set
+ */
+static
+struct exprval
+expr_unescape_pstring_val(struct tmplpro_state* state, struct exprval val) {
+  if (val.type == EXPRPSTR && val.strval_escape_flag) {
+    // TODO: write the code!
+    char* curpos = val.val.strval.begin;
+    char* endnext= val.val.strval.endnext;
+    char* buf=pbuffer_resize(&(state->expr_pusharg_buffer), endnext-curpos+1);
+    char* bufpos = buf;
+    while (curpos < endnext) {
+      if (*curpos == '\\') {
+	*bufpos=*(++curpos);
+      } else {
+	*bufpos=*curpos;
+      }
+      curpos++;
+      bufpos++;
+    }
+    val.val.strval.begin = buf;
+    val.val.strval.endnext = bufpos;
+    val.strval_escape_flag = 0;
+    return val;
+  } else return val;
 }

@@ -1,3 +1,7 @@
+%pure-parser
+%parse-param {struct tmplpro_state* state}
+%lex-param {struct tmplpro_state* state}
+%parse-param {PSTRING* expr_retval_ptr}
 %{
 #include <math.h>  /* For math functions, cos(), sin(), etc.  */
 #include <stdio.h> /* for printf */
@@ -8,19 +12,17 @@
 #include "prostate.h"
 #include "exprtool.h"
 #include "exprpstr.h"
-  static int yylex (void);
-  static void yyerror (char const *);
-  /* expr-specific globals needed by yylex */
-  static PSTRING expr_retval;
-  static struct tmplpro_state* state;
   %}
 %union {
   struct exprval numval;   /* For returning numbers.  */
   const symrec_const  *tptr;   /* For returning symbol-table pointers.  */
-  PSTRING strname;  /* for user-defined function name */
   void* extfunc;  /* for user-defined function name */
-
 }
+%{
+  /* the second section is required as we use YYSTYPE here */
+  static void yyerror (struct tmplpro_state* state, PSTRING* expr_retval_ptr, char const *);
+  static int yylex (YYSTYPE *lvalp, struct tmplpro_state* state);
+%}
 %start line
 %token <numval>  NUM        /*  poly type.  */
 %token <extfunc> EXTFUNC    /* user-defined function */
@@ -43,10 +45,10 @@
 line: numEXP		
 		 { 
 		   if (EXPRPSTR == $1.type) {
-		     expr_retval=$1.val.strval;
+		     *expr_retval_ptr=$1.val.strval;
 		   } else {
-		     expr_to_dbl1(&$1); 
-		     expr_retval=double_to_pstring($1.val.dblval,left_buffer,sizeof(left_buffer));
+		     expr_to_dbl1(state, &$1); 
+		     *expr_retval_ptr=double_to_pstring($1.val.dblval,left_buffer,sizeof(left_buffer));
 		   }
 		 }
 ;
@@ -67,16 +69,16 @@ numEXP: NUM			{ $$ = $1;			}
 | FNCT '(' numEXP ')'		
                  {
 		   $$.type=EXPRDBL;
-		   expr_to_dbl1(&$3);
+		   expr_to_dbl1(state, &$3);
 		   $$.val.dblval = (*($1->fnctptr))($3.val.dblval); 
 		 }
-| numEXP '+' numEXP		{ DO_MATHOP($$,+,$1,$3);	}
-| numEXP '-' numEXP		{ DO_MATHOP($$,-,$1,$3);	}
-| numEXP '*' numEXP		{ DO_MATHOP($$,*,$1,$3);	}
+| numEXP '+' numEXP		{ DO_MATHOP(state, $$,+,$1,$3);	}
+| numEXP '-' numEXP		{ DO_MATHOP(state, $$,-,$1,$3);	}
+| numEXP '*' numEXP		{ DO_MATHOP(state, $$,*,$1,$3);	}
 | numEXP '%' numEXP
 		 { 
 		   $$.type=EXPRINT;
-		   expr_to_int(&$1,&$3);
+		   expr_to_int(state, &$1,&$3);
 		   $$.val.intval = $1.val.intval % $3.val.intval;
 		 }
 /* old division; now always return double (due to compains 1/3==0)
@@ -89,7 +91,7 @@ numEXP: NUM			{ $$ = $1;			}
                    else
                      {
                        $$.val.intval = 0;
-		       expr_debug("division by zero","");
+		       expr_debug(state, "division by zero","");
                      }
 		   ;break;
 		   case EXPRDBL: 
@@ -98,7 +100,7 @@ numEXP: NUM			{ $$ = $1;			}
                    else
                      {
                        $$.val.dblval = 0;
-		       expr_debug("division by zero","");
+		       expr_debug(state, "division by zero","");
                      }
 		   }
 		   ;break;
@@ -107,13 +109,13 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP '/' numEXP
                  {
 		   $$.type=EXPRDBL;
-		   expr_to_dbl(&$1,&$3);
+		   expr_to_dbl(state, &$1,&$3);
                    if ($3.val.dblval)
                      $$.val.dblval = $1.val.dblval / $3.val.dblval;
                    else
                      {
                        $$.val.dblval = 0;
-		       expr_debug("division by zero","");
+		       expr_debug(state, "division by zero","");
                      }
 		 }
 | '-' numEXP  %prec NEG
@@ -130,17 +132,17 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP '^' numEXP 		
                  { 
 		   $$.type=EXPRDBL;
-		   expr_to_dbl(&$1,&$3);
+		   expr_to_dbl(state, &$1,&$3);
 		   $$.val.dblval = pow ($1.val.dblval, $3.val.dblval);
                  }
-| numEXP AND numEXP 		{ DO_LOGOP($$,&&,$1,$3);	}
-| numEXP OR  numEXP 		{ DO_LOGOP($$,||,$1,$3);	}
-| numEXP numGE numEXP 		{ DO_CMPOP($$,>=,$1,$3);	}
-| numEXP numLE numEXP 		{ DO_CMPOP($$,<=,$1,$3);	}
-| numEXP numNE numEXP 		{ DO_CMPOP($$,!=,$1,$3);	}
-| numEXP numEQ numEXP 		{ DO_CMPOP($$,==,$1,$3);	}
-| numEXP '>' numEXP %prec numGT	{ DO_CMPOP($$,>,$1,$3);		}
-| numEXP '<' numEXP %prec numLT	{ DO_CMPOP($$,<,$1,$3);		}
+| numEXP AND numEXP 		{ DO_LOGOP(state, $$,&&,$1,$3);	}
+| numEXP OR  numEXP 		{ DO_LOGOP(state, $$,||,$1,$3);	}
+| numEXP numGE numEXP 		{ DO_CMPOP(state, $$,>=,$1,$3);	}
+| numEXP numLE numEXP 		{ DO_CMPOP(state, $$,<=,$1,$3);	}
+| numEXP numNE numEXP 		{ DO_CMPOP(state, $$,!=,$1,$3);	}
+| numEXP numEQ numEXP 		{ DO_CMPOP(state, $$,==,$1,$3);	}
+| numEXP '>' numEXP %prec numGT	{ DO_CMPOP(state, $$,>,$1,$3);	}
+| numEXP '<' numEXP %prec numLT	{ DO_CMPOP(state, $$,<,$1,$3);	}
 | '!' numEXP  %prec NOT		{ DO_LOGOP1($$,!,$2);		}
 | NOT numEXP			{ DO_LOGOP1($$,!,$2);		}
 | '(' numEXP ')'		{ $$ = $2;			}
@@ -162,9 +164,9 @@ numEXP: NUM			{ $$ = $1;			}
   | numEXP 	 	 { */
 arglist: numEXP 	 	 { 
   state->param->InitExprArglistFuncPtr(state->param);
-  state->param->PushExprArglistFuncPtr(state->param,$1);
+  state->param->PushExprArglistFuncPtr(state->param,expr_unescape_pstring_val(state, $1));
 }
-| arglist ',' numEXP	 { state->param->PushExprArglistFuncPtr(state->param,$3);	 }
+| arglist ',' numEXP	 { state->param->PushExprArglistFuncPtr(state->param,expr_unescape_pstring_val(state, $3));	}
 ;
 
 /* End of grammar.  */
@@ -172,9 +174,9 @@ arglist: numEXP 	 	 {
 
 /* Called by yyparse on error.  */
 static void
-yyerror (char const *s)
+yyerror (struct tmplpro_state* state, PSTRING* expr_retval_ptr, char const *s)
 {
-  expr_debug("not a valid expression:", s);
+  expr_debug(state, "not a valid expression:", s);
 }
 
 static
@@ -206,41 +208,29 @@ const builtin_symrec[] =
 
 #include "calc.inc"
 
-static
-PSTRING expr;
-static
-char* curpos;
-
-/* 
- * is_expect_quote_like allows recognization of quotelike.
- * if not is_expect_quote_like we look only for 'str' and, possibly, "str"
- * if is_expect_quote_like we also look for /str/.
- */
-static int is_expect_quote_like;
-
 PSTRING 
-parse_expr (PSTRING expression, struct tmplpro_state* state_arg)
+parse_expr (PSTRING expression, struct tmplpro_state* state)
 {
-  expr=expression;
-  curpos=expr.begin;
+  PSTRING expr_retval;
+  state->expr_curpos=expression.begin;
+  state->expr=expression;
   expr_retval.begin=expression.begin;
   expr_retval.endnext=expression.begin;
-  state=state_arg;
-  is_expect_quote_like=1;
-  yyparse ();
+  state->is_expect_quote_like=1;
+  yyparse (state, &expr_retval); 
   return expr_retval;
 }
 
 static
 void 
-expr_debug(char const *msg1, char const *msg2) {
-  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %d: %s %s\n", curpos-expr.begin,msg1,msg2);
+expr_debug(struct tmplpro_state* state, char const *msg1, char const *msg2) {
+  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %d: %s %s\n", (state->expr_curpos)-(state->expr).begin,msg1,msg2);
 }
 
 static
 PSTRING 
-fill_symbuf (int is_accepted(char)) {
-  register char c=*curpos;
+fill_symbuf (struct tmplpro_state* state, int is_accepted(char)) {
+  register char c=*(state->expr_curpos);
   static char *symbuf = 0;
   static int symbuf_length = 0;
   int i=0;
@@ -258,9 +248,9 @@ fill_symbuf (int is_accepted(char)) {
 	  symbuf = (char *) realloc (symbuf, symbuf_length + 1);
 	}
       symbuf[i++] = c;
-      c = *++curpos;
+      c = *++(state->expr_curpos);
     }
-  while (curpos<=expr.endnext && is_accepted(c));
+  while ((state->expr_curpos)<=(state->expr).endnext && is_accepted(c));
   symbuf[i] = '\0';
   retval.begin=symbuf;
   retval.endnext=symbuf+i;
@@ -281,46 +271,53 @@ is_not_identifier_ext_end (char c)
   return (c != '}');
 } 
 
-#define TESTOP(c1,c2,z)  if (c1 == c) { char d=*++curpos; if (c2 != d) return c; else curpos++; return z; }
-#define TESTOP3(c1,c2,c3,num2,str3)  if (c1 == c) { char d=*++curpos; if (c2 == d) {curpos++; return num2;} else if (c3 == d) {curpos++; is_expect_quote_like=1; return str3;} else return c; }
+#define TESTOP(c1,c2,z)  if (c1 == c) { char d=*++(state->expr_curpos); if (c2 != d) return c; else (state->expr_curpos)++; return z; }
+#define TESTOP3(c1,c2,c3,num2,str3)  if (c1 == c) { char d=*++(state->expr_curpos); if (c2 == d) {(state->expr_curpos)++; return num2;} else if (c3 == d) {(state->expr_curpos)++; state->is_expect_quote_like=1; return str3;} else return c; }
 
 static 
 int
-yylex (void)
+yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 {
   register char c;
   int is_identifier_ext; 
   /* Ignore white space, get first nonwhite character.  */
-  while (curpos<expr.endnext && ((c = *curpos) == ' ' || c == '\t')) curpos++;
-  if (curpos>=expr.endnext) return 0;
+  while ((state->expr_curpos)<(state->expr).endnext && ((c = *(state->expr_curpos)) == ' ' || c == '\t')) (state->expr_curpos)++;
+  if ((state->expr_curpos)>=(state->expr).endnext) return 0;
 
   /* Char starts a quote => read a string */
-  if ('\''==c || '"'==c || (is_expect_quote_like && '/'==c) ) {
+  if ('\''==c || '"'==c || (state->is_expect_quote_like && '/'==c) ) {
     PSTRING strvalue;
     char terminal_quote=c;
-    curpos++;
-    strvalue.begin = curpos;
-    strvalue.endnext = curpos;
-    while (curpos<expr.endnext && 
-	   (
-	    /* it's buggy, but Expr 0.0.4 compatible :( */
-	    ('\\' == c && ((c =*curpos) || 1)) /* any escaped char with \ , incl. quote */
-	    || 
-	    ((c = *curpos) != terminal_quote)) /* not end of string */
-	    ) curpos++;
-    strvalue.endnext=curpos;
-    if (curpos<expr.endnext && ((c = *curpos) == terminal_quote)) curpos++;
-    yylval.numval.val.strval=strvalue;
-    yylval.numval.type=EXPRPSTR;
-    is_expect_quote_like=0;
+    char escape_flag = 0;
+    c =* ++(state->expr_curpos);
+    strvalue.begin = (state->expr_curpos);
+    strvalue.endnext = (state->expr_curpos);
+
+    while ((state->expr_curpos)<(state->expr).endnext && c != terminal_quote) {
+      /* any escaped char with \ , incl. quote */
+      if ('\\' == c) {
+	escape_flag = 1;
+	state->expr_curpos+=2;
+	c =*(state->expr_curpos);
+      } else {
+	c = * ++(state->expr_curpos);
+      }
+    }
+
+    strvalue.endnext=(state->expr_curpos);
+    if ((state->expr_curpos)<(state->expr).endnext && ((c = *(state->expr_curpos)) == terminal_quote)) (state->expr_curpos)++;
+    (*lvalp).numval.val.strval=strvalue;
+    (*lvalp).numval.type=EXPRPSTR;
+    (*lvalp).numval.strval_escape_flag=escape_flag;
+    state->is_expect_quote_like=0;
     return NUM;
   }
 	
-  is_expect_quote_like=0;
+  state->is_expect_quote_like=0;
   /* Char starts a number => parse the number.         */
   if (c == '.' || isdigit (c))
     {
-      yylval.numval=exp_read_number (&curpos, expr.endnext);
+      (*lvalp).numval=exp_read_number (state, &(state->expr_curpos), (state->expr).endnext);
       return NUM;
     }
 
@@ -345,17 +342,17 @@ yylex (void)
       const symrec_const *s;
       PSTRING name;
       if (is_identifier_ext) {
-	curpos++; /* jump over { */
-	name=fill_symbuf(is_not_identifier_ext_end);
-	if (curpos<expr.endnext) curpos++; /* Jump the last } - Emiliano */
+	(state->expr_curpos)++; /* jump over { */
+	name=fill_symbuf(state, is_not_identifier_ext_end);
+	if ((state->expr_curpos)<(state->expr).endnext) (state->expr_curpos)++; /* Jump the last } - Emiliano */
       } else {
-	name=fill_symbuf(is_alnum_lex);
+	name=fill_symbuf(state, is_alnum_lex);
       }
       s = getsym (builtin_symrec, name.begin);
       if (s != 0) {
-	yylval.tptr = s;
+	(*lvalp).tptr = s;
 	return s->type;
-      } else if ((yylval.extfunc=(state->param->IsExprUserfncFuncPtr)(state->param, name))) {
+      } else if (((*lvalp).extfunc=(state->param->IsExprUserfncFuncPtr)(state->param, name))) {
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {
@@ -366,12 +363,13 @@ yylex (void)
 	varvalue=get_variable_value(state, name);
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
 	if (varvalue.begin==NULL) {
-	  /*yylval.numval.val.strval=(PSTRING) {curpos, curpos};*/
-	  yylval.numval.val.strval.begin=curpos;
-	  yylval.numval.val.strval.endnext=curpos;
-	  if (state->param->strict) expr_debug("non-initialized variable", name.begin);
-	} else yylval.numval.val.strval=varvalue;
-	yylval.numval.type=EXPRPSTR;
+	  /*(*lvalp).numval.val.strval=(PSTRING) {(state->expr_curpos), (state->expr_curpos)};*/
+	  (*lvalp).numval.val.strval.begin=(state->expr_curpos);
+	  (*lvalp).numval.val.strval.endnext=(state->expr_curpos);
+	  if (state->param->strict) expr_debug(state, "non-initialized variable", name.begin);
+	} else (*lvalp).numval.val.strval=varvalue;
+	(*lvalp).numval.type=EXPRPSTR;
+	(*lvalp).numval.strval_escape_flag=0;
 	return NUM;
       }
     }
@@ -388,7 +386,7 @@ yylex (void)
   TESTOP('|','|',OR)
 
   /* Any other character is a token by itself. */
-  curpos++;
+  (state->expr_curpos)++;
   return c;
 }
 

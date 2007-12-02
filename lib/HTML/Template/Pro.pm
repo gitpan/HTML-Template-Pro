@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.66';
+$VERSION = '0.67';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -192,9 +192,9 @@ sub output {
     }
 }
 
-sub clear_param {
+sub clear_params {
   my $self = shift;
-  $self->{param_map}={};
+  %{$self->{param_map}}=();
 }
 
 sub param {

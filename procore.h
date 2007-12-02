@@ -21,10 +21,25 @@ typedef char exprtype;
 #define EXPRDBL 'd'
 #define EXPRPSTR 'p'
 
+#ifdef HAS_INT64_T
+typedef int64_t EXPR_int;
+#define EXPR_modifier "ll"
+#else
+#ifdef HAS_LONG_LONG
+typedef long long EXPR_int;
+#define EXPR_modifier "ll"
+#else
+typedef int EXPR_int;
+#define EXPR_modifier ""
+#endif
+#endif
+
 struct exprval {
   exprtype type;
+  /* this flag indicates that supplied pstring should be unescaped */
+  char strval_escape_flag;
   union uval {
-    int  intval; 		/* integer */
+    EXPR_int  intval; 		/* integer */
     double dblval;		/* double */
     PSTRING strval;
   } val;
@@ -95,6 +110,11 @@ struct tmplpro_param {
 unload_file_func UnloadFileFuncPtr;
   /* HTML::Template::Expr hooks */
   init_expr_arglist_func InitExprArglistFuncPtr;
+  /**
+     important note: 
+     PushExprArglistFuncPtr should always copy the supplied pstring arg
+     as it could point to a temporary location.
+   */
   push_expr_arglist_func PushExprArglistFuncPtr;
   call_expr_userfnc_func CallExprUserfncFuncPtr;
   is_expr_userfnc_func   IsExprUserfncFuncPtr;

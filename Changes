@@ -133,5 +133,11 @@ Revision history for Perl extension HTML::Template::Pro.
         - code cleanup
         - now library is reentrant:
 		reentrant Scope()
-		reentrant pstack
+		reentrant tagstack
 		reentrant pbuffer
+
+0.67  Sun Dec  2 16:47:15 EET 2007
+	- used long ariphmetics in EXPR instead of int one
+	- fix in clear_params() thanks to Sergey Konovalov
+	- fixed string escaping (see test_expr9)
+

@@ -4,7 +4,7 @@ use Config;
 $Verbose = 1;
 
 $O_FILES=qw/procore.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
-#  loadfile.o calc.o exprtool.o pstack.o
+#  loadfile.o calc.o exprtool.o tagstack.o
 
 my $INC='-I.';
 my $DEFINE='';
@@ -28,6 +28,10 @@ if ($^O eq 'os2' or $^O eq 'dos') {
     $DEF{MMAP}=has_mmap();
 }
 
+$DEF{HAS_INT64_T}=has_x("int64_t i;");
+$DEF{HAS_INT68_T}=has_x("int68_t i;");
+$DEF{HAS_LONG_LONG}=has_x("long long i;");
+
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
     if ($ARGV[$i]=~/^(PCRE|PEDANTIC|DEBUG|MMAP|IMITATE)=(.+)/) {
@@ -44,6 +48,8 @@ $DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
 $DEFINE.=' -DMMAP' if ($DEF{MMAP});
 $DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
 $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
+$DEFINE.=' -DHAS_INT68_T' if ($DEF{'HAS_INT68_T'});
+$DEFINE.=' -DHAS_LONG_LONG' if ($DEF{'HAS_LONG_LONG'});
 
 if ($DEF{PCRE}) {
     $INC.=' -I/usr/include/pcre';
@@ -129,10 +135,10 @@ WriteMakefile(
 sub MY::postamble {
     return <<'MAKE_FRAG';
 expr.c: calc.inc exprtool.inc exprpstr.inc
-procore\$(OBJ_EXT): loadfile.inc pstack.inc
+procore\$(OBJ_EXT): loadfile.inc tagstack.inc
 
 rpm: dist
-	rpmbuild -ta --clean --target i586-alt-linux HTML-Template-Pro-$(VERSION).tar.gz
+	rpmbuild -ta --clean HTML-Template-Pro-$(VERSION).tar.gz
 
 MANIFEST.git::
 	git-ls-index > MANIFEST.git

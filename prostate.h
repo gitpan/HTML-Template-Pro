@@ -1,7 +1,7 @@
 #include "pbuffer.h"
 
-struct pstack {
-  struct pstack_entry* entry;
+struct tagstack {
+  struct tagstack_entry* entry;
   int pos;
   int depth;
 };
@@ -26,9 +26,22 @@ struct tmplpro_state {
   /* main string buffer */
   pbuffer str_buffer;
   /* tag stack */
-  struct pstack tag_stack;
+  struct tagstack tag_stack;
   /* variable scope (nested loops) */
   struct scope_stack var_scope_stack;
+
+  /* expr state variables */
+  /* expr string buffer; used to unescape pstring arg */
+  pbuffer expr_pusharg_buffer;
+
+  char* expr_curpos;
+  PSTRING expr;
+/* 
+ * is_expect_quote_like allows recognization of quotelike.
+ * if not is_expect_quote_like we look only for 'str' and, possibly, "str"
+ * if is_expect_quote_like we also look for /str/.
+ */
+  int is_expect_quote_like;
 };
 
 extern void _tmpl_log_state (struct tmplpro_state *state, int level);
