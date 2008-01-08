@@ -7,7 +7,7 @@
 
 Name: perl-%module
 Version: 0.68
-Release: alt1
+Release: alt2
 
 Packager: Igor Yu. Vlasenko <viy@altlinux.org>
 
@@ -54,6 +54,9 @@ in the Perl script.
 %perl_vendor_man3dir/*
 
 %changelog
+* Tue Jan 08 2008 Igor Vlasenko <viy@altlinux.ru> 0.68-alt2
+- fix for ix86
+
 * Tue Jan 08 2008 Igor Vlasenko <viy@altlinux.ru> 0.68-alt1
 - new version; see Changes
 

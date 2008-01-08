@@ -47,7 +47,7 @@ $DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
 $DEFINE.=' -DMMAP' if ($DEF{MMAP});
 $DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
 $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
-$DEFINE.=' -DINT64_NAME=' . $DEF{'INT64_NAME'} if ($DEF{'INT64_NAME'});
+$DEFINE.=' -DINT64_NAME="' . $DEF{'INT64_NAME'}.'"' if ($DEF{'INT64_NAME'});
 
 if ($DEF{PCRE}) {
     $INC.=' -I/usr/include/pcre';
