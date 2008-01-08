@@ -1,6 +1,7 @@
 use 5.005;
 use ExtUtils::MakeMaker;
 use Config;
+use File::Spec;
 $Verbose = 1;
 
 $O_FILES=qw/procore.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
@@ -28,9 +29,7 @@ if ($^O eq 'os2' or $^O eq 'dos') {
     $DEF{MMAP}=has_mmap();
 }
 
-$DEF{HAS_INT64_T}=has_x("int64_t i;");
-$DEF{HAS_INT68_T}=has_x("int68_t i;");
-$DEF{HAS_LONG_LONG}=has_x("long long i;");
+$DEF{INT64_NAME}   = $Config{i64type};
 
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
@@ -48,8 +47,7 @@ $DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
 $DEFINE.=' -DMMAP' if ($DEF{MMAP});
 $DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
 $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
-$DEFINE.=' -DHAS_INT68_T' if ($DEF{'HAS_INT68_T'});
-$DEFINE.=' -DHAS_LONG_LONG' if ($DEF{'HAS_LONG_LONG'});
+$DEFINE.=' -DINT64_NAME=' . $DEF{'INT64_NAME'} if ($DEF{'INT64_NAME'});
 
 if ($DEF{PCRE}) {
     $INC.=' -I/usr/include/pcre';
@@ -166,20 +164,11 @@ MAKE_FRAG
 
 # those tests are copied from Time-HiRes-01.20
 
-sub TMPDIR {
-    my $TMPDIR =
-	(grep(defined $_ && -d $_ && -w _,
-	      ((defined $ENV{'TMPDIR'} ? $ENV{'TMPDIR'} : undef),
-	       qw(/var/tmp /usr/tmp /tmp))))[0]
-		   unless defined $TMPDIR;
-    $TMPDIR || die "Cannot find writable temporary directory.\n";
-}
-
 sub try_compile_and_link {
     my ($c, $cccmd, $ccflags) = @_;
 
     my ($ok) = 0;
-    my ($tmp) = ($^O eq 'VMS') ? "tmp$$" : TMPDIR . '/' . "tmp$$";
+    my ($tmp) =  File::Spec->catfile( File::Spec->tmpdir(), "tmp$$" );
     local(*TMPC);
 
     my $obj_ext = $Config{obj_ext} || ".o";
@@ -188,7 +177,7 @@ sub try_compile_and_link {
     if (open(TMPC, ">$tmp.c")) {
 	print TMPC $c;
 	close(TMPC);
-	my $COREincdir = $Config{'archlibexp'} . '/' . 'CORE';
+	my $COREincdir = File::Spec->canonpath(File::Spec->catfile($Config{'archlibexp'}, 'CORE'));
 	$ccflags .= ' '. $Config{'ccflags'} . ' ' . "-I$COREincdir";
 	my $cc=$Config{'cc'};
 	$cc||='cc';
@@ -207,8 +196,9 @@ sub try_compile_and_link {
 	}
 	else
 	{
-	    $ok = -s $tmp && -x _;
-	    unlink("$tmp.c", $tmp);
+		my $exe = $tmp . ($Config{_exe} || '');
+	    $ok = -s $exe && -x _;
+	    unlink("$tmp.c", $exe);
 	}
     }
     
@@ -268,35 +258,6 @@ mmap_load_file (const char* filepath) {
 	return 1;
     }
     print "mmap not found.\n";
-    return 0;
-}
-
-sub has_x {
-    my ($x) = @_; 
-
-    return 1 if
-    try_compile_and_link(<<EOM);
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-#ifdef I_UNISTD
-#   include <unistd.h>
-#endif
-
-#ifdef I_SYS_TYPES
-#   include <sys/types.h>
-#endif
-
-#ifdef I_SYS_TIME
-#   include <sys/time.h>
-#endif
-
-int main _((int argc, char** argv, char** env))
-{
-	$x;
-}
-EOM
     return 0;
 }
 

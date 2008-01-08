@@ -74,7 +74,10 @@ sub dryrun {
     if ($files_equal) {
 	ok($files_equal) && unlink "$file.raw";
     } else {
-	if (-x '/usr/bin/diff') {
+	if ($^O eq 'MSWin32') {
+		print STDERR "\n", `fc $file.out $file.raw`;
+	}
+	elsif (-x '/usr/bin/diff') {
 	    print STDERR `diff -C 3 $file.out $file.raw`;
 	} else {
 	    print STDERR "# >>> ---$file.raw---\n$output\n>>> ---end $file.raw---\n";

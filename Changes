@@ -141,3 +141,5 @@ Revision history for Perl extension HTML::Template::Pro.
 	- fix in clear_params() thanks to Sergey Konovalov
 	- fixed string escaping (see test_expr9)
 
+0.68  Tue Jan  8 19:59:12 EET 2008
+	- fixed Windows compilation thanks to Vyacheslav Shevelyov

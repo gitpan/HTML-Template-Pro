@@ -21,18 +21,17 @@ typedef char exprtype;
 #define EXPRDBL 'd'
 #define EXPRPSTR 'p'
 
-#ifdef HAS_INT64_T
-typedef int64_t EXPR_int;
-#define EXPR_modifier "ll"
-#else
-#ifdef HAS_LONG_LONG
-typedef long long EXPR_int;
-#define EXPR_modifier "ll"
-#else
-typedef int EXPR_int;
-#define EXPR_modifier ""
-#endif
-#endif
+#ifdef INT64_NAME
+     typedef INT64_NAME EXPR_int;
+#  ifdef _MSC_VER
+#    define EXPR_modifier "I64"
+#  else
+#    define EXPR_modifier "ll"
+#  endif
+#else 
+     typedef int EXPR_int;
+#    define EXPR_modifier ""
+#endif 
 
 struct exprval {
   exprtype type;
