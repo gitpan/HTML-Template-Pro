@@ -147,7 +147,7 @@ index.html: README Makefile
 	echo '</pre></body></html>' >> $@
 
 TARBALL=HTML-Template-Pro-$(VERSION).tar.gz
-SF_HOME='viy2@html-tmpl-pro.sf.net:~/www-html-tmpl-pro/htdocs'
+SF_HOME='viy2@html-tmpl-pro.sf.net:/home/groups/h/ht/html-tmpl-pro/htdocs/'
 sourceforge: tardist index.html
 	( echo 'anonymous';	\
 	  echo prompt;		\

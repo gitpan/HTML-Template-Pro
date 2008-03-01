@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN {plan tests => 1+2*(17+4) };
+BEGIN {plan tests => 1+2*(18+4) };
 use File::Spec;
 #use HTML::Template;
 use HTML::Template::Pro;
@@ -50,6 +50,7 @@ test_tmpl('test_if2',  @varset1);
 test_tmpl('test_if3',  @refset1);
 test_tmpl('test_if4',  @varset1);
 test_tmpl('test_if5',  @varset1);
+test_tmpl('test_if7',  @varset1);
 test_tmpl('test_include1', @varset1);
 test_tmpl('test_include2', @varset1);
 test_tmpl('test_include3', @varset1);

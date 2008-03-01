@@ -21,7 +21,8 @@
 #define HTML_TEMPLATE_TAG_IF      4
 #define HTML_TEMPLATE_TAG_ELSE    5
 #define HTML_TEMPLATE_TAG_UNLESS  6
-#define HTML_TEMPLATE_LAST_TAG_USED  6
+#define HTML_TEMPLATE_TAG_ELSIF   7
+#define HTML_TEMPLATE_LAST_TAG_USED  7
 
 #if defined(__GNUC__) && !(defined(PEDANTIC))
 #define INLINE inline
@@ -32,13 +33,13 @@
 static 
 const char* const tagname[]={
     "Bad or unsupported tag", /* 0 */
-    "var", "include", "loop", "if", "else", "unless"
+    "var", "include", "loop", "if", "else", "unless", "elsif"
 };
 
 static 
 const char* const TAGNAME[]={
     "Bad or unsupported tag", /* 0 */
-    "VAR", "INCLUDE", "LOOP", "IF", "ELSE", "UNLESS"
+    "VAR", "INCLUDE", "LOOP", "IF", "ELSE", "UNLESS", "ELSIF"
 };
 
 /* max offset to ensure we are not out of file when try <!--/  */
@@ -435,7 +436,7 @@ INLINE
 int
 test_stack (int tag)
 {
-  //  return (tagstack_notempty(&(state->tag_stack)) && (tagstack_head(&(state->tag_stack))->tag==tag));
+  //  return (tagstack_notempty(&(state->tag_stack)) && (tagstack_top(&(state->tag_stack))->tag==tag));
   return 1;
 }
 
@@ -445,9 +446,9 @@ tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
 {
   if (stack_tag_type) {
     if (tagstack_notempty(&(state->tag_stack))) {
-      struct tagstack_entry iftag=tagstack_top(&(state->tag_stack));
-      if (iftag.tag!=stack_tag_type) {
-	tmpl_log(state,TMPL_LOG_ERROR, "ERROR: tag mismatch with %s\n",TAGNAME[iftag.tag]);
+      struct tagstack_entry* iftag=tagstack_top(&(state->tag_stack));
+      if (iftag->tag!=stack_tag_type) {
+	tmpl_log(state,TMPL_LOG_ERROR, "ERROR: tag mismatch with %s\n",TAGNAME[iftag->tag]);
       }
     } else {
       tmpl_log(state,TMPL_LOG_ERROR, "ERROR: opening tag %s not found\n",TAGNAME[stack_tag_type]);
@@ -487,7 +488,7 @@ static
 void 
 tag_handler_else (struct tmplpro_state *state)
 {
-  struct tagstack_entry iftag;
+  struct tagstack_entry* iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_IF) && 
       ! test_stack(HTML_TEMPLATE_TAG_UNLESS)) {
     tag_stack_debug(state,HTML_TEMPLATE_TAG_ELSE);
@@ -495,12 +496,40 @@ tag_handler_else (struct tmplpro_state *state)
   }
   iftag=tagstack_top(&(state->tag_stack));
   if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
-  if (iftag.value) {
+  if (iftag->value) {
     state->is_visible=0;
-  } else if (1==iftag.vcontext) {
+  } else if (1==iftag->vcontext) {
     state->is_visible=1;
   }
-  if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"else:(pos %td) visible:context =%d, set to %d ",iftag.position - state->top,iftag.vcontext,state->is_visible);
+  if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"else:(pos %td) visible:context =%d, set to %d ",iftag->position - state->top,iftag->vcontext,state->is_visible);
+}
+
+static 
+void 
+tag_handler_elsif (struct tmplpro_state *state, PSTRING name)
+{
+  struct tagstack_entry *iftag;
+  if (! test_stack(HTML_TEMPLATE_TAG_IF) && 
+      ! test_stack(HTML_TEMPLATE_TAG_UNLESS)) {
+    tag_stack_debug(state,HTML_TEMPLATE_TAG_ELSIF);
+    return;
+  }
+  iftag=tagstack_top(&(state->tag_stack));
+  if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
+  if (iftag->value) {
+    state->is_visible=0;
+  } else if (1==iftag->vcontext) {
+    /* test only if vcontext==true; if the whole tag if..endif itself is invisible, skip the is_var_true test */
+    /*TODO: it is reasonable to skip is_var_true test in if/unless too */
+    if (is_var_true(state,name)) {
+      iftag->value=1;
+      state->is_visible=1;
+    } else {
+      iftag->value=0;
+      state->is_visible=0;
+    }
+  }
+  if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"elsif:(pos %td) visible:context =%d, set to %d ",iftag->position - state->top,iftag->vcontext,state->is_visible);
 }
 
 static 
@@ -544,19 +573,20 @@ static
 void 
 tag_handler_closeloop (struct tmplpro_state *state)
 {
-  struct tagstack_entry iftag;
+  struct tagstack_entry* iftag_ptr;
   if (! test_stack(HTML_TEMPLATE_TAG_LOOP)) {
     tag_stack_debug(state,HTML_TEMPLATE_TAG_LOOP);
     return;
   }
-  iftag=tagstack_top(&(state->tag_stack));
-  if (iftag.value==1 && next_loop(state)) {
+  iftag_ptr=tagstack_top(&(state->tag_stack));
+  if (iftag_ptr->value==1 && next_loop(state)) {
     /* continue loop */
-    state->cur_pos=iftag.position;
-    state->last_processed_pos=iftag.position;
+    state->cur_pos=iftag_ptr->position;
+    state->last_processed_pos=iftag_ptr->position;
     return;
   } else {
     /* finish loop */
+    struct tagstack_entry iftag;
     iftag=tagstack_pop(&(state->tag_stack));
     state->is_visible=iftag.vcontext;
     state->last_processed_pos=state->cur_pos;
@@ -800,6 +830,7 @@ process_tmpl_tag(struct tmplpro_state *state)
     case HTML_TEMPLATE_TAG_IF:	tag_handler_if(state,OptName);	break;
     case HTML_TEMPLATE_TAG_UNLESS:	tag_handler_unless(state,OptName);break;
     case HTML_TEMPLATE_TAG_ELSE:	tag_handler_else(state);	break;
+    case HTML_TEMPLATE_TAG_ELSIF:	tag_handler_elsif(state,OptName);break;
     case HTML_TEMPLATE_TAG_LOOP:	tag_handler_loop(state,OptName);break;
     case HTML_TEMPLATE_TAG_INCLUDE:	tag_handler_include(state,OptName,OptDefault);break;
     default:	tag_handler_unknown(state);break;

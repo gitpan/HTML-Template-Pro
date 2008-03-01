@@ -48,6 +48,7 @@ your browser when visiting the CGI:
 This module attempts to make using HTML templates simple and natural.
 It extends standard HTML with a few new HTML-esque tags - <TMPL_VAR>,
 <TMPL_LOOP>, <TMPL_INCLUDE>, <TMPL_IF>, <TMPL_ELSE> and <TMPL_UNLESS>.
+(HTML::Template::Pro also supports <TMPL_ELSIF> tag.)
 The file written with HTML and these new tags is called a template.
 It is usually saved separate from your script - possibly even created
 by someone else!  Using this module you fill in the values for the
@@ -323,7 +324,19 @@ problem in keeping the two synchronized.  I suggest you adopt the
 practice of only using TMPL_IF if you can do so without requiring a
 matching if() in your Perl code.
 
+=head2 TMPL_ELSIF
+
+
+  <TMPL_IF NAME="PARAMETER_NAME1"> ... 
+  <TMPL_ELSIF NAME="PARAMETER_NAME2"> ... 
+  <TMPL_ELSIF NAME="PARAMETER_NAME3"> ... 
+  <TMPL_ELSE> ... </TMPL_IF>
+
+WARNING: TMPL_ELSIF is a HTML::Template::Pro extension! It is 
+not supported in HTML::Template (as of 2.9). 
+
 =head2 TMPL_ELSE
+
 
   <TMPL_IF NAME="PARAMETER_NAME"> ... <TMPL_ELSE> ... </TMPL_IF>
 

@@ -28,12 +28,7 @@ void tagstack_debug(struct tagstack* tagstack, struct tagstack_entry item) {
 }
 
 static 
-struct tagstack_entry tagstack_top(struct tagstack* tagstack) {
-  return *(tagstack->entry+tagstack->pos);
-}
-
-static 
-struct tagstack_entry* tagstack_head(struct tagstack* tagstack) {
+struct tagstack_entry* tagstack_top(struct tagstack* tagstack) {
   return tagstack->entry+tagstack->pos;
 }
 

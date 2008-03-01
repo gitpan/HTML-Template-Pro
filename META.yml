@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                HTML-Template-Pro
-version:             0.68
+version:             0.69
 abstract:            Perl/XS module to use HTML Templates from CGI scripts
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32

@@ -143,3 +143,6 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.68  Tue Jan  8 19:59:12 EET 2008
 	- fixed Windows compilation thanks to Vyacheslav Shevelyov
+
+0.69  Thu Feb 28 06:46:17 EET 2008
+	- added elsif tag (requested by koha.org project)
