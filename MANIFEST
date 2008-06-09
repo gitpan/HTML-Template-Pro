@@ -57,6 +57,10 @@ t/templates/register.tmpl
 tagstack.h
 tagstack.inc
 templates-Pro/empty.incl
+templates-Pro/include/2.out
+templates-Pro/include/2.tmpl
+templates-Pro/include/3.tmpl
+templates-Pro/include/4.tmpl
 templates-Pro/test_broken.tmpl
 templates-Pro/test_broken1.out
 templates-Pro/test_broken1.tmpl

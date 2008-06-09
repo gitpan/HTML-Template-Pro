@@ -12,20 +12,23 @@
 
 #define START_NUMBER_OF_NESTED_LOOPS 64
 
-
+static
 void 
 Scope_init(struct scope_stack* scopestack) {
-  scopestack->max=START_NUMBER_OF_NESTED_LOOPS;
-  scopestack->root=(struct ProLoopState*) malloc ((scopestack->max) * sizeof(struct ProLoopState));
-  if (NULL==scopestack->root) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:Scope_init:internal error:not enough memory\n");
-  scopestack->level=-1;
+    scopestack->max=START_NUMBER_OF_NESTED_LOOPS;
+    scopestack->root=(struct ProLoopState*) malloc ((scopestack->max) * sizeof(struct ProLoopState));
+    if (NULL==scopestack->root) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:Scope_init:internal error:not enough memory\n");
+    scopestack->level=-1;
 }
 
 void 
 Scope_free(struct scope_stack* scopestack) {
-  free(scopestack->root);
-  scopestack->max=-1;
-  scopestack->level=-1;
+  if (scopestack->_init_count--<=0) {
+    free(scopestack->root);
+    scopestack->max=-1;
+    scopestack->level=-1;
+    scopestack->_init_count=0;
+  }
 }
 
 int curScopeLevel(struct scope_stack* scopestack) {
@@ -70,11 +73,10 @@ pushScope2(struct scope_stack* scopestack, int maxloop, void *loops_AV) {
 }
 
 void 
-setRootScope(struct scope_stack* scopestack, void* param_HV) {
-  if (scopestack->max<0) {
-    tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:SetRootScope:internal warning:why scope is empty?\n");
+Scope_init_root(struct scope_stack* scopestack, void* param_HV) {
+  if (scopestack->_init_count++==0) {
     Scope_init(scopestack);
+    scopestack->level=0;
+    scopestack->root->param_HV=param_HV;
   }
-  scopestack->level=0;
-  scopestack->root->param_HV=param_HV;
 }

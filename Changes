@@ -146,3 +146,6 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.69  Thu Feb 28 06:46:17 EET 2008
 	- added elsif tag (requested by koha.org project)
+	
+0.70 Thu Apr  3 22:12:33 EEST 2008
+	- fixed regression in include scope (reported by Naxim Babych)

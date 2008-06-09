@@ -374,7 +374,6 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
     die("FATAL:output:param_map not found");
 
-  //setRootScope((HV *)SvRV(*hashvalptr));
   param->rootHV = (HV *)SvRV(*hashvalptr);
 
   /* end setting param_map */

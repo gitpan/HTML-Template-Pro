@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN {plan tests => 1+2*(18+4) };
+BEGIN {plan tests => 1+2*(18+4+1) };
 use File::Spec;
 #use HTML::Template;
 use HTML::Template::Pro;
@@ -64,6 +64,10 @@ test_tmpl('test_loop5', @varset1, @refset1);
 # if IMITATE==1 (-DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG)
 #test_tmpl('test_if6',  @varset1);
 #
+
+
+test_tmpl('include/2', 'list', [{test => 1}, {test=>2}]);
+
 
 my $devnull=File::Spec->devnull();
 if (defined $devnull) {

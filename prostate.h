@@ -27,11 +27,13 @@ struct tmplpro_state {
   pbuffer str_buffer;
   /* tag stack */
   struct tagstack tag_stack;
-  /* variable scope (nested loops) */
-  struct scope_stack var_scope_stack;
 
+  /* moved from state; are passed to include */
+  /* variable scope (nested loops) */
+  /* struct scope_stack var_scope_stack;*/
   /* expr state variables */
   /* expr string buffer; used to unescape pstring arg */
+  /* TODO: test and move it too (otherwise it will cause bugs in included exprs?) */
   pbuffer expr_pusharg_buffer;
 
   char* expr_curpos;

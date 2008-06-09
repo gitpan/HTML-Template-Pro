@@ -124,8 +124,9 @@ unload_file_func UnloadFileFuncPtr;
   const char* selfpath; /* file that has included this file, or empty string */
   /* hack until param and state will be merged */
   ABSTRACT_MAP* rootHV;
-
-
+  /* moved from state; are passed to include */
+  /* variable scope (nested loops) */
+  struct scope_stack var_scope_stack;
 };
 
 int tmplpro_exec_tmpl (const char* filename, struct tmplpro_param* ProParams);

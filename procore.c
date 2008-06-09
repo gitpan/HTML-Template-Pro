@@ -103,7 +103,7 @@ get_loop_context_vars_value (struct tmplpro_state *state, PSTRING name) {
   static char buffer[20]; /* for snprintf %d */
   int loop;
   PSTRING retval={NULL,NULL};
-  if (curScopeLevel(&state->var_scope_stack)>0 
+  if (curScopeLevel(&state->param->var_scope_stack)>0 
       && name.endnext-name.begin>4
       && '_'==*(name.begin)
       && '_'==*(name.begin+1)
@@ -111,7 +111,7 @@ get_loop_context_vars_value (struct tmplpro_state *state, PSTRING name) {
     /* we can meet loop variables here -- try it first */
     /* length of its name >4 */
     /* __first__ __last__ __inner__ __odd__ __counter__ */
-    struct ProLoopState* currentScope = getCurrentScope(&state->var_scope_stack);
+    struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
     PSTRING shiftedname; /* (PSTRING) {name.begin+2,name.endnext} */
     shiftedname.begin=name.begin+2;
     shiftedname.endnext=name.endnext;
@@ -278,12 +278,12 @@ _tmpl_log_state (struct tmplpro_state *state, int level)
 static
 ABSTRACT_VALUE* walk_through_nested_loops (struct tmplpro_state *state, PSTRING name) {
   int PrevHash;
-  struct ProLoopState* currentScope = getCurrentScope(&state->var_scope_stack);
+  struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
   ABSTRACT_VALUE* valptr= state->param->getAbstractValFuncPtr(currentScope->param_HV, name);
   if ((0==state->param->global_vars) || (valptr)) return valptr;
-  PrevHash=curScopeLevel(&state->var_scope_stack)-1;
+  PrevHash=curScopeLevel(&state->param->var_scope_stack)-1;
   while (PrevHash>=0) {
-    valptr=state->param->getAbstractValFuncPtr(getScope(&state->var_scope_stack, PrevHash)->param_HV,name);
+    valptr=state->param->getAbstractValFuncPtr(getScope(&state->param->var_scope_stack, PrevHash)->param_HV,name);
     if (valptr!=NULL) return valptr;
     PrevHash--;
   }
@@ -538,9 +538,9 @@ next_loop (struct tmplpro_state* state) {
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"next_loop:before NextLoopFuncPtr\n");
 #endif
-  struct ProLoopState* currentScope = getCurrentScope(&state->var_scope_stack);
+  struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
   if (++currentScope->loop >currentScope->maxloop || !(state->param->NextLoopFuncPtr)(currentScope)) {
-    popScope(&state->var_scope_stack);
+    popScope(&state->param->var_scope_stack);
     return 0;
   } else return 1;
 }
@@ -557,7 +557,7 @@ tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"tag_handler_loop:before InitLoopFuncPtr\n");
 #endif
-  if (state->is_visible && (*state->param->InitLoopFuncPtr)(&state->var_scope_stack,name) && next_loop(state)) {
+  if (state->is_visible && (*state->param->InitLoopFuncPtr)(&state->param->var_scope_stack,name) && next_loop(state)) {
     iftag.value=1; /* the loop is non - empty */
   } else {
     /* empty loop is equal to <if false> ... </if> */
@@ -848,12 +848,11 @@ process_state (struct tmplpro_state * state)
   flag is_tag_closed;
   flag is_tag_commented;
   char* last_safe_pos=state->next_to_end-TAG_WIDTH_OFFSET;
+  if (debuglevel) tmpl_log(NULL,TMPL_LOG_DEBUG,"process_state:initiated\n");
   tagstack_init(&(state->tag_stack));
   pbuffer_init(&(state->str_buffer));
   pbuffer_init(&(state->expr_pusharg_buffer));
-  Scope_init(&state->var_scope_stack);
-  // hack (until param and state will merge ???)
-  setRootScope(&state->var_scope_stack,state->param->rootHV);
+  Scope_init_root(&state->param->var_scope_stack,state->param->rootHV);
 
 
   while (state->cur_pos < last_safe_pos) {
@@ -881,7 +880,7 @@ process_state (struct tmplpro_state * state)
   }
   (state->param->WriterFuncPtr)(state->last_processed_pos,state->next_to_end);
 
-  Scope_free(&state->var_scope_stack);
+  Scope_free(&state->param->var_scope_stack);
   pbuffer_free(&(state->expr_pusharg_buffer));
   pbuffer_free(&(state->str_buffer));
   tagstack_free(&(state->tag_stack));
