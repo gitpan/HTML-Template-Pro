@@ -400,7 +400,8 @@ tag_handler_if (struct tmplpro_state *state, PSTRING name)
   iftag.tag=HTML_TEMPLATE_TAG_IF;
   iftag.vcontext=state->is_visible;
   iftag.position=state->cur_pos; /* unused */
-  if (is_var_true(state,name)) {
+  /* state->is_visible && means that we do not evaluate variable in shadow */
+  if (state->is_visible && is_var_true(state,name)) {
     iftag.value=1;
     /* state->is_visible is not touched */
   } else {
@@ -419,16 +420,16 @@ tag_handler_unless (struct tmplpro_state *state, PSTRING name)
   iftag.tag=HTML_TEMPLATE_TAG_UNLESS;
   iftag.vcontext=state->is_visible;
   iftag.position=state->cur_pos; /* unused */
-  if (is_var_true(state,name)) {
-    iftag.value=0;
-    tagstack_push(&(state->tag_stack), iftag);
-    state->is_visible=0;
-  } else {
+  /* state->is_visible && means that we do not evaluate variable in shadow */
+  if (state->is_visible && !is_var_true(state,name)) {
     iftag.value=1;
-    tagstack_push(&(state->tag_stack), iftag);
     /* state->is_visible is not touched */
+  } else {
+    iftag.value=0;
+    state->is_visible=0;
   }
-  if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"unless:visible context =%d value=%d ",iftag.vcontext,iftag.value);
+  tagstack_push(&(state->tag_stack), iftag);
+  if (debuglevel>3) tmpl_log(state,TMPL_LOG_DEBUG2,"tag_handler_unless:visible context =%d value=%d ",iftag.vcontext,iftag.value);
 }
 
 static 

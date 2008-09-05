@@ -29,7 +29,8 @@ if ($^O eq 'os2' or $^O eq 'dos') {
     $DEF{MMAP}=has_mmap();
 }
 
-$DEF{INT64_NAME}   = $Config{i64type};
+$DEF{INT64_NAME} = find_int64();
+$DEF{INT64_NAME} ||= $Config{i64type};
 
 my $i;
 for ($i=0; $i<@ARGV; $i++)  {
@@ -165,8 +166,8 @@ MAKE_FRAG
 # those tests are copied from Time-HiRes-01.20
 
 sub try_compile_and_link {
-    my ($c, $cccmd, $ccflags) = @_;
-
+    my ($c, $cccmd, $ccflags, $verbose) = @_;
+    $verbose = 1 unless defined $verbose;
     my ($ok) = 0;
     my ($tmp) =  File::Spec->catfile( File::Spec->tmpdir(), "tmp$$" );
     local(*TMPC);
@@ -188,7 +189,7 @@ sub try_compile_and_link {
 	}
 	$cccmd = "$cc -o $tmp $ccflags $tmp.c @$LIBS"
 	 unless (defined $cccmd);
-    print "trying $cccmd\n";
+	print "trying $cccmd\n" if $verbose;
 	system($cccmd);
 	if ($^O eq 'VMS') {
 	    $ok = -s "$tmp$obj_ext" && -x _;
@@ -258,6 +259,30 @@ mmap_load_file (const char* filepath) {
 	return 1;
     }
     print "mmap not found.\n";
+    return 0;
+}
+
+sub find_int64 {
+    foreach my $type ('long long','long','int') {
+	return $type if try_as_int64($type);
+    }
+    return;
+}
+
+sub try_as_int64 {
+    my $type=shift;
+    print "looking for int64: trying $type...";
+    if (try_compile_and_link('
+    int main (int argc, char** argv)
+    {
+	if (sizeof('.$type.')==8) return 0; 
+        return sizeof('.$type.');
+    }
+',undef, '',0)){
+	print "Ok.\n";
+	return 1;
+    }
+    print "no.\n";
     return 0;
 }
 
