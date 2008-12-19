@@ -91,10 +91,10 @@ struct tmplpro_param {
   const char* filename; /* template file */
   PSTRING scalarref; /* memory area */
   /* currently used in Perl code */
-  /* int search_path_on_include; */
+  /* flag search_path_on_include; */
   /* still unsupported  */
   flag die_on_bad_params;
-  /* int vanguard_compatibility_mode; */
+  /* flag vanguard_compatibility_mode; */
   /* hooks to perl or other container */
   /* HTML::Template hooks */
   writerfunc WriterFuncPtr;
@@ -119,6 +119,7 @@ unload_file_func UnloadFileFuncPtr;
   is_expr_userfnc_func   IsExprUserfncFuncPtr;
   void* ExprFuncHash;
   void* ExprFuncArglist;
+  flag path_like_variable_scope;
   /* private */
   int cur_includes; /* internal counter of include depth */
   const char* selfpath; /* file that has included this file, or empty string */

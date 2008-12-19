@@ -9,7 +9,7 @@
 #ifndef _PSTRING_H
 #define _PSTRING_H	1
 
-#include<pbuffer.h>
+#include "pbuffer.h"
 
 typedef struct PSTRING {
   char* begin;

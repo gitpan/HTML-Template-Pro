@@ -278,8 +278,34 @@ _tmpl_log_state (struct tmplpro_state *state, int level)
 static
 ABSTRACT_VALUE* walk_through_nested_loops (struct tmplpro_state *state, PSTRING name) {
   int PrevHash;
-  struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
-  ABSTRACT_VALUE* valptr= state->param->getAbstractValFuncPtr(currentScope->param_HV, name);
+  struct ProLoopState* currentScope;
+  ABSTRACT_VALUE* valptr;
+  /* Shigeki Morimoto path_like_variable_scope extension */
+  if (state->param->path_like_variable_scope) {
+    if(*(name.begin) == '/' || strncmp(name.begin, "../", 3) == 0){
+      PSTRING tmp_name;
+      int GoalHash;
+      if(*(name.begin) == '/'){
+	tmp_name.begin   = name.begin+1; // skip '/'
+	tmp_name.endnext = name.endnext;
+	GoalHash = 0;
+      }else{
+	tmp_name.begin   = name.begin;
+	tmp_name.endnext = name.endnext;
+	GoalHash = curScopeLevel(&state->param->var_scope_stack);
+	while(strncmp(tmp_name.begin, "../", 3) == 0){
+	  tmp_name.begin   = tmp_name.begin + 3; // skip '../'
+	  GoalHash --;
+	}
+      }
+      valptr = state->param->getAbstractValFuncPtr(getScope(&state->param->var_scope_stack, GoalHash)->param_HV, tmp_name);
+      return valptr;
+    }
+  }
+  /* end Shigeki Morimoto path_like_variable_scope extension */
+
+  currentScope = getCurrentScope(&state->param->var_scope_stack);
+  valptr= state->param->getAbstractValFuncPtr(currentScope->param_HV, name);
   if ((0==state->param->global_vars) || (valptr)) return valptr;
   PrevHash=curScopeLevel(&state->param->var_scope_stack)-1;
   while (PrevHash>=0) {

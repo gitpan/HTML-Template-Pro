@@ -396,6 +396,7 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   param->debug=get_integer_from_hash(SelfHash,"debug");
   param->loop_context_vars=get_integer_from_hash(SelfHash,"loop_context_vars");
   param->case_sensitive=get_integer_from_hash(SelfHash,"case_sensitive");
+  param->path_like_variable_scope=get_integer_from_hash(SelfHash,"path_like_variable_scope");
   /* still unsupported */
   param->strict=get_integer_from_hash(SelfHash,"strict");
   param->die_on_bad_params=get_integer_from_hash(SelfHash,"die_on_bad_params");

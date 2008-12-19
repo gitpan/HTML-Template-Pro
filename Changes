@@ -153,3 +153,9 @@ Revision history for Perl extension HTML::Template::Pro.
 0.71 Sat Aug 16 15:05:01 EEST 2008
 	- fixed evaluation of variables in 'if' even in shadow context
 	- fixed misconfig on Darvin (CPAN #38013)
+
+0.72 Thu Dec 18 21:22:45 EET 2008
+	- added support of path through variable scope 
+	(by Shigeki Morimoto <shigeki.morimoto at mixi.co.jp>)
+
+
