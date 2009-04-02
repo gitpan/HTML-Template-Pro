@@ -150,13 +150,10 @@ index.html: README Makefile
 TARBALL=HTML-Template-Pro-$(VERSION).tar.gz
 SF_HOME='viy2@html-tmpl-pro.sf.net:/home/groups/h/ht/html-tmpl-pro/htdocs/'
 sourceforge: tardist index.html
-	( echo 'anonymous';	\
-	  echo prompt;		\
-	  echo hash;		\
-	  echo cd incoming;	\
-	  echo put $(TARBALL);	\
-	  echo quit ) | /usr/bin/ftp upload.sourceforge.net
 	ssh-add ~/.ssh/id_dsa.sf
+	( echo cd uploads;	\
+	  echo put $(TARBALL);	\
+	  echo quit ) | /usr/bin/sftp viy2@frs.sourceforge.net
 	scp index.html $(SF_HOME)
  
 

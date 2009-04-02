@@ -207,6 +207,8 @@ void free_expr_arglist(struct tmplpro_param* param)
 {
   if (NULL!=param->ExprFuncArglist) {
     av_undef((AV*) param->ExprFuncArglist);
+    SvREFCNT_dec(param->ExprFuncArglist);
+    param->ExprFuncArglist = NULL;
   }
 }
 
@@ -353,7 +355,11 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
 
   /*   setting perl globals */
   PerlSelfHTMLTemplatePro=PerlSelfPtr;
-  PerlFilteredTmpls=newAV();
+  if(PerlFilteredTmpls != NULL){
+    av_undef(PerlFilteredTmpls);
+  }else{
+    PerlFilteredTmpls=newAV();
+  }
   /*  end setting perl globals */
 
   if ((!SvROK(PerlSelfPtr)) || (SvTYPE(SvRV(PerlSelfPtr)) != SVt_PVHV))

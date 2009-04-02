@@ -158,4 +158,7 @@ Revision history for Perl extension HTML::Template::Pro.
 	- added support of path through variable scope 
 	(by Shigeki Morimoto <shigeki.morimoto at mixi.co.jp>)
 
+0.73 Thu Apr  2 22:45:47 EEST 2009
+	- multiple memory leaks fixed 
+	(by Shigeki Morimoto <shigeki.morimoto@mixi.co.jp>)
 

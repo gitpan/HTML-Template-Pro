@@ -23,7 +23,7 @@ Scope_init(struct scope_stack* scopestack) {
 
 void 
 Scope_free(struct scope_stack* scopestack) {
-  if (scopestack->_init_count--<=0) {
+  if (--scopestack->_init_count<=0) {
     free(scopestack->root);
     scopestack->max=-1;
     scopestack->level=-1;
