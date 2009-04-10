@@ -845,7 +845,7 @@ process_tmpl_tag(struct tmplpro_state *state)
 	case 'J': case 'j':		/* JS  */
 	  escape = HTML_TEMPLATE_OPT_ESCAPE_JS;
 	  break;
-	case '0': 
+	case '0': case 'N': case 'n': /* 0 or NONE */
 	  escape = HTML_TEMPLATE_OPT_ESCAPE_NO;
 	  break;
 	default:

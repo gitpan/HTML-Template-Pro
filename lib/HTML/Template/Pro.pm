@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.73';
+$VERSION = '0.74';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -322,7 +322,7 @@ sub _find_file {
   }
 
   # try pre-prending HTML_Template_Root
-  if (exists($ENV{HTML_TEMPLATE_ROOT}) and defined($ENV{HTML_TEMPLATE_ROOT})) {
+  if (defined($ENV{HTML_TEMPLATE_ROOT})) {
     $filepath =  File::Spec->catfile($ENV{HTML_TEMPLATE_ROOT}, $filename);
     return File::Spec->canonpath($filepath) if -e $filepath;
   }
@@ -337,7 +337,7 @@ sub _find_file {
   return File::Spec->canonpath($filename) if -e $filename;
 
   # try "path" option list with HTML_TEMPLATE_ROOT prepended...
-  if (exists($ENV{HTML_TEMPLATE_ROOT})) {
+  if (defined($ENV{HTML_TEMPLATE_ROOT})) {
     foreach my $path (@{$options->{path}}) {
       $filepath = File::Spec->catfile($ENV{HTML_TEMPLATE_ROOT}, $path, $filename);
       return File::Spec->canonpath($filepath) if -e $filepath;

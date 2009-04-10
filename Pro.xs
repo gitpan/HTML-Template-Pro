@@ -26,6 +26,8 @@ static
 SV* OutputString;
 static
 AV* PerlFilteredTmpls=NULL;
+static
+AV* PoolForPerlVars=NULL;
 
 static 
 SV* PerlSelfHTMLTemplatePro;
@@ -143,6 +145,7 @@ const char* get_filepath (const char* filename, const char* prevfilename) {
   /* any memory leaks??? */  
   if (SvOK(perlretval)) {
     filepath = SvPV(perlretval, len);
+    av_push(PoolForPerlVars,perlretval);
     SvREFCNT_inc(perlretval);
   } else {
     filepath = NULL;
@@ -281,6 +284,7 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
 	retval.type=EXPRPSTR;
 	strval =SvPV(svretval, len);
 	/* hack !!! */
+	av_push(PoolForPerlVars,svretval);
 	SvREFCNT_inc(svretval);
 	/* non-portable */
 	/* retval.val.strval=(PSTRING) {strval, strval +len}; */
@@ -362,6 +366,10 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   }
   /*  end setting perl globals */
 
+  /* setting pool for perl vars */
+  PoolForPerlVars = newAV();
+  /* end setting pool for perl vars */
+
   if ((!SvROK(PerlSelfPtr)) || (SvTYPE(SvRV(PerlSelfPtr)) != SVt_PVHV))
     {
       die("FATAL:SELF:hash pointer was expected but not found");
@@ -419,7 +427,7 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
     case 'J': case 'j':		/* JS  */
       default_escape = HTML_TEMPLATE_OPT_ESCAPE_JS;
       break;
-    case '0': 
+    case '0': case 'N': case 'n': /* 0 or NONE */
       default_escape = HTML_TEMPLATE_OPT_ESCAPE_NO;
       break;
     default:
@@ -429,6 +437,18 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   }
   return param;
 }
+
+static void
+release_tmplpro_options(struct tmplpro_param* param)
+{
+  if(PoolForPerlVars != NULL){
+    SvREFCNT_dec(PoolForPerlVars);
+    PoolForPerlVars = NULL;
+  }
+  tmplpro_param_free(param);
+}
+
+
 
 MODULE = HTML::Template::Pro		PACKAGE = HTML::Template::Pro
 
@@ -459,12 +479,12 @@ exec_tmpl(selfoptions,possible_output)
 	proparam->WriterFuncPtr=&write_chars_to_file;
 	if (proparam->filename!=NULL) {
 	  RETVAL = tmplpro_exec_tmpl(proparam->filename,proparam);
-	  tmplpro_param_free(proparam);
+	  release_tmplpro_options(proparam);
 	} else if (proparam->scalarref.begin!=NULL) {
 	  RETVAL = tmplpro_exec_tmpl_in_memory(proparam->scalarref,proparam);
-	  tmplpro_param_free(proparam);
+	  release_tmplpro_options(proparam);
 	} else {
-	  tmplpro_param_free(proparam);
+	  release_tmplpro_options(proparam);
 	  die ("bad arguments: expected filename or scalarref");
 	}
     OUTPUT:
@@ -487,12 +507,12 @@ exec_tmpl_string(selfoptions)
 	proparam->WriterFuncPtr=&write_chars_to_string;
 	if (proparam->filename!=NULL) {
 	  retstate = tmplpro_exec_tmpl(proparam->filename,proparam);
-	  tmplpro_param_free(proparam);
+	  release_tmplpro_options(proparam);
 	} else if (proparam->scalarref.begin!=NULL) {
 	  retstate = tmplpro_exec_tmpl_in_memory(proparam->scalarref,proparam);
-	  tmplpro_param_free(proparam);
+	  release_tmplpro_options(proparam);
 	} else {
-	  tmplpro_param_free(proparam);
+	  release_tmplpro_options(proparam);
 	  die ("bad arguments: expected filename or scalarref");
 	}
 	RETVAL = OutputString;

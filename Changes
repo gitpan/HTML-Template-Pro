@@ -162,3 +162,9 @@ Revision history for Perl extension HTML::Template::Pro.
 	- multiple memory leaks fixed 
 	(by Shigeki Morimoto <shigeki.morimoto@mixi.co.jp>)
 
+0.74 Fri Apr  3 20:19:32 EEST 2009
+	- merges from HTML::Template 2.9
+	- memory leaks fix 
+	(by Shigeki Morimoto <shigeki.morimoto@mixi.co.jp>)
+
+

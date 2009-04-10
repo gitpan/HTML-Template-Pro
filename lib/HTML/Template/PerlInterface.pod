@@ -114,8 +114,8 @@ Call new() to create a new Template object:
                                     );
 
 You must call new() with at least one name => value pair specifying how
-to access the template text.  You can use "filename => 'file.tmpl'" to
-specify a filename to be opened as the template.  Alternately you can
+to access the template text.  You can use C<< filename => 'file.tmpl' >> 
+to specify a filename to be opened as the template.  Alternately you can
 use:
 
   my $t = HTML::Template->new( scalarref => $ref_to_template_text, 
@@ -288,20 +288,20 @@ it silently ignores those options.
 
 associate - this option allows you to inherit the parameter values
 from other objects.  The only requirement for the other object is that
-it have a param() method that works like HTML::Template's param().  A
+it have a C<param()> method that works like HTML::Template's C<param()>.  A
 good candidate would be a CGI.pm query object.  Example:
 
   my $query = new CGI;
   my $template = HTML::Template->new(filename => 'template.tmpl',
                                      associate => $query);
 
-Now, $template->output() will act as though 
+Now, C<< $template->output() >> will act as though
 
   $template->param('FormField', $cgi->param('FormField'));
 
 had been specified for each key/value pair that would be provided by
-the $cgi->param() method.  Parameters you set directly take precedence
-over associated parameters.  
+the C<< $cgi->param() >> method.  Parameters you set directly take
+precedence over associated parameters.
 
 You can specify multiple objects to associate by passing an anonymous
 array to the associate option.  They are searched for parameters in
@@ -391,7 +391,7 @@ Would output (in a browser) something like:
 
   Apples, Oranges, Brains, Toes, and Kiwi.
 
-Given an appropriate param() call, of course.  NOTE: A loop with only
+Given an appropriate C<param()> call, of course.  NOTE: A loop with only
 a single pass will get both __first__ and __last__ set to true, but
 not __inner__.
 
@@ -470,7 +470,7 @@ HTML::Template reads your template file but before it starts parsing
 template tags.
 
 In the most simple usage, you simply assign a code reference to the
-filter parameter.  This subroutine will recieve a single arguement - a
+filter parameter.  This subroutine will recieve a single argument - a
 reference to a string containing the template file text.  Here is an
 example that accepts templates with tags that look like "!!!ZAP_VAR
 FOO!!!" and transforms them into HTML::Template tags:
@@ -487,9 +487,9 @@ FOO!!!" and transforms them into HTML::Template tags:
 More complicated usages are possible.  You can request that your
 filter receieve the template text as an array of lines rather than as
 a single scalar.  To do that you need to specify your filter using a
-hash-ref.  In this form you specify the filter using the "sub" key and
-the desired argument format using the "format" key.  The available
-formats are "scalar" and "array".  Using the "array" format will incur
+hash-ref.  In this form you specify the filter using the C<sub> key and
+the desired argument format using the C<format> key.  The available
+formats are C<scalar> and C<array>.  Using the C<array> format will incur
 a performance penalty but may be more convenient in some situations.
 
    my $template = HTML::Template->new(filename => 'zap.tmpl',
@@ -542,7 +542,7 @@ unless they declare a different escape in the template.
 
 =head2 param()
 
-param() can be called in a number of ways
+C<param()> can be called in a number of ways
 
 1) To return a list of parameters in the template : 
    ( this features is distinct in HTML::Template::Pro:
@@ -636,7 +636,7 @@ you'll want to print this, like:
    print $template->output();
 
 When output is called each occurrence of <TMPL_VAR NAME=name> is
-replaced with the value assigned to "name" via param().  If a named
+replaced with the value assigned to "name" via C<param()>.  If a named
 parameter is unset it is simply replaced with ''.  <TMPL_LOOPS> are
 evaluated once per parameter set, accumlating output on each pass.
 
@@ -650,7 +650,7 @@ memory consumption.  Example:
 
    $template->output(print_to => *STDOUT);
 
-The return value is undefined when using the "print_to" option.
+The return value is undefined when using the C<print_to> option.
 
 
 =head2 query()
@@ -671,7 +671,7 @@ the C<name> option:
 
 This same usage returns the type of the parameter.  The type is the
 same as the tag minus the leading 'TMPL_'.  So, for example, a
-TMPL_VAR parameter returns 'VAR' from query().
+TMPL_VAR parameter returns 'VAR' from C<query()>.
 
   if ($template->query(name => 'foo') eq 'VAR') {
     # do something if FOO exists and is a TMPL_VAR
@@ -729,7 +729,7 @@ parameter that is not a loop.
 Note that all the names are returned in lowercase and the types are
 uppercase.
 
-Just like C<param()>, C<query()> with no arguements returns all the
+Just like C<param()>, C<query()> with no arguments returns all the
 parameter names in the template at the top level.
 
 =end comment
@@ -801,8 +801,8 @@ demonstrating the problem!
 =begin comment
 
 If you're feeling really adventurous, HTML::Template has a publically
-available CVS server.  See below for more information in the PUBLIC
-CVS SERVER section.
+available Subversion server.  See below for more information in the PUBLIC
+SUBVERSION SERVER section.
 
 =end comment
 
@@ -942,6 +942,9 @@ provided by:
    Paul Baker
    Gabor Szabo
    Craig Manley
+   Richard Fein
+   The Phalanx Project
+   Sven Neuhaus
 
 Thanks!
 
@@ -968,11 +971,11 @@ You can find information about HTML::Template and other related modules at:
 
 =begin comment
 
-=head1 PUBLIC CVS SERVER
+=head1 PUBLIC SUBVERSION SERVER
 
-HTML::Template now has a publicly accessible CVS server provided by
-SourceForge (www.sourceforge.net).  You can access it by going to
-http://sourceforge.net/cvs/?group_id=1075.  Give it a try!
+HTML::Template now has a publicly accessible Subversion server
+provided by SourceForge (www.sourceforge.net).  You can access it by
+going to http://sourceforge.net/svn/?group_id=1075.  Give it a try!
 
 =end comment
 
