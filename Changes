@@ -167,4 +167,7 @@ Revision history for Perl extension HTML::Template::Pro.
 	- memory leaks fix 
 	(by Shigeki Morimoto <shigeki.morimoto@mixi.co.jp>)
 
-
+0.75 Wed Jul  1 23:23:36 EEST 2009
+	- pos value in log message.
+	(Shigeki Morimoto <shigeki.morimoto@mixi.co.jp>).
+	- fixed cpan rt #38486 (mixed loops && global_var=1)

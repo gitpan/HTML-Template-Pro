@@ -35,6 +35,8 @@ procore.h
 proscope.c
 proscope.h
 prostate.h
+provalue.c
+provalue.h
 pstring.c
 pstring.h
 t/01coderefs.t
@@ -42,6 +44,7 @@ t/02basic.t
 t/02random.t
 t/03complex.t
 t/04register.t
+t/05path_like_variable_scope.t
 t/HTML-Template-Expr.t
 t/HTML-Template-Pro.t
 t/HTML-Template.t
@@ -120,6 +123,8 @@ templates-Pro/test_loop4.out
 templates-Pro/test_loop4.tmpl
 templates-Pro/test_loop5.out
 templates-Pro/test_loop5.tmpl
+templates-Pro/test_loop6.out
+templates-Pro/test_loop6.tmpl
 templates-Pro/test_malloc.tmpl
 templates-Pro/test_var1.out
 templates-Pro/test_var1.tmpl

@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN {plan tests => 1+2*(18+4+1) };
+BEGIN {plan tests => 1+2*(19+4+1) };
 use File::Spec;
 #use HTML::Template;
 use HTML::Template::Pro;
@@ -31,6 +31,8 @@ HASHREF1=>[
 {LOOPVAR1=>'LOOP3-VAR1',LOOPVAR2=>'LOOP3-VAR2',LOOPVAR3=>'LOOP3-VAR3',LOOPVAR10=>'LOOP3-VAR10'},
 {LOOPVAR1=>'LOOP4-VAR1',LOOPVAR2=>'LOOP4-VAR2',LOOPVAR3=>'LOOP4-VAR3',LOOPVAR10=>'LOOP4-VAR10'},
 ]);
+my @outer=({TEST=>'1'},{TEST=>'2'},{TEST=>'3'});
+my @inner=({TST=>'A'},{TST=>'B'});
 
 if ($ENV{HTMLTEMPLATEPROBROKEN}) {
     # manual test
@@ -59,6 +61,7 @@ test_tmpl('test_loop2', @varset1, @refset1);
 test_tmpl('test_loop3', @varset1, @refset1);
 test_tmpl('test_loop4', @varset1, @refset1);
 test_tmpl('test_loop5', @varset1, @refset1);
+test_tmpl_options('test_loop6',[loop_context_vars=>1,debug=>1,global_vars=>1,die_on_bad_params=>0], INNER=>\@inner, OUTER=>\@outer);
 
 # todo: use config.h and grep defines from here
 # if IMITATE==1 (-DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG)
@@ -82,16 +85,27 @@ test_tmpl('test_broken1', @varset1, @refset1);
 
 # -------------------------
 
-sub test_tmpl {
+
+sub test_tmpl_options {
     my $file=shift;
+    my $optref=shift;
     my $tmpl;
     print "\n--------------- Test: $file ---------------------\n";
     chdir 'templates-Pro';
 #    $tmpl=HTML::Template->new(filename=>$file.'.tmpl', die_on_bad_params=>0, strict=>0);
-    $tmpl=HTML::Template::Pro->new(filename=>$file.'.tmpl', loop_context_vars=>1, case_sensitive=>0,debug=>$DEBUG);
+    $tmpl=HTML::Template::Pro->new(filename=>$file.'.tmpl', @$optref,debug=>$DEBUG);
     $tmpl->param(@_);
     &dryrun($tmpl,$file);
     chdir '..';
+}
+
+sub test_tmpl {
+    my ($file,@args)=@_;
+    &test_tmpl_options($file, [
+			   loop_context_vars=>1, 
+			   case_sensitive=>0,
+			   debug=>$DEBUG
+		       ],@args);
 }
 
 sub dryrun {

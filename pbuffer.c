@@ -29,6 +29,5 @@ void  pbuffer_free(pbuffer* pBuffer) {
 /*
  * Local Variables:
  * mode: c
- * coding: cp1251
  * End:
  */

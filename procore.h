@@ -48,7 +48,7 @@ void _tmplpro_expnum_debug (struct exprval val, char* msg);
 
 typedef void    (*writerfunc) (char* begin, char* endnext);
 
-typedef int (*init_loop_func) (struct scope_stack*, PSTRING name);
+typedef int (*init_loop_func) (struct tmplpro_param *, PSTRING name);
 typedef int (*next_loop_func) (struct ProLoopState*);
 
 typedef ABSTRACT_VALUE* (*get_ABSTRACT_VALUE_func) (ABSTRACT_MAP*, PSTRING name);
@@ -134,10 +134,7 @@ int tmplpro_exec_tmpl (const char* filename, struct tmplpro_param* ProParams);
 int tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param* param);
 
 
-/* private : to hide */
-struct tmplpro_state;
-
-PSTRING get_variable_value (struct tmplpro_state *state, PSTRING name);
+PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name);
 
 
 /* 

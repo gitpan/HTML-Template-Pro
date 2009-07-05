@@ -4,7 +4,7 @@ use Config;
 use File::Spec;
 $Verbose = 1;
 
-$O_FILES=qw/procore.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
+$O_FILES=qw/procore.o provalue.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
 #  loadfile.o calc.o exprtool.o tagstack.o
 
 my $INC='-I.';
@@ -25,11 +25,14 @@ if ($^O eq 'os2' or $^O eq 'dos') {
     # win 32 mmap is disabled by default
 #    $DEF{MMAP}=1;
     $DEF{MMAP}=0;
+    # no, compiler is yet unknown here;
+    # and some creepy M**soft tools may not understand long long :(
+    # $DEF{INT64_NAME} = "long long";?
 } else {
     $DEF{MMAP}=has_mmap();
 }
 
-$DEF{INT64_NAME} = find_int64();
+$DEF{INT64_NAME} ||= find_int64();
 $DEF{INT64_NAME} ||= $Config{i64type};
 
 my $i;
@@ -260,7 +263,7 @@ mmap_load_file (const char* filepath) {
 }
 
 sub find_int64 {
-    foreach my $type ('long long','long','int') {
+    foreach my $type ('__int64','long long','long','int') {
 	return $type if try_as_int64($type);
     }
     return;

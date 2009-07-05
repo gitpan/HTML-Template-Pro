@@ -16,6 +16,7 @@ extern "C" {
 #include "ppport.h"
 
 #include "tmplpro.h"
+#include "provalue.h"
 
 typedef PerlIO *        OutputStream;
 
@@ -96,11 +97,10 @@ int perl_next_loop (struct ProLoopState* currentScope) {
 }
 
 static 
-int perl_init_loop (struct scope_stack* variable_scope, PSTRING name) {
+int perl_init_loop (struct tmplpro_param *param, PSTRING name) {
   AV* loops_AV;
   int maxloop;
-  struct ProLoopState* currentScope = getCurrentScope(variable_scope);
-  SV** hashvalptr=hv_fetch((HV*)currentScope->param_HV,name.begin, name.endnext-name.begin, 0);
+  SV** hashvalptr=(SV**) walk_through_nested_loops(param,name);
   if (hashvalptr==NULL) {
     return 0;
   } else {
@@ -113,7 +113,7 @@ int perl_init_loop (struct scope_stack* variable_scope, PSTRING name) {
     loops_AV=(AV *)SvRV(*hashvalptr);
     maxloop=av_len(loops_AV);
     if (maxloop < 0) return 0; 
-    pushScope2(variable_scope, maxloop, loops_AV);
+    pushScope2(&param->var_scope_stack, maxloop, loops_AV);
     return 1;
   }
 }

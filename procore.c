@@ -8,6 +8,7 @@
 
 #include "procore.h"
 #include "prostate.h"
+#include "provalue.h"
 #include "tagstack.h"
 #include "pbuffer.h"
 #include "proscope.h"
@@ -97,13 +98,13 @@ try_inner_loop_variable (PSTRING name)
 
 static 
 PSTRING 
-get_loop_context_vars_value (struct tmplpro_state *state, PSTRING name) {
+get_loop_context_vars_value (struct tmplpro_param *param, PSTRING name) {
   static char* FalseString="0";
   static char* TrueString ="1";
   static char buffer[20]; /* for snprintf %d */
   int loop;
   PSTRING retval={NULL,NULL};
-  if (curScopeLevel(&state->param->var_scope_stack)>0 
+  if (curScopeLevel(&param->var_scope_stack)>0 
       && name.endnext-name.begin>4
       && '_'==*(name.begin)
       && '_'==*(name.begin+1)
@@ -111,7 +112,7 @@ get_loop_context_vars_value (struct tmplpro_state *state, PSTRING name) {
     /* we can meet loop variables here -- try it first */
     /* length of its name >4 */
     /* __first__ __last__ __inner__ __odd__ __counter__ */
-    struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
+    struct ProLoopState* currentScope = getCurrentScope(&param->var_scope_stack);
     PSTRING shiftedname; /* (PSTRING) {name.begin+2,name.endnext} */
     shiftedname.begin=name.begin+2;
     shiftedname.endnext=name.endnext;
@@ -275,54 +276,13 @@ _tmpl_log_state (struct tmplpro_state *state, int level)
 	   state->tag_start - state->top);
 }
 
-static
-ABSTRACT_VALUE* walk_through_nested_loops (struct tmplpro_state *state, PSTRING name) {
-  int PrevHash;
-  struct ProLoopState* currentScope;
-  ABSTRACT_VALUE* valptr;
-  /* Shigeki Morimoto path_like_variable_scope extension */
-  if (state->param->path_like_variable_scope) {
-    if(*(name.begin) == '/' || strncmp(name.begin, "../", 3) == 0){
-      PSTRING tmp_name;
-      int GoalHash;
-      if(*(name.begin) == '/'){
-	tmp_name.begin   = name.begin+1; // skip '/'
-	tmp_name.endnext = name.endnext;
-	GoalHash = 0;
-      }else{
-	tmp_name.begin   = name.begin;
-	tmp_name.endnext = name.endnext;
-	GoalHash = curScopeLevel(&state->param->var_scope_stack);
-	while(strncmp(tmp_name.begin, "../", 3) == 0){
-	  tmp_name.begin   = tmp_name.begin + 3; // skip '../'
-	  GoalHash --;
-	}
-      }
-      valptr = state->param->getAbstractValFuncPtr(getScope(&state->param->var_scope_stack, GoalHash)->param_HV, tmp_name);
-      return valptr;
-    }
-  }
-  /* end Shigeki Morimoto path_like_variable_scope extension */
-
-  currentScope = getCurrentScope(&state->param->var_scope_stack);
-  valptr= state->param->getAbstractValFuncPtr(currentScope->param_HV, name);
-  if ((0==state->param->global_vars) || (valptr)) return valptr;
-  PrevHash=curScopeLevel(&state->param->var_scope_stack)-1;
-  while (PrevHash>=0) {
-    valptr=state->param->getAbstractValFuncPtr(getScope(&state->param->var_scope_stack, PrevHash)->param_HV,name);
-    if (valptr!=NULL) return valptr;
-    PrevHash--;
-  }
-  return NULL;
-}
-
-PSTRING get_variable_value (struct tmplpro_state *state, PSTRING name) {
+PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name) {
   PSTRING varvalue ={NULL, NULL};
-  if (state->param->loop_context_vars) {
-    varvalue=get_loop_context_vars_value(state, name);
+  if (param->loop_context_vars) {
+    varvalue=get_loop_context_vars_value(param, name);
   }
   if (varvalue.begin==NULL) {
-    varvalue=(state->param->abstractVal2pstringFuncPtr)(walk_through_nested_loops(state, name));
+    varvalue=(param->abstractVal2pstringFuncPtr)(walk_through_nested_loops(param, name));
   }
   return varvalue;
 }
@@ -337,7 +297,7 @@ tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, in
   if (state->is_expr) {
     varvalue=parse_expr(name, state);
   } else 
-    varvalue=get_variable_value(state, name);
+    varvalue=get_variable_value(state->param, name);
   if (debuglevel>=TMPL_LOG_DEBUG) {
       if (varvalue.begin!=NULL) {
 	tmpl_log(state,TMPL_LOG_DEBUG,"variable value = %.*s\n",(int)(varvalue.endnext-varvalue.begin),varvalue.begin);
@@ -402,7 +362,7 @@ is_var_true(struct tmplpro_state *state, PSTRING name)
     ifval=is_pstring_true(parse_expr(name, state));
   } else
     if (state->param->loop_context_vars) {
-      PSTRING loop_var=get_loop_context_vars_value(state, name);
+      PSTRING loop_var=get_loop_context_vars_value(state->param, name);
       if (loop_var.begin!=NULL) {
 	ifval=is_pstring_true(loop_var);
       }
@@ -410,9 +370,9 @@ is_var_true(struct tmplpro_state *state, PSTRING name)
   if (ifval==-1) {
     userSuppliedIsTrueFunc = state->param->isAbstractValTrueFuncPtr;
     if (userSuppliedIsTrueFunc!=NULL) {
-      ifval=(userSuppliedIsTrueFunc)(walk_through_nested_loops(state, name));
+      ifval=(userSuppliedIsTrueFunc)(walk_through_nested_loops(state->param, name));
     } else {
-      ifval=is_pstring_true((state->param->abstractVal2pstringFuncPtr)(walk_through_nested_loops(state, name)));
+      ifval=is_pstring_true((state->param->abstractVal2pstringFuncPtr)(walk_through_nested_loops(state->param, name)));
     }
   }
   return ifval;
@@ -584,7 +544,7 @@ tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"tag_handler_loop:before InitLoopFuncPtr\n");
 #endif
-  if (state->is_visible && (*state->param->InitLoopFuncPtr)(&state->param->var_scope_stack,name) && next_loop(state)) {
+  if (state->is_visible && (*state->param->InitLoopFuncPtr)(state->param,name) && next_loop(state)) {
     iftag.value=1; /* the loop is non - empty */
   } else {
     /* empty loop is equal to <if false> ... </if> */
@@ -1021,6 +981,5 @@ tmplpro_param_free(struct tmplpro_param* param)
 /*
  * Local Variables:
  * mode: c 
- * coding: cp1251
  * End: 
  */

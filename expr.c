@@ -1971,7 +1971,7 @@ parse_expr (PSTRING expression, struct tmplpro_state* state)
 static
 void 
 expr_debug(struct tmplpro_state* state, char const *msg1, char const *msg2) {
-  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %d: %s %s\n", (state->expr_curpos)-(state->expr).begin,msg1,msg2);
+  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %td [%td]: %s %s\n", (state->expr_curpos)-(state->top),(state->expr_curpos)-(state->expr).begin,msg1,msg2);
 }
 
 static
@@ -2107,7 +2107,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 	if (! state->param->case_sensitive) {
 	  lowercase_pstring_inplace(name);
 	}
-	varvalue=get_variable_value(state, name);
+	varvalue=get_variable_value(state->param, name);
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
 	if (varvalue.begin==NULL) {
 	  /*(*lvalp).numval.val.strval=(PSTRING) {(state->expr_curpos), (state->expr_curpos)};*/
