@@ -12,18 +12,19 @@
 #define _TMPLPRO_H	1
 
 #include "procore.h"
+#include "proparam.h"
 
 void tmplpro_procore_init();
 void tmplpro_procore_done();
 
 /* 
- * Constructor and destructor of tmplpro_param. Note that different versions
- * of tmplpro may have different sizeof(struct tmplpro_param), but even if 
- * they are linked dynamically, they are still binary compatible 
- * if you are using tmplpro_param_init and tmplpro_param_free.
+ * Constructor and destructor of tmplpro_param. 
+ * Note that struct tmplpro_param is not part of the interface
+ * and is subject to change without notice.
  */
 struct tmplpro_param* tmplpro_param_init();
 void tmplpro_param_free(struct tmplpro_param*);
 
+int tmplpro_exec_tmpl (struct tmplpro_param*);
 
 #endif /* tmplpro.h */

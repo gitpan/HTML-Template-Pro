@@ -171,3 +171,16 @@ Revision history for Perl extension HTML::Template::Pro.
 	- pos value in log message.
 	(Shigeki Morimoto <shigeki.morimoto@mixi.co.jp>).
 	- fixed cpan rt #38486 (mixed loops && global_var=1)
+
+0.76 Sat Jul 11 10:46:27 EEST 2009
+	- Stable backend API. 
+	Current perl wrapper (Pro.xs) had to communicate with 
+	c backend using the param {...} struct(ure).
+	That's still bearable if library is statically built in wrapper
+	but unacceptable for public library that can be used by third-pary 
+	software (the layout of the structure is not a public API. 
+	It is not meant to be and is subject to change without prior notice).
+	Instead, param structure is hidden behind the stable 
+	public library API getter and setter functions.
+	tmplpro.h is now the API header.
+

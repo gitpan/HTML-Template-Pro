@@ -4,7 +4,7 @@ use Config;
 use File::Spec;
 $Verbose = 1;
 
-$O_FILES=qw/procore.o provalue.o pbuffer.o proscope.o expr.o pstring.o tmpllog.o/;
+$O_FILES=qw/procore.o pbuffer.o proparam.o proscope.o expr.o pstring.o tmpllog.o/;
 #  loadfile.o calc.o exprtool.o tagstack.o
 
 my $INC='-I.';
@@ -138,6 +138,9 @@ sub MY::postamble {
     return <<'MAKE_FRAG';
 expr.c: calc.inc exprtool.inc exprpstr.inc
 procore\$(OBJ_EXT): loadfile.inc tagstack.inc
+
+#proparam.c proparam.h: pparam.h
+#	./pparam2proparam
 
 rpm: dist
 	rpmbuild -ta --clean HTML-Template-Pro-$(VERSION).tar.gz

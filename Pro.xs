@@ -16,7 +16,6 @@ extern "C" {
 #include "ppport.h"
 
 #include "tmplpro.h"
-#include "provalue.h"
 
 typedef PerlIO *        OutputStream;
 
@@ -68,7 +67,7 @@ PSTRING ABSTRACT_VALUE2PSTRING_impl (ABSTRACT_VALUE* valptr) {
 }
 
 static
-int is_ABSTRACT_VALUE_TRUE_impl (ABSTRACT_VALUE* valptr) {
+int is_ABSTRACT_VALUE_true_impl (ABSTRACT_VALUE* valptr) {
   SV* SVval;
   if (valptr==NULL) return 0;
   SVval = *((SV**) valptr);
@@ -84,37 +83,25 @@ int is_ABSTRACT_VALUE_TRUE_impl (ABSTRACT_VALUE* valptr) {
 }
 
 static 
-int perl_next_loop (struct ProLoopState* currentScope) {
-  SV** arrayvalptr;
-  arrayvalptr=av_fetch((AV*)currentScope->loops_AV, currentScope->loop, 0);
-  if ((arrayvalptr==NULL) || (!SvROK(*arrayvalptr)) || (SvTYPE(SvRV(*arrayvalptr)) != SVt_PVHV)) {
-    warn("PARAM:LOOP:next_loop:hash pointer was expected but not found");
-    return 0;
-  } else {
-    currentScope->param_HV=(HV *)SvRV(*arrayvalptr);
-    return 1;
-  }
+ABSTRACT_ARRAY* ABSTRACT_VALUE2ABSTRACT_ARRAY_impl (ABSTRACT_VALUE* abstrvalptr) {
+  SV** valptr = (SV**) abstrvalptr;
+  if ((!SvROK(*valptr)) || (SvTYPE(SvRV(*valptr)) != SVt_PVAV)) return 0;
+  return (ABSTRACT_ARRAY*) SvRV(*valptr);
 }
 
 static 
-int perl_init_loop (struct tmplpro_param *param, PSTRING name) {
-  AV* loops_AV;
-  int maxloop;
-  SV** hashvalptr=(SV**) walk_through_nested_loops(param,name);
-  if (hashvalptr==NULL) {
-    return 0;
+int get_ABSTRACT_ARRAY_length_impl (ABSTRACT_ARRAY* loops_AV) {
+  return av_len((AV *)loops_AV)+1;
+}
+
+static 
+ABSTRACT_MAP* get_ABSTRACT_MAP_impl (ABSTRACT_ARRAY* loops_AV, int loop) {
+  SV** arrayvalptr;
+  arrayvalptr=av_fetch((AV*)loops_AV, loop, 0);
+  if ((arrayvalptr==NULL) || (!SvROK(*arrayvalptr)) || (SvTYPE(SvRV(*arrayvalptr)) != SVt_PVHV)) {
+    return NULL;
   } else {
-    /* set loop array */
-    if ((!SvROK(*hashvalptr)) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVAV))
-      {
-	warn("PARAM:LOOP:loop argument:array pointer was expected but not found");
-	return 0;
-      }
-    loops_AV=(AV *)SvRV(*hashvalptr);
-    maxloop=av_len(loops_AV);
-    if (maxloop < 0) return 0; 
-    pushScope2(&param->var_scope_stack, maxloop, loops_AV);
-    return 1;
+    return (ABSTRACT_MAP *)SvRV(*arrayvalptr);
   }
 }
 
@@ -200,30 +187,28 @@ int unload_file(PSTRING memarea) {
 }
 
 static 
-void* is_expr_userfnc (struct tmplpro_param* param, PSTRING name) {
-  SV** hashvalptr=hv_fetch((HV *) param->ExprFuncHash, name.begin, name.endnext-name.begin, 0);
+ABSTRACT_USERFUNC* is_expr_userfnc (ABSTRACT_FUNCMAP* FuncHash, PSTRING name) {
+  SV** hashvalptr=hv_fetch((HV *) FuncHash, name.begin, name.endnext-name.begin, 0);
   return hashvalptr;
 }
 
 static 
-void free_expr_arglist(struct tmplpro_param* param)
+void free_expr_arglist(ABSTRACT_ARGLIST* arglist)
 {
-  if (NULL!=param->ExprFuncArglist) {
-    av_undef((AV*) param->ExprFuncArglist);
-    SvREFCNT_dec(param->ExprFuncArglist);
-    param->ExprFuncArglist = NULL;
+  if (NULL!=arglist) {
+    av_undef((AV*) arglist);
+    SvREFCNT_dec(arglist);
   }
 }
 
 static 
-void init_expr_arglist(struct tmplpro_param* param)
+ABSTRACT_ARGLIST* init_expr_arglist()
 {
-  free_expr_arglist(param);
-  param->ExprFuncArglist=newAV();
+  return newAV();
 }
 
 static 
-void push_expr_arglist(struct tmplpro_param* param,  struct exprval exprval)
+void push_expr_arglist(ABSTRACT_ARGLIST* arglist,  struct exprval exprval)
 {
   SV* val=NULL;
   switch (exprval.type) {
@@ -232,12 +217,11 @@ void push_expr_arglist(struct tmplpro_param* param,  struct exprval exprval)
   case EXPRPSTR: val=newSVpvn(exprval.val.strval.begin, exprval.val.strval.endnext-exprval.val.strval.begin);break;
   default: die ("FATAL INTERNAL ERROR:Unsupported type %d in exprval", exprval.type);
   }
-  av_push ((AV*) param->ExprFuncArglist, val);
-  if (debuglevel>6) _tmplpro_expnum_debug (exprval, "EXPR: arglist: pushed ");
+  av_push ((AV*) arglist, val);
 }
 
 static 
-struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr) {
+struct exprval call_expr_userfnc (ABSTRACT_ARGLIST* arglist, ABSTRACT_USERFUNC* hashvalptr) {
   dSP ;
   char* empty="";
   char* strval;
@@ -245,7 +229,7 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
   SV * svretval;
   I32 i;
   I32 numretval;
-  I32 arrlen=av_len((AV *) param->ExprFuncArglist);
+  I32 arrlen=av_len((AV *) arglist);
   struct exprval retval = {EXPRPSTR};
   /* retval.val.strval=(PSTRING) {empty,empty}; */
   retval.val.strval.begin=empty;
@@ -263,7 +247,7 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
   
   PUSHMARK(SP) ;
   for (i=0;i<=arrlen;i++) {
-    arrval=av_fetch((AV *) param->ExprFuncArglist,i,0);
+    arrval=av_fetch((AV *) arglist,i,0);
     if (arrval) XPUSHs(*arrval);
     else warn("INTERNAL: call: strange arrval");
   }
@@ -301,8 +285,6 @@ struct exprval call_expr_userfnc (struct tmplpro_param* param, void* hashvalptr)
   FREETMPS ;
   LEAVE ;
 
-  free_expr_arglist(param);
-  if (debuglevel>6) _tmplpro_expnum_debug (retval, "EXPR: function call: returned ");
   return retval;
 }
 
@@ -338,23 +320,31 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   SV** hashvalptr;
   char* tmpstring;
   int default_escape=HTML_TEMPLATE_OPT_ESCAPE_NO;
+
+  /* main arguments */
+  PSTRING filename;
+  PSTRING scalarref;
+
   /* internal initialization */
   struct tmplpro_param* param=tmplpro_param_init();
+
   /*   setting initial hooks */
-  param->WriterFuncPtr=&write_chars_to_string;
-  param->getAbstractValFuncPtr=&get_ABSTRACT_VALUE_impl;
-  param->abstractVal2pstringFuncPtr=&ABSTRACT_VALUE2PSTRING_impl;
-  param->isAbstractValTrueFuncPtr=&is_ABSTRACT_VALUE_TRUE_impl;
-  param->InitLoopFuncPtr=&perl_init_loop;
-  param->NextLoopFuncPtr=&perl_next_loop;
-  param->FindFileFuncPtr=&get_filepath;
-  param->LoadFileFuncPtr=&load_file;
-  param->UnloadFileFuncPtr=&unload_file;
+  set_option_WriterFuncPtr(param, &write_chars_to_string);
+  set_option_GetAbstractValFuncPtr(param, &get_ABSTRACT_VALUE_impl);
+  set_option_AbstractVal2pstringFuncPtr(param, &ABSTRACT_VALUE2PSTRING_impl);
+  set_option_AbstractVal2abstractArrayFuncPtr(param, &ABSTRACT_VALUE2ABSTRACT_ARRAY_impl);
+  set_option_GetAbstractArrayLengthFuncPtr(param, &get_ABSTRACT_ARRAY_length_impl);
+  set_option_IsAbstractValTrueFuncPtr(param, &is_ABSTRACT_VALUE_true_impl);
+  set_option_GetAbstractMapFuncPtr(param, &get_ABSTRACT_MAP_impl);
+  set_option_FindFileFuncPtr(param, &get_filepath);
+  set_option_LoadFileFuncPtr(param, &load_file);
+  set_option_UnloadFileFuncPtr(param, &unload_file);
   /*   setting initial Expr hooks */
-  param->InitExprArglistFuncPtr=&init_expr_arglist;
-  param->PushExprArglistFuncPtr=&push_expr_arglist;
-  param->CallExprUserfncFuncPtr=&call_expr_userfnc;
-  param->IsExprUserfncFuncPtr=&is_expr_userfnc;
+  set_option_InitExprArglistFuncPtr(param, &init_expr_arglist);
+  set_option_FreeExprArglistFuncPtr(param, &free_expr_arglist);
+  set_option_PushExprArglistFuncPtr(param, &push_expr_arglist);
+  set_option_CallExprUserfncFuncPtr(param, &call_expr_userfnc);
+  set_option_IsExprUserfncFuncPtr(param, &is_expr_userfnc);
   /* end setting initial hooks */
 
   /*   setting perl globals */
@@ -375,12 +365,21 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
       die("FATAL:SELF:hash pointer was expected but not found");
     }
   SelfHash=(HV *)SvRV(PerlSelfPtr);
+
+  /* checking main arguments */
+  filename=get_string_from_hash(SelfHash,"filename");
+  scalarref=get_string_from_hash(SelfHash,"scalarref");
+  set_option_filename(param, filename.begin);
+  set_option_scalarref(param, scalarref);
+  if (filename.begin==NULL && scalarref.begin==NULL) {
+    die ("bad arguments: expected filename or scalarref");
+  }
   
   /* setting expr_func */
   hashvalptr=hv_fetch(SelfHash, "expr_func", 9, 0); /* 9=strlen("expr_func") */
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
     die("FATAL:output:EXPR user functions not found");
-  param->ExprFuncHash=(HV *) SvRV(*hashvalptr);
+  set_option_expr_func_map(param, (HV *) SvRV(*hashvalptr));
   /* end setting expr_func */
 
   /* setting param_map */
@@ -388,7 +387,7 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVHV))
     die("FATAL:output:param_map not found");
 
-  param->rootHV = (HV *)SvRV(*hashvalptr);
+  set_option_root_param_map(param,  (HV *)SvRV(*hashvalptr));
 
   /* end setting param_map */
 
@@ -396,24 +395,21 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
   hashvalptr=hv_fetch(SelfHash, "filter", 6, 0); /* 6=strlen("filter") */
   if (!hashvalptr || !SvROK(*hashvalptr) || (SvTYPE(SvRV(*hashvalptr)) != SVt_PVAV))
     die("FATAL:output:filter not found");
-  if (av_len((AV*)SvRV(*hashvalptr))>=0) param->filters=1;
+  if (av_len((AV*)SvRV(*hashvalptr))>=0) set_option_filters(param, 1);
   /* end setting param_map */
 
-  param->selfpath=NULL; /* we are not included by somthing */
-  param->filename=get_string_from_hash(SelfHash,"filename").begin;
-  param->scalarref=get_string_from_hash(SelfHash,"scalarref");
-  param->max_includes=get_integer_from_hash(SelfHash,"max_includes");
-  param->no_includes=get_integer_from_hash(SelfHash,"no_includes");
+  set_option_max_includes(param, get_integer_from_hash(SelfHash,"max_includes"));
+  set_option_no_includes(param, get_integer_from_hash(SelfHash,"no_includes"));
   /* search_path_on_include proccessed directly in perl code */
-  /* param->search_path_on_include=get_integer_from_hash(SelfHash,"search_path_on_include"); */
-  param->global_vars=get_integer_from_hash(SelfHash,"global_vars");
-  param->debug=get_integer_from_hash(SelfHash,"debug");
-  param->loop_context_vars=get_integer_from_hash(SelfHash,"loop_context_vars");
-  param->case_sensitive=get_integer_from_hash(SelfHash,"case_sensitive");
-  param->path_like_variable_scope=get_integer_from_hash(SelfHash,"path_like_variable_scope");
+  /* set_option_search_path_on_include(param,get_integer_from_hash(SelfHash,"search_path_on_include")); */
+  set_option_global_vars(param, get_integer_from_hash(SelfHash,"global_vars"));
+  set_option_debug(param, get_integer_from_hash(SelfHash,"debug"));
+  set_option_loop_context_vars(param, get_integer_from_hash(SelfHash,"loop_context_vars"));
+  set_option_case_sensitive(param, get_integer_from_hash(SelfHash,"case_sensitive"));
+  set_option_path_like_variable_scope(param, get_integer_from_hash(SelfHash,"path_like_variable_scope"));
   /* still unsupported */
-  param->strict=get_integer_from_hash(SelfHash,"strict");
-  param->die_on_bad_params=get_integer_from_hash(SelfHash,"die_on_bad_params");
+  set_option_strict(param, get_integer_from_hash(SelfHash,"strict"));
+  set_option_die_on_bad_params(param, get_integer_from_hash(SelfHash,"die_on_bad_params"));
   
   tmpstring=get_string_from_hash(SelfHash,"default_escape").begin;
   if (tmpstring && *tmpstring) {
@@ -433,7 +429,7 @@ struct tmplpro_param* process_tmplpro_options (SV* PerlSelfPtr) {
     default:
       warn("unsupported value of default_escape=%s. Valid values are HTML, URL or JS.\n",tmpstring);
     }
-    param->default_escape=default_escape;
+    set_option_default_escape(param, default_escape);
   }
   return param;
 }
@@ -476,17 +472,10 @@ exec_tmpl(selfoptions,possible_output)
 	  OutputFile=possible_output;
 	  if (debuglevel) warn("output=given descriptor\n");
 	}
-	proparam->WriterFuncPtr=&write_chars_to_file;
-	if (proparam->filename!=NULL) {
-	  RETVAL = tmplpro_exec_tmpl(proparam->filename,proparam);
-	  release_tmplpro_options(proparam);
-	} else if (proparam->scalarref.begin!=NULL) {
-	  RETVAL = tmplpro_exec_tmpl_in_memory(proparam->scalarref,proparam);
-	  release_tmplpro_options(proparam);
-	} else {
-	  release_tmplpro_options(proparam);
-	  die ("bad arguments: expected filename or scalarref");
-	}
+	set_option_WriterFuncPtr(proparam,&write_chars_to_file);
+	RETVAL = tmplpro_exec_tmpl(proparam);
+	release_tmplpro_options(proparam);
+	if (RETVAL!=0) warn ("non-zero exit code");
     OUTPUT:
 	RETVAL
 
@@ -504,17 +493,10 @@ exec_tmpl_string(selfoptions)
 	if (debuglevel) warn("output=string\n");
 	OutputString=newSV(256); /* 256 allocated bytes -- should be approx. filesize*/
 	sv_setpvn(OutputString, "", 0);
-	proparam->WriterFuncPtr=&write_chars_to_string;
-	if (proparam->filename!=NULL) {
-	  retstate = tmplpro_exec_tmpl(proparam->filename,proparam);
-	  release_tmplpro_options(proparam);
-	} else if (proparam->scalarref.begin!=NULL) {
-	  retstate = tmplpro_exec_tmpl_in_memory(proparam->scalarref,proparam);
-	  release_tmplpro_options(proparam);
-	} else {
-	  release_tmplpro_options(proparam);
-	  die ("bad arguments: expected filename or scalarref");
-	}
+	set_option_WriterFuncPtr(proparam,&write_chars_to_string);
+	retstate = tmplpro_exec_tmpl(proparam);
+	release_tmplpro_options(proparam);
+	if (retstate!=0) warn ("non-zero exit code");
 	RETVAL = OutputString;
     OUTPUT:
 	RETVAL

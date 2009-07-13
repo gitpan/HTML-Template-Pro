@@ -68,4 +68,6 @@ char right_buffer[50];
 static
 struct exprval expr_unescape_pstring_val(struct tmplpro_state* state, struct exprval val);
 
+void _tmplpro_expnum_debug (struct exprval val, char* msg);
+
 #endif /* exprtool.h */

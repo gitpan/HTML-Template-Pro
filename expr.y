@@ -10,8 +10,10 @@
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "procore.h"
 #include "prostate.h"
+#include "provalue.h"
 #include "exprtool.h"
 #include "exprpstr.h"
+#include "pparam.h"
   %}
 %union {
   struct exprval numval;   /* For returning numbers.  */
@@ -59,12 +61,18 @@ numEXP: NUM			{ $$ = $1;			}
 /*| VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
 | EXTFUNC '(' arglist ')'
                  {
-		   $$ = state->param->CallExprUserfncFuncPtr(state->param, $1);
+		   $$ = state->param->CallExprUserfncFuncPtr(state->param->expr_func_arglist, $1);
+		   if (state->param->debug>6) _tmplpro_expnum_debug ($$, "EXPR: function call: returned ");
+		   state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
+		   state->param->expr_func_arglist = NULL;
 		 }
 | EXTFUNC '(' ')'
                  {
-		   state->param->InitExprArglistFuncPtr(state->param);
-		   $$ = state->param->CallExprUserfncFuncPtr(state->param, $1);
+		   state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();
+		   $$ = state->param->CallExprUserfncFuncPtr(state->param->expr_func_arglist, $1);
+		   if (state->param->debug>6) _tmplpro_expnum_debug ($$, "EXPR: function call(): returned ");
+		   state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
+		   state->param->expr_func_arglist = NULL;
 		 }
 | FNCT '(' numEXP ')'		
                  {
@@ -160,13 +168,14 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP reNOTLIKE numEXP	{ DO_TXTOP($$,re_notlike,$1,$3);}
 ;
 
-/*arglist: {state->param->InitExprArglistFuncPtr(state->param);}
+/*arglist: {state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();}
   | numEXP 	 	 { */
 arglist: numEXP 	 	 { 
-  state->param->InitExprArglistFuncPtr(state->param);
-  state->param->PushExprArglistFuncPtr(state->param,expr_unescape_pstring_val(state, $1));
+  state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();
+  state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,expr_unescape_pstring_val(state, $1));
+  if (state->param->debug>6) _tmplpro_expnum_debug ($$, "EXPR: arglist: pushed ");
 }
-| arglist ',' numEXP	 { state->param->PushExprArglistFuncPtr(state->param,expr_unescape_pstring_val(state, $3));	}
+| arglist ',' numEXP	 { state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,expr_unescape_pstring_val(state, $3));	}
 ;
 
 /* End of grammar.  */
@@ -352,7 +361,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
       if (s != 0) {
 	(*lvalp).tptr = s;
 	return s->type;
-      } else if (((*lvalp).extfunc=(state->param->IsExprUserfncFuncPtr)(state->param, name))) {
+      } else if (((*lvalp).extfunc=(state->param->IsExprUserfncFuncPtr)(state->param->expr_func_map, name))) {
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {

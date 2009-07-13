@@ -1,0 +1,45 @@
+#!/usr/bin/perl -w
+
+open (PP,'pparam.h');
+open (PROPARAMH,'>','proparam.h');
+open (PROPARAMC,'>','proparam.c');
+print PROPARAMH '/* generated; do not edit */
+/*
+ * public interface to set up libhtmltmplpro options
+ */
+struct tmplpro_param;
+
+';
+print PROPARAMC '/* generated; do not edit */
+#include "procore.h"
+';
+
+while (<PP>) {
+    last if m!/\*\s*private\s*\*/!;
+    next if /^\s*\};\s*$/;
+    next unless m!^\s*(.+);\s*(/\*.+\*/)?\s*$!;
+    $_=$1;
+    /(.*?)\s+(\S+)$/;
+    my $type=$1;
+    my $name=$2;
+    my $flagtype=$type;
+    $flagtype=~s/flag/int/;
+    print PROPARAMH "$flagtype get_option_$name(struct tmplpro_param*);
+void set_option_$name(struct tmplpro_param*,$flagtype);
+
+";
+
+    print PROPARAMC "
+$flagtype get_option_$name(struct tmplpro_param* param) {
+    return ".($type eq 'flag' ? '(int) ':'')."param->$name;
+}
+
+void set_option_$name(struct tmplpro_param* param, $flagtype val) {
+    param->$name=".($type eq 'flag' ? '(flag)':'')."val;
+}
+";
+
+
+}
+close (PROPARAMH);
+close (PROPARAMC);

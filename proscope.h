@@ -9,9 +9,7 @@
 #ifndef _PROSCOPE_H
 #define _PROSCOPE_H	1
 
-typedef void ABSTRACT_ARRAY;
-typedef void ABSTRACT_MAP;
-typedef void ABSTRACT_VALUE;
+#include "pabstract.h"
 
 struct scope_stack {
   int level;

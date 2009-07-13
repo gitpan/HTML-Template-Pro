@@ -129,8 +129,10 @@
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "procore.h"
 #include "prostate.h"
+#include "provalue.h"
 #include "exprtool.h"
 #include "exprpstr.h"
+#include "pparam.h"
   
 
 /* Enabling traces.  */
@@ -153,14 +155,14 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 16 "expr.y"
+#line 18 "expr.y"
 {
   struct exprval numval;   /* For returning numbers.  */
   const symrec_const  *tptr;   /* For returning symbol-table pointers.  */
   void* extfunc;  /* for user-defined function name */
 }
 /* Line 193 of yacc.c.  */
-#line 164 "y.tab.c"
+#line 166 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -170,7 +172,7 @@ typedef union YYSTYPE
 
 
 /* Copy the second part of user declarations.  */
-#line 21 "expr.y"
+#line 23 "expr.y"
 
   /* the second section is required as we use YYSTYPE here */
   static void yyerror (struct tmplpro_state* state, PSTRING* expr_retval_ptr, char const *);
@@ -178,7 +180,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 182 "y.tab.c"
+#line 184 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -478,10 +480,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    45,    45,    57,    58,    60,    64,    69,    75,    76,
-      77,    78,   109,   121,   132,   138,   139,   140,   141,   142,
-     143,   144,   145,   146,   147,   148,   149,   153,   154,   155,
-     156,   157,   158,   159,   160,   165,   169
+       0,    47,    47,    59,    60,    62,    69,    77,    83,    84,
+      85,    86,   117,   129,   140,   146,   147,   148,   149,   150,
+     151,   152,   153,   154,   155,   156,   157,   161,   162,   163,
+     164,   165,   166,   167,   168,   173,   178
 };
 #endif
 
@@ -1477,7 +1479,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 46 "expr.y"
+#line 48 "expr.y"
     { 
 		   if (EXPRPSTR == (yyvsp[(1) - (1)].numval).type) {
 		     *expr_retval_ptr=(yyvsp[(1) - (1)].numval).val.strval;
@@ -1489,32 +1491,38 @@ yyreduce:
     break;
 
   case 3:
-#line 57 "expr.y"
+#line 59 "expr.y"
     { (yyval.numval) = (yyvsp[(1) - (1)].numval);			}
     break;
 
   case 4:
-#line 58 "expr.y"
+#line 60 "expr.y"
     { (yyval.numval).type=EXPRDBL; (yyval.numval).val.dblval = (yyvsp[(1) - (1)].tptr)->var; }
     break;
 
   case 5:
-#line 61 "expr.y"
+#line 63 "expr.y"
     {
-		   (yyval.numval) = state->param->CallExprUserfncFuncPtr(state->param, (yyvsp[(1) - (4)].extfunc));
+		   (yyval.numval) = state->param->CallExprUserfncFuncPtr(state->param->expr_func_arglist, (yyvsp[(1) - (4)].extfunc));
+		   if (state->param->debug>6) _tmplpro_expnum_debug ((yyval.numval), "EXPR: function call: returned ");
+		   state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
+		   state->param->expr_func_arglist = NULL;
 		 }
     break;
 
   case 6:
-#line 65 "expr.y"
+#line 70 "expr.y"
     {
-		   state->param->InitExprArglistFuncPtr(state->param);
-		   (yyval.numval) = state->param->CallExprUserfncFuncPtr(state->param, (yyvsp[(1) - (3)].extfunc));
+		   state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();
+		   (yyval.numval) = state->param->CallExprUserfncFuncPtr(state->param->expr_func_arglist, (yyvsp[(1) - (3)].extfunc));
+		   if (state->param->debug>6) _tmplpro_expnum_debug ((yyval.numval), "EXPR: function call(): returned ");
+		   state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
+		   state->param->expr_func_arglist = NULL;
 		 }
     break;
 
   case 7:
-#line 70 "expr.y"
+#line 78 "expr.y"
     {
 		   (yyval.numval).type=EXPRDBL;
 		   expr_to_dbl1(state, &(yyvsp[(3) - (4)].numval));
@@ -1523,22 +1531,22 @@ yyreduce:
     break;
 
   case 8:
-#line 75 "expr.y"
+#line 83 "expr.y"
     { DO_MATHOP(state, (yyval.numval),+,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 9:
-#line 76 "expr.y"
+#line 84 "expr.y"
     { DO_MATHOP(state, (yyval.numval),-,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 10:
-#line 77 "expr.y"
+#line 85 "expr.y"
     { DO_MATHOP(state, (yyval.numval),*,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 11:
-#line 79 "expr.y"
+#line 87 "expr.y"
     { 
 		   (yyval.numval).type=EXPRINT;
 		   expr_to_int(state, &(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval));
@@ -1547,7 +1555,7 @@ yyreduce:
     break;
 
   case 12:
-#line 110 "expr.y"
+#line 118 "expr.y"
     {
 		   (yyval.numval).type=EXPRDBL;
 		   expr_to_dbl(state, &(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval));
@@ -1562,7 +1570,7 @@ yyreduce:
     break;
 
   case 13:
-#line 122 "expr.y"
+#line 130 "expr.y"
     { 
 		   switch ((yyval.numval).type=(yyvsp[(2) - (2)].numval).type) {
 		   case EXPRINT: 
@@ -1576,7 +1584,7 @@ yyreduce:
     break;
 
   case 14:
-#line 133 "expr.y"
+#line 141 "expr.y"
     { 
 		   (yyval.numval).type=EXPRDBL;
 		   expr_to_dbl(state, &(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval));
@@ -1585,62 +1593,62 @@ yyreduce:
     break;
 
   case 15:
-#line 138 "expr.y"
+#line 146 "expr.y"
     { DO_LOGOP(state, (yyval.numval),&&,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 16:
-#line 139 "expr.y"
+#line 147 "expr.y"
     { DO_LOGOP(state, (yyval.numval),||,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 17:
-#line 140 "expr.y"
+#line 148 "expr.y"
     { DO_CMPOP(state, (yyval.numval),>=,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 18:
-#line 141 "expr.y"
+#line 149 "expr.y"
     { DO_CMPOP(state, (yyval.numval),<=,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 19:
-#line 142 "expr.y"
+#line 150 "expr.y"
     { DO_CMPOP(state, (yyval.numval),!=,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 20:
-#line 143 "expr.y"
+#line 151 "expr.y"
     { DO_CMPOP(state, (yyval.numval),==,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 21:
-#line 144 "expr.y"
+#line 152 "expr.y"
     { DO_CMPOP(state, (yyval.numval),>,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 22:
-#line 145 "expr.y"
+#line 153 "expr.y"
     { DO_CMPOP(state, (yyval.numval),<,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 23:
-#line 146 "expr.y"
+#line 154 "expr.y"
     { DO_LOGOP1((yyval.numval),!,(yyvsp[(2) - (2)].numval));		}
     break;
 
   case 24:
-#line 147 "expr.y"
+#line 155 "expr.y"
     { DO_LOGOP1((yyval.numval),!,(yyvsp[(2) - (2)].numval));		}
     break;
 
   case 25:
-#line 148 "expr.y"
+#line 156 "expr.y"
     { (yyval.numval) = (yyvsp[(2) - (3)].numval);			}
     break;
 
   case 26:
-#line 149 "expr.y"
+#line 157 "expr.y"
     { 
   expr_to_str(&(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval)); 
   (yyval.numval).type=EXPRINT; (yyval.numval).val.intval = pstring_ge ((yyvsp[(1) - (3)].numval).val.strval,(yyvsp[(3) - (3)].numval).val.strval)-pstring_le ((yyvsp[(1) - (3)].numval).val.strval,(yyvsp[(3) - (3)].numval).val.strval);
@@ -1648,61 +1656,62 @@ yyreduce:
     break;
 
   case 27:
-#line 153 "expr.y"
+#line 161 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_ge,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 28:
-#line 154 "expr.y"
+#line 162 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_le,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 29:
-#line 155 "expr.y"
+#line 163 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_ne,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 30:
-#line 156 "expr.y"
+#line 164 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_eq,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 31:
-#line 157 "expr.y"
+#line 165 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_gt,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 32:
-#line 158 "expr.y"
+#line 166 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_lt,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 33:
-#line 159 "expr.y"
+#line 167 "expr.y"
     { DO_TXTOP((yyval.numval),re_like,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 34:
-#line 160 "expr.y"
+#line 168 "expr.y"
     { DO_TXTOP((yyval.numval),re_notlike,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));}
     break;
 
   case 35:
-#line 165 "expr.y"
+#line 173 "expr.y"
     { 
-  state->param->InitExprArglistFuncPtr(state->param);
-  state->param->PushExprArglistFuncPtr(state->param,expr_unescape_pstring_val(state, (yyvsp[(1) - (1)].numval)));
+  state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();
+  state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,expr_unescape_pstring_val(state, (yyvsp[(1) - (1)].numval)));
+  if (state->param->debug>6) _tmplpro_expnum_debug ((yyval.numval), "EXPR: arglist: pushed ");
 }
     break;
 
   case 36:
-#line 169 "expr.y"
-    { state->param->PushExprArglistFuncPtr(state->param,expr_unescape_pstring_val(state, (yyvsp[(3) - (3)].numval)));	}
+#line 178 "expr.y"
+    { state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,expr_unescape_pstring_val(state, (yyvsp[(3) - (3)].numval)));	}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1706 "y.tab.c"
+#line 1715 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1916,7 +1925,7 @@ yyreturn:
 }
 
 
-#line 173 "expr.y"
+#line 182 "expr.y"
 
 
 /* Called by yyparse on error.  */
@@ -2099,7 +2108,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
       if (s != 0) {
 	(*lvalp).tptr = s;
 	return s->type;
-      } else if (((*lvalp).extfunc=(state->param->IsExprUserfncFuncPtr)(state->param, name))) {
+      } else if (((*lvalp).extfunc=(state->param->IsExprUserfncFuncPtr)(state->param->expr_func_map, name))) {
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected func %s\n", name.begin); */
 	return EXTFUNC;
       } else {

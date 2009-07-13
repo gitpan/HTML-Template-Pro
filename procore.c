@@ -13,6 +13,7 @@
 #include "pbuffer.h"
 #include "proscope.h"
 #include "expr.h"
+#include "pparam.h"
 
 #define HTML_TEMPLATE_BAD_TAG     0
 #define HTML_TEMPLATE_FIRST_TAG_USED 1
@@ -152,6 +153,47 @@ get_loop_context_vars_value (struct tmplpro_param *param, PSTRING name) {
   return retval;
 }
 
+static
+ABSTRACT_VALUE* walk_through_nested_loops (struct tmplpro_param *param, PSTRING name) {
+  int PrevHash;
+  struct ProLoopState* currentScope;
+  ABSTRACT_VALUE* valptr;
+  /* Shigeki Morimoto path_like_variable_scope extension */
+  if (param->path_like_variable_scope) {
+    if(*(name.begin) == '/' || strncmp(name.begin, "../", 3) == 0){
+      PSTRING tmp_name;
+      int GoalHash;
+      if(*(name.begin) == '/'){
+	tmp_name.begin   = name.begin+1; // skip '/'
+	tmp_name.endnext = name.endnext;
+	GoalHash = 0;
+      }else{
+	tmp_name.begin   = name.begin;
+	tmp_name.endnext = name.endnext;
+	GoalHash = curScopeLevel(&param->var_scope_stack);
+	while(strncmp(tmp_name.begin, "../", 3) == 0){
+	  tmp_name.begin   = tmp_name.begin + 3; // skip '../'
+	  GoalHash --;
+	}
+      }
+      valptr = param->GetAbstractValFuncPtr(getScope(&param->var_scope_stack, GoalHash)->param_HV, tmp_name);
+      return valptr;
+    }
+  }
+  /* end Shigeki Morimoto path_like_variable_scope extension */
+
+  currentScope = getCurrentScope(&param->var_scope_stack);
+  valptr= param->GetAbstractValFuncPtr(currentScope->param_HV, name);
+  if ((0==param->global_vars) || (valptr)) return valptr;
+  PrevHash=curScopeLevel(&param->var_scope_stack)-1;
+  while (PrevHash>=0) {
+    valptr=param->GetAbstractValFuncPtr(getScope(&param->var_scope_stack, PrevHash)->param_HV,name);
+    if (valptr!=NULL) return valptr;
+    PrevHash--;
+  }
+  return NULL;
+}
+
 static 
 int 
 is_string(struct tmplpro_state *state, const char* pattern,const char* PATTERN)
@@ -282,7 +324,7 @@ PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name) {
     varvalue=get_loop_context_vars_value(param, name);
   }
   if (varvalue.begin==NULL) {
-    varvalue=(param->abstractVal2pstringFuncPtr)(walk_through_nested_loops(param, name));
+    varvalue=(param->AbstractVal2pstringFuncPtr)(walk_through_nested_loops(param, name));
   }
   return varvalue;
 }
@@ -345,7 +387,7 @@ tag_handler_include (struct tmplpro_state *state, PSTRING name, PSTRING defvalue
   *(filename+(varvalue.endnext-varvalue.begin))=0;
   /* end pstrdup */
   selfpath=param->selfpath; /* saving current file name */
-  tmplpro_exec_tmpl (filename, param);
+  tmplpro_exec_tmpl_filename (param,filename);
   free (filename);
   param->selfpath=selfpath;
   param->cur_includes--; 
@@ -357,7 +399,7 @@ int
 is_var_true(struct tmplpro_state *state, PSTRING name) 
 {
   register int ifval=-1;
-  is_ABSTRACT_VALUE_TRUE_func userSuppliedIsTrueFunc;
+  is_ABSTRACT_VALUE_true_functype userSuppliedIsTrueFunc;
   if (state->is_expr) {
     ifval=is_pstring_true(parse_expr(name, state));
   } else
@@ -368,11 +410,11 @@ is_var_true(struct tmplpro_state *state, PSTRING name)
       }
     }
   if (ifval==-1) {
-    userSuppliedIsTrueFunc = state->param->isAbstractValTrueFuncPtr;
+    userSuppliedIsTrueFunc = state->param->IsAbstractValTrueFuncPtr;
     if (userSuppliedIsTrueFunc!=NULL) {
       ifval=(userSuppliedIsTrueFunc)(walk_through_nested_loops(state->param, name));
     } else {
-      ifval=is_pstring_true((state->param->abstractVal2pstringFuncPtr)(walk_through_nested_loops(state->param, name)));
+      ifval=is_pstring_true((state->param->AbstractVal2pstringFuncPtr)(walk_through_nested_loops(state->param, name)));
     }
   }
   return ifval;
@@ -526,10 +568,41 @@ next_loop (struct tmplpro_state* state) {
   tmpl_log(state,TMPL_LOG_DEBUG2,"next_loop:before NextLoopFuncPtr\n");
 #endif
   struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
-  if (++currentScope->loop >currentScope->maxloop || !(state->param->NextLoopFuncPtr)(currentScope)) {
+  if (++currentScope->loop <=currentScope->maxloop) {
+    ABSTRACT_MAP* arrayvalptr=(state->param->GetAbstractMapFuncPtr)(currentScope->loops_AV,currentScope->loop);
+    if ((arrayvalptr==NULL)) {
+      tmpl_log(state,TMPL_LOG_ERROR, "PARAM:LOOP:next_loop:hash pointer was expected but not found");
+      popScope(&state->param->var_scope_stack);
+      return 0;
+    } else {
+      currentScope->param_HV=arrayvalptr;
+      return 1;
+    }
+  } else {
     popScope(&state->param->var_scope_stack);
     return 0;
-  } else return 1;
+  }
+}
+
+static 
+int init_loop (struct tmplpro_state *state, PSTRING name) {
+  int maxloop;
+  ABSTRACT_ARRAY* loopptr=(ABSTRACT_ARRAY*) walk_through_nested_loops(state->param,name);
+  if (loopptr==NULL) {
+    return 0;
+  } else {
+    /* set loop array */
+    loopptr = (*state->param->AbstractVal2abstractArrayFuncPtr)(loopptr);
+    if (loopptr == NULL)
+      {
+	tmpl_log(state,TMPL_LOG_ERROR, "PARAM:LOOP:loop argument:loop was expected but not found");
+	return 0;
+      }
+    maxloop = (*state->param->GetAbstractArrayLengthFuncPtr)(loopptr)-1;
+    if (maxloop < 0) return 0; 
+    pushScope2(&state->param->var_scope_stack, maxloop, loopptr);
+    return 1;
+  }
 }
 
 static 
@@ -544,7 +617,7 @@ tag_handler_loop (struct tmplpro_state *state, PSTRING name)
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"tag_handler_loop:before InitLoopFuncPtr\n");
 #endif
-  if (state->is_visible && (*state->param->InitLoopFuncPtr)(state->param,name) && next_loop(state)) {
+  if (state->is_visible && init_loop(state,name) && next_loop(state)) {
     iftag.value=1; /* the loop is non - empty */
   } else {
     /* empty loop is equal to <if false> ... </if> */
@@ -839,7 +912,7 @@ process_state (struct tmplpro_state * state)
   tagstack_init(&(state->tag_stack));
   pbuffer_init(&(state->str_buffer));
   pbuffer_init(&(state->expr_pusharg_buffer));
-  Scope_init_root(&state->param->var_scope_stack,state->param->rootHV);
+  Scope_init_root(&state->param->var_scope_stack,state->param->root_param_map);
 
 
   while (state->cur_pos < last_safe_pos) {
@@ -891,7 +964,16 @@ init_state (struct tmplpro_state *state, struct tmplpro_param *param)
 #include "loadfile.inc"
 
 int 
-tmplpro_exec_tmpl (const char* filename, struct tmplpro_param *param)
+tmplpro_exec_tmpl (struct tmplpro_param *param)
+{
+  if (param->scalarref.begin) return tmplpro_exec_tmpl_scalarref(param, param->scalarref);
+  if (param->filename) return tmplpro_exec_tmpl_filename(param, param->filename);
+  return 1;
+}
+
+
+int 
+tmplpro_exec_tmpl_filename (struct tmplpro_param *param, const char* filename)
 {
   struct tmplpro_state state;
   int mmapstatus;
@@ -925,7 +1007,7 @@ tmplpro_exec_tmpl (const char* filename, struct tmplpro_param *param)
 }
 
 int 
-tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param *param)
+tmplpro_exec_tmpl_scalarref (struct tmplpro_param *param, PSTRING memarea)
 {
   struct tmplpro_state state;
   param->selfpath=NULL; /* no upper file */
@@ -962,10 +1044,10 @@ tmplpro_param_init()
   /* param->cur_includes=0; */
   /* not to use external file loader */
   /* param->filters=0;
-     param->default_escape=HTML_TEMPLATE_OPT_ESCAPE_NO; */
-  /* param->selfpath=NULL;
-     param->ExprFuncHash=NULL;
-     param->ExprFuncArglist=NULL;
+     param->default_escape=HTML_TEMPLATE_OPT_ESCAPE_NO;
+     param->selfpath=NULL; *//* we are not included by something *//*
+     param->expr_func_map=NULL;
+     param->expr_func_arglist=NULL;
   */
   return param;
 }

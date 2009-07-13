@@ -2,7 +2,7 @@
 
 #include "pstring.h"
 #include "tmpllog.h"
-#include "proscope.h"
+#include "pabstract.h"
 
 /* MS VC++ support;
  * thanks to Viacheslav Sheveliov <slavash@aha.ru>
@@ -11,6 +11,7 @@
 #  define snprintf _snprintf
 #endif
 
+/* used in pparam, prostate */
 typedef int flag;
 
 struct tmplpro_param;
@@ -43,99 +44,41 @@ struct exprval {
     PSTRING strval;
   } val;
 };
-void _tmplpro_expnum_debug (struct exprval val, char* msg);
 /* ------- end Expr extension -------- */
 
-typedef void    (*writerfunc) (char* begin, char* endnext);
+typedef void    (*writer_functype) (char* begin, char* endnext);
 
-typedef int (*init_loop_func) (struct tmplpro_param *, PSTRING name);
-typedef int (*next_loop_func) (struct ProLoopState*);
-
-typedef ABSTRACT_VALUE* (*get_ABSTRACT_VALUE_func) (ABSTRACT_MAP*, PSTRING name);
-typedef PSTRING (*ABSTRACT_VALUE2PSTRING_func) (ABSTRACT_VALUE*);
-typedef int (*is_ABSTRACT_VALUE_TRUE_func) (ABSTRACT_VALUE*);
+typedef ABSTRACT_VALUE* (*get_ABSTRACT_VALUE_functype) (ABSTRACT_MAP*, PSTRING name);
+typedef PSTRING (*ABSTRACT_VALUE2PSTRING_functype) (ABSTRACT_VALUE*);
+typedef int (*is_ABSTRACT_VALUE_true_functype) (ABSTRACT_VALUE*);
+typedef ABSTRACT_ARRAY* (*ABSTRACT_VALUE2ABSTRACT_ARRAY_functype) (ABSTRACT_VALUE*);
+typedef int (*get_ABSTRACT_ARRAY_length_functype) (ABSTRACT_ARRAY*);
+typedef ABSTRACT_MAP* (*get_ABSTRACT_MAP_functype) (ABSTRACT_ARRAY*,int);
 
 /* TODO: implement this code inside H::T::Pro */
-typedef const char* (*find_file_func) (const char* filename, const char* prevfilename);
+typedef const char* (*find_file_functype) (const char* filename, const char* prevfilename);
 
 /* optional; we can use wrapper to load file and apply its filters before running itself */
 /* note that this function should allocate region 1 byte nore than the file size	 */
-typedef PSTRING (*load_file_func) (const char* filename);
-typedef int     (*unload_file_func) (PSTRING memarea);
+typedef PSTRING (*load_file_functype) (const char* filename);
+typedef int     (*unload_file_functype) (PSTRING memarea);
 
 /* those are needed for EXPR= extension */
-typedef void    (*init_expr_arglist_func) (struct tmplpro_param* param);
-typedef void    (*push_expr_arglist_func) (struct tmplpro_param* param, struct exprval);
-typedef struct exprval (*call_expr_userfnc_func) (struct tmplpro_param* param, void* extfunc);
-typedef void*   (*is_expr_userfnc_func) (struct tmplpro_param* param, PSTRING name);
+typedef ABSTRACT_USERFUNC* (*is_expr_userfnc_functype) (ABSTRACT_FUNCMAP*, PSTRING name);
+typedef ABSTRACT_ARGLIST*  (*init_expr_arglist_functype) ();
+typedef void    (*push_expr_arglist_functype) (ABSTRACT_ARGLIST*, struct exprval);
+typedef void    (*free_expr_arglist_functype) (ABSTRACT_ARGLIST*);
+typedef struct exprval (*call_expr_userfnc_functype) (ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*);
 
 #define HTML_TEMPLATE_OPT_ESCAPE_NO   0
 #define HTML_TEMPLATE_OPT_ESCAPE_HTML 1
 #define HTML_TEMPLATE_OPT_ESCAPE_URL  2
 #define HTML_TEMPLATE_OPT_ESCAPE_JS   3
 
-struct tmplpro_param {
-  int global_vars;
-  int max_includes;
-  int debug;
-  flag no_includes;
-  flag case_sensitive;
-  flag loop_context_vars;
-  flag strict;
-  /* filters --- indicates whether to use 
-   * external file loader hook specified as LoadFileFuncPtr. 
-   * Set it to 1 if you want to preprocess file with filters
-   * before they'll be processed by exec_tmpl */
-  flag filters;
-  int default_escape; /* one of HTML_TEMPLATE_OPT_ESCAPE_* */
-  const char* filename; /* template file */
-  PSTRING scalarref; /* memory area */
-  /* currently used in Perl code */
-  /* flag search_path_on_include; */
-  /* still unsupported  */
-  flag die_on_bad_params;
-  /* flag vanguard_compatibility_mode; */
-  /* hooks to perl or other container */
-  /* HTML::Template hooks */
-  writerfunc WriterFuncPtr;
-  get_ABSTRACT_VALUE_func getAbstractValFuncPtr;
-  ABSTRACT_VALUE2PSTRING_func abstractVal2pstringFuncPtr;
-  /* user-supplied --- optional; we use it for full emulation of perl quirks */
-  is_ABSTRACT_VALUE_TRUE_func isAbstractValTrueFuncPtr;
-  init_loop_func InitLoopFuncPtr;
-  next_loop_func NextLoopFuncPtr;
-  find_file_func FindFileFuncPtr;
-  load_file_func LoadFileFuncPtr;
-unload_file_func UnloadFileFuncPtr;
-  /* HTML::Template::Expr hooks */
-  init_expr_arglist_func InitExprArglistFuncPtr;
-  /**
-     important note: 
-     PushExprArglistFuncPtr should always copy the supplied pstring arg
-     as it could point to a temporary location.
-   */
-  push_expr_arglist_func PushExprArglistFuncPtr;
-  call_expr_userfnc_func CallExprUserfncFuncPtr;
-  is_expr_userfnc_func   IsExprUserfncFuncPtr;
-  void* ExprFuncHash;
-  void* ExprFuncArglist;
-  flag path_like_variable_scope;
-  /* private */
-  int cur_includes; /* internal counter of include depth */
-  const char* selfpath; /* file that has included this file, or empty string */
-  /* hack until param and state will be merged */
-  ABSTRACT_MAP* rootHV;
-  /* moved from state; are passed to include */
-  /* variable scope (nested loops) */
-  struct scope_stack var_scope_stack;
-};
+#include "pparam.h"
 
-int tmplpro_exec_tmpl (const char* filename, struct tmplpro_param* ProParams);
-int tmplpro_exec_tmpl_in_memory (PSTRING memarea, struct tmplpro_param* param);
-
-
-PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name);
-
+int tmplpro_exec_tmpl_filename (struct tmplpro_param* ProParams,const char* filename);
+int tmplpro_exec_tmpl_scalarref (struct tmplpro_param* ProParams, PSTRING memarea);
 
 /* 
  * Local Variables:
