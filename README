@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.75
+HTML-Template-Pro version 0.78
 ==============================
 
 DESCRIPTION
@@ -103,7 +103,7 @@ by Sam Tregar, sam@tregar.com.
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.4 or,
 at your option, any later version of Perl 5 you may have available,
-or, at your option, under the terms of the GNU General Public License 
+or, at your option, under the terms of the GNU Lesser General Public License 
 as published by the Free Software Foundation; either version 2 of the 
 License, or (at your option) any later version.
 

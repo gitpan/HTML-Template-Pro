@@ -6,14 +6,14 @@
 %define module HTML-Template-Pro
 
 Name: perl-%module
-Version: 0.76
+Version: 0.80
 Release: alt1
 
 Packager: Igor Yu. Vlasenko <viy@altlinux.org>
 
 Summary: Perl+C/XS module to produce HTML from HTML Template files.
 Group: Development/Perl
-License: GPL or Artistic
+License: LGPL2+ or Artistic
 #Source: http://www.cpan.org/modules/by-module/HTML/%module-%version.tar.gz
 Source: %module-%version.tar.gz
 Url: http://sourceforge.net/projects/html-tmpl-pro/
@@ -54,6 +54,12 @@ in the Perl script.
 %perl_vendor_man3dir/*
 
 %changelog
+* Thu Jul 23 2009 Igor Vlasenko <viy@altlinux.ru> 0.80-alt1
+- new version; see Changes
+
+* Tue Jul 21 2009 Igor Vlasenko <viy@altlinux.ru> 0.78-alt1
+- new version; see Changes
+
 * Sat Jul 11 2009 Igor Vlasenko <viy@altlinux.ru> 0.76-alt1
 - new version; see Changes
 

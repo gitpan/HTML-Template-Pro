@@ -6,13 +6,16 @@
  * $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-#ifdef MMAP
+#ifdef USE_MMAP
 
 #ifdef WIN32
 /* 
  * the win32 code of Viacheslav Sheveliov <slavash@aha.ru>
- * 
+ * viy: should work for win64 too.
  */
 
 #include <windows.h>
@@ -75,12 +78,12 @@ static PSTRING mmap_load_file(const char *filepath) {
         return memarea;
 }
 
-// What is better?
-/* static int mmap_unload_file(PSTRING memarea) { return UnmapViewOfFile((LPCVOID) memarea.begin) ? 0 : -1; }; */
-// or
-#define mmap_unload_file(map) (UnmapViewOfFile((LPCVOID) map.begin) ? 0 : -1)
+/* we use function, not define, because someday we may need its address */
+static int mmap_unload_file(PSTRING memarea) { return UnmapViewOfFile((LPCVOID) memarea.begin) ? 0 : -1; };
+/* define mmap_unload_file(map) (UnmapViewOfFile((LPCVOID) map.begin) ? 0 : -1) */
 
-#else /* unix!!! :) */
+#else /* unix, sweet unix :) */
+#if defined(HAVE_SYS_MMAN_H) && defined(HAVE_SYS_STAT_H)
 
 /* # define NULL 0 */
 #include <sys/stat.h>
@@ -113,7 +116,8 @@ mmap_unload_file (PSTRING memarea) {
   return munmap((void *)memarea.begin, memarea.endnext-memarea.begin);
 }
 
-#endif /* WIN32/UNIX */
+#endif /* UNIX */
+#endif /* WIN32 */
 
 #else 
 /*
@@ -164,4 +168,4 @@ mmap_unload_file (PSTRING memarea) {
   return 0;
 }
 
-#endif /* MMAP */
+#endif /* USE_MMAP */

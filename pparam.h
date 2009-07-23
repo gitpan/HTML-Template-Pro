@@ -8,6 +8,9 @@
 #define _PPARAM_H	1
 
 #include "proscope.h"
+#include "pbuffer.h"
+
+typedef int flag;
 
 struct tmplpro_param {
   int global_vars;
@@ -32,8 +35,9 @@ struct tmplpro_param {
   /* still unsupported  */
   flag die_on_bad_params;
   /* flag vanguard_compatibility_mode; */
+
   /* hooks to perl or other container */
-  /* HTML::Template hooks */
+  /* HTML::Template callback hooks */
   writer_functype WriterFuncPtr;
   get_ABSTRACT_VALUE_functype GetAbstractValFuncPtr;
   ABSTRACT_VALUE2PSTRING_functype AbstractVal2pstringFuncPtr;
@@ -42,11 +46,18 @@ struct tmplpro_param {
   get_ABSTRACT_MAP_functype GetAbstractMapFuncPtr;
   /* user-supplied --- optional; we use it for full emulation of perl quirks */
   is_ABSTRACT_VALUE_true_functype IsAbstractValTrueFuncPtr;
-
   find_file_functype FindFileFuncPtr;
   load_file_functype LoadFileFuncPtr;
 unload_file_functype UnloadFileFuncPtr;
+  select_loop_scope_functype SelectLoopScopeFuncPtr;
+  end_loop_functype EndLoopFuncPtr;
+  /* external state references to be supplied to callbacks */
+  ABSTRACT_MAP* root_param_map;
+  ABSTRACT_WRITER* ext_writer_state;
+  ABSTRACT_FILTER* ext_filter_state;
+  ABSTRACT_FINDFILE* ext_findfile_state;
   /* HTML::Template::Expr hooks */
+  ABSTRACT_CALLER* ext_calluserfunc_state;
   init_expr_arglist_functype InitExprArglistFuncPtr;
   free_expr_arglist_functype FreeExprArglistFuncPtr;
   /**
@@ -59,13 +70,22 @@ unload_file_functype UnloadFileFuncPtr;
   is_expr_userfnc_functype   IsExprUserfncFuncPtr;
   ABSTRACT_FUNCMAP*  expr_func_map;
   ABSTRACT_ARGLIST* expr_func_arglist;
-  ABSTRACT_MAP* root_param_map;
   /* private */
   int cur_includes; /* internal counter of include depth */
   const char* selfpath; /* file that has included this file, or empty string */
   /* moved from state; are passed to include */
   /* variable scope (nested loops) */
   struct scope_stack var_scope_stack;
+  // not used; TODO: use
+  struct exprval userfunc_call;
+/* 
+ * buffers for snprintf %f
+ * internal expr buffers for conversion int/double --> string 
+ * moved to param(private) to support multithreading
+ */
+  char left_buffer[50];
+  char right_buffer[50];
+  pbuffer builtin_findfile_buffer;
 };
 
 #endif /* _PPARAM_H */

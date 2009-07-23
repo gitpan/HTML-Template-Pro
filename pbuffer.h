@@ -10,6 +10,7 @@ typedef struct pbuffer {
 
 size_t pbuffer_size(pbuffer*);
 char*  pbuffer_init(pbuffer*);
+char*  pbuffer_init_as(pbuffer* pBuffer,size_t size);
 char*  pbuffer_string(pbuffer*);
 char*  pbuffer_resize(pbuffer*, size_t size);
 void   pbuffer_free(pbuffer*);

@@ -2,7 +2,7 @@
 ARTISTIC
 Changes
 FAQ
-GPL
+LGPL
 MANIFEST
 META.yml
 Makefile.PL
@@ -14,14 +14,17 @@ TODO
 benchmark.pl.t
 calc.h
 calc.inc
+callback_stubs.inc
 cmp_expr.t
 expr.c
 expr.h
 expr.y
+expr_iface.c
 exprpstr.h
 exprpstr.inc
 exprtool.h
 exprtool.inc
+exprval.h
 lib/HTML/Template/PerlInterface.pod
 lib/HTML/Template/Pro.pm
 lib/HTML/Template/SYNTAX.pod
@@ -38,12 +41,13 @@ procore.c
 procore.h
 proparam.c
 proparam.h
-proscope.c
 proscope.h
+proscope.inc
 prostate.h
 provalue.h
-pstring.c
 pstring.h
+pstrutils.h
+pstrutils.inc
 t/01coderefs.t
 t/02basic.t
 t/02random.t
@@ -82,6 +86,8 @@ templates-Pro/test_esc4.out
 templates-Pro/test_esc4.tmpl
 templates-Pro/test_expr1.out
 templates-Pro/test_expr1.tmpl
+templates-Pro/test_expr10.out
+templates-Pro/test_expr10.tmpl
 templates-Pro/test_expr2.out
 templates-Pro/test_expr2.tmpl
 templates-Pro/test_expr3.out
@@ -183,3 +189,4 @@ test_crlf.out
 tmpllog.c
 tmpllog.h
 tmplpro.h
+tmplpro_version.c

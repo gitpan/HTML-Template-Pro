@@ -8,8 +8,10 @@ struct tagstack {
 
 struct tmplpro_param;
 
+typedef int boolval;
+
 struct tmplpro_state {
-  flag  is_visible;
+  boolval  is_visible;
   char* top;
   char* next_to_end;
   char* last_processed_pos;
@@ -17,9 +19,9 @@ struct tmplpro_state {
   struct tmplpro_param* param;
   /* current tag */
   int   tag;
-  flag  is_tag_closed;
-  flag  is_tag_commented;
-  flag  is_expr;
+  boolval  is_tag_closed;
+  boolval  is_tag_commented;
+  boolval  is_expr;
   char* tag_start; 
 
 /* internal buffers */

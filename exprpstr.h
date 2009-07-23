@@ -6,13 +6,17 @@
  * $Id$
  */
 
-#ifndef _EXPRPSTR_H
-#define _EXPRPSTR_H	1
+#ifndef _EXPR_TYPE_PSTR_H
+#define _EXPR_TYPE_PSTR_H	1
 
+#include "exprval.h"
+
+static
+void lowercase_pstring_inplace (PSTRING pstring);
 static
 PSTRING double_to_pstring (double, char* buf, size_t bufsize);
 static
-PSTRING int_to_pstring (EXPR_int, char* buf, size_t bufsize);
+PSTRING int_to_pstring (EXPR_int64, char* buf, size_t bufsize);
 static
 int pstring_ge(PSTRING, PSTRING);
 static

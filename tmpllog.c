@@ -8,7 +8,7 @@
 
 /* based on FFmpeg av_log API */
 
-#include "procore.h"
+#include "pstring.h"
 #include "tmpllog.h"
 #include "prostate.h"
 #include <stdio.h>

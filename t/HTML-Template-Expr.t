@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+2*9 };
+BEGIN { plan tests => 1+2*10 };
 #use HTML::Template;
 use HTML::Template::Pro;
 ok(1); # If we made it this far, we're ok.
@@ -45,6 +45,7 @@ test_tmpl('test_expr6', @exprset1);
 test_tmpl('test_expr7', @refset1);
 test_tmpl('test_expr8', @exprset1);
 test_tmpl('test_expr9', @exprset1);
+test_tmpl('test_expr10', @exprset1);
 
 # -------------------------
 

@@ -6,10 +6,25 @@
  * $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include <stdio.h>
 #include <string.h>
 #include "pstring.h"
 #include "tmpllog.h"
+#include <ctype.h>
+
+static
+void 
+lowercase_pstring_inplace (PSTRING pstring) {
+  char* i=pstring.begin;
+  while (i<pstring.endnext) {
+    *i=tolower(*i);
+    i++;
+  }
+}
+
 
 static
 PSTRING 
@@ -33,7 +48,7 @@ double_to_pstring (double number, char buffer[], size_t bufsize) {
 
 static
 PSTRING 
-int_to_pstring (EXPR_int number, char buffer[], size_t bufsize) {
+int_to_pstring (EXPR_int64 number, char buffer[], size_t bufsize) {
   size_t len=0;
   PSTRING retval;
   snprintf(buffer, bufsize,"%" EXPR_modifier "d" , number);
@@ -109,7 +124,7 @@ re_notlike(PSTRING a, PSTRING b) {
 static
 int 
 re_like(PSTRING a, PSTRING b) {
-    tmpl_log(NULL,TMPL_LOG_ERROR," (sorry, Stanislav Yadykin extension is disabled at compile time) \n");
+    tmpl_log(NULL,TMPL_LOG_ERROR," (sorry, Stanislav Yadykin regexp extension is disabled at compile time) \n");
   return 0;
 }
 #else

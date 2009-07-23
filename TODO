@@ -16,10 +16,6 @@ HashOfHash type, and should provide abstract
 HashOfHash getters to the core C library
 as well as some other system specific calls.
 
-1. Stable backend API. 
-
-Headers should be clearly separated on the API part and internal headers.
-
 2. Public backend library.
 (libhtmltmplpro.so.1.0.0, htmltmplpro.dll)
 that can be built independently.

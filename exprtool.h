@@ -12,26 +12,26 @@
 #include "pstring.h"
 
 #define DO_MATHOP(state, z,op,x,y) switch (z.type=expr_to_int_or_dbl(state, &x,&y)) { \
-case EXPRINT: z.val.intval=x.val.intval op y.val.intval;break; \
-case EXPRDBL: z.val.dblval=x.val.dblval op y.val.dblval;break; \
+case EXPR_TYPE_INT: z.val.intval=x.val.intval op y.val.intval;break; \
+case EXPR_TYPE_DBL: z.val.dblval=x.val.dblval op y.val.dblval;break; \
 }
 
-#define DO_LOGOP(state, z,op,x,y) z.type=EXPRINT; switch (expr_to_int_or_dbl_logop(state, &x,&y)) { \
-case EXPRINT: z.val.intval=x.val.intval op y.val.intval;break; \
-case EXPRDBL: z.val.intval=x.val.dblval op y.val.dblval;break; \
+#define DO_LOGOP(state, z,op,x,y) z.type=EXPR_TYPE_INT; switch (expr_to_int_or_dbl_logop(state, &x,&y)) { \
+case EXPR_TYPE_INT: z.val.intval=x.val.intval op y.val.intval;break; \
+case EXPR_TYPE_DBL: z.val.intval=x.val.dblval op y.val.dblval;break; \
 }
 
-#define DO_LOGOP1(z,op,x) z.type=EXPRINT; switch (x.type) { \
-case EXPRINT: z.val.intval= op x.val.intval;break; \
-case EXPRDBL: z.val.intval= op x.val.dblval;break; \
+#define DO_LOGOP1(z,op,x) z.type=EXPR_TYPE_INT; switch (x.type) { \
+case EXPR_TYPE_INT: z.val.intval= op x.val.intval;break; \
+case EXPR_TYPE_DBL: z.val.intval= op x.val.dblval;break; \
 }
 
 #define DO_CMPOP(state, z,op,x,y) switch (expr_to_int_or_dbl(state, &x,&y)) { \
-case EXPRINT: z.val.intval=x.val.intval op y.val.intval;break; \
-case EXPRDBL: z.val.intval=x.val.dblval op y.val.dblval;break; \
-}; z.type=EXPRINT;
+case EXPR_TYPE_INT: z.val.intval=x.val.intval op y.val.intval;break; \
+case EXPR_TYPE_DBL: z.val.intval=x.val.dblval op y.val.dblval;break; \
+}; z.type=EXPR_TYPE_INT;
 
-#define DO_TXTOP(z,op,x,y) expr_to_str(&x,&y); z.type=EXPRINT; z.val.intval = op (x.val.strval,y.val.strval);
+#define DO_TXTOP(z,op,x,y,buf) expr_to_str(&x,&y,buf); z.type=EXPR_TYPE_INT; z.val.intval = op (x.val.strval,y.val.strval);
 
 static
 exprtype expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2);
@@ -44,7 +44,7 @@ void expr_to_int (struct tmplpro_state* state, struct exprval* val1, struct expr
 static
 void expr_to_dbl1 (struct tmplpro_state* state, struct exprval* val);
 static
-void expr_to_str (struct exprval* val1, struct exprval* val2);
+void expr_to_str (struct exprval* val1, struct exprval* val2, struct tmplpro_param* param);
 static
 void expr_to_num (struct tmplpro_state* state, struct exprval* val1);
 static
@@ -56,18 +56,15 @@ struct exprval exp_read_number (struct tmplpro_state* state, char* *curposptr, c
 static
 void expr_debug(struct tmplpro_state* state, char const *,char const *);
 
-/* 
- * for snprintf %f
- * internal expr buffers for conversion int/double --> string 
- */
 static
-char left_buffer[50];
-static
-char right_buffer[50];
+PSTRING expr_unescape_pstring_val(struct tmplpro_state* state, PSTRING val);
 
 static
-struct exprval expr_unescape_pstring_val(struct tmplpro_state* state, struct exprval val);
-
 void _tmplpro_expnum_debug (struct exprval val, char* msg);
+
+static 
+struct exprval call_expr_userfunc(struct tmplpro_state* state, void* ABSTRACT_EXTFUNC);
+static
+void pusharg_expr_userfunc(struct tmplpro_state* state, struct exprval arg);
 
 #endif /* exprtool.h */

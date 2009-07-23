@@ -5,8 +5,7 @@ except unix/win specific sections of file loadfile.c.
 They can be enabled or disabled with MMAP=1 and MMAP=0, 
 respectively.
 
-There is ifdef-ed section of win32-specific code
-based on msdn example, with code fixes 
+There is ifdef-ed section of win32/win64-specific code, with code fixes 
 and improved section of WIN32 code of Viacheslav Sheveliov.
 This code use MapViewOfFile/UnmapViewOfFile WIN32 system calls.
 It is disabled by default, because it is not compatible with
@@ -21,6 +20,6 @@ should compile and work, thanks to Viacheslav Sheveliov.
 Unfortunately, I have no place to test win32 code in fresh
 consequent releases.
 
-If you will try to complie this code on win system, 
+If you will try to complie this code on a win system, 
 and will get a trouble, be so kind to send me a bugreport.
 

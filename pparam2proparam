@@ -1,22 +1,33 @@
 #!/usr/bin/perl -w
 
 open (PP,'pparam.h');
-open (PROPARAMH,'>','proparam.h');
-open (PROPARAMC,'>','proparam.c');
-print PROPARAMH '/* generated; do not edit */
+open (PARAMH,'>','proparam.h');
+open (PARAMC,'>','proparam.c');
+open (PARAMM1,'>','mono-wrapper/proparam.cs');
+#open (PARAMM2,'>','mono-wrapper/switchopts.cs');
+print PARAMH '/* generated; do not edit */
 /*
  * public interface to set up libhtmltmplpro options
  */
 struct tmplpro_param;
 
 ';
-print PROPARAMC '/* generated; do not edit */
-#include "procore.h"
+print PARAMC '/* generated; do not edit */
+#include "pabstract.h"
+#include "pparam.h"
 ';
+
+print PARAMM1 '/* generated; do not edit */
+namespace HTML.Template.Pro
+{
+    internal class OPTS {
+';
+
 
 while (<PP>) {
     last if m!/\*\s*private\s*\*/!;
     next if /^\s*\};\s*$/;
+    next if /typedef/;
     next unless m!^\s*(.+);\s*(/\*.+\*/)?\s*$!;
     $_=$1;
     /(.*?)\s+(\S+)$/;
@@ -24,22 +35,46 @@ while (<PP>) {
     my $name=$2;
     my $flagtype=$type;
     $flagtype=~s/flag/int/;
-    print PROPARAMH "$flagtype get_option_$name(struct tmplpro_param*);
-void set_option_$name(struct tmplpro_param*,$flagtype);
+    my $monotype=$flagtype;
+    $monotype=~s/ABSTRACT_.*\*/IntPtr/;
+    $monotype=~s/char\*\*/IntPtr/;
+    $monotype=~s/const char\*/IntPtr/;
+    $monotype=~s/char\*/IntPtr/;
+    $monotype=~s/struct exprval/exprval/;
+    $monotype='C_API.'.$monotype if $monotype=~/functype/;
+
+    print PARAMH "$flagtype tmplpro_get_option_$name(struct tmplpro_param*);
+void tmplpro_set_option_$name(struct tmplpro_param*,$flagtype);
 
 ";
 
-    print PROPARAMC "
-$flagtype get_option_$name(struct tmplpro_param* param) {
+    print PARAMC "
+$flagtype tmplpro_get_option_$name(struct tmplpro_param* param) {
     return ".($type eq 'flag' ? '(int) ':'')."param->$name;
 }
 
-void set_option_$name(struct tmplpro_param* param, $flagtype val) {
+void tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
     param->$name=".($type eq 'flag' ? '(flag)':'')."val;
 }
 ";
+    print PARAMM1 "
+    [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention)]
+      internal static extern $monotype tmplpro_get_option_$name(IntPtr c_param);
 
-
+    [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention)]
+      internal static extern void tmplpro_set_option_$name(IntPtr c_param, $monotype val);
+";
+#    print PARAMM2 'case "'.$name.'": '."\t".'C_API.tmplpro_set_option_'.$name.'(_c_param, val); break;
+#' if $monotype!~/functype/ && $monotype ne 'IntPtr' && $monotype eq 'int';
+#    print PARAMM2 'case "'.$name.'": '."\t".'return C_API.tmplpro_get_option_'.$name.'(_c_param); break;
+#' if $monotype!~/functype/ && $monotype ne 'IntPtr' && $monotype eq 'int';
 }
-close (PROPARAMH);
-close (PROPARAMC);
+
+print PARAMM1 '
+    }
+}
+';
+close (PARAMH);
+close (PARAMC);
+close (PARAMM1);
+#close (PARAMM2);

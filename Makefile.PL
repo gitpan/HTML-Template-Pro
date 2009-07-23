@@ -2,94 +2,36 @@ use 5.005;
 use ExtUtils::MakeMaker;
 use Config;
 use File::Spec;
+#use strict;
+use warnings;
+
 $Verbose = 1;
 
-$O_FILES=qw/procore.o pbuffer.o proparam.o proscope.o expr.o pstring.o tmpllog.o/;
-#  loadfile.o calc.o exprtool.o tagstack.o
+my ($INC, $DEFINE, $LIBS, $O_FILES, $STATIC_BUILD);
 
-my $INC='-I.';
-my $DEFINE='';
-my $LIBS='-lm';
 
-my %DEF={
-    PCRE=>1,
-    DEBUG=>0,
-    MMAP=>1,
+if (grep {/^DYNAMIC=1/} @ARGV) {
+    $STATIC_BUILD=0;
+    $INC='-I/usr/include/htmltmplpro';
+    $DEFINE='-DUSE_SYSTEM_HTP_HEADER';
+    $LIBS='-lhtmltmplpro';
+    $O_FILES='';
+} else {
+    $STATIC_BUILD=1;
+    $INC='-I.';
+    $DEFINE='';
+    $LIBS='-lm';
+    $O_FILES='$(O_FILES)';
+}
+
+my %DEF=(
+    PCRE  => 1,
+    DEBUG => 0,
+    MMAP  => 1,
     IMITATE=>0,
-};
-#$DEF{PCRE}=0 if $^O =~ /MSWin32/;
-$DEF{PCRE}=has_pcre();
-if ($^O eq 'os2' or $^O eq 'dos') {
-    $DEF{MMAP}=0;
-} elsif ($^O eq 'MSWin32') {
-    # win 32 mmap is disabled by default
-#    $DEF{MMAP}=1;
-    $DEF{MMAP}=0;
-    # no, compiler is yet unknown here;
-    # and some creepy M**soft tools may not understand long long :(
-    # $DEF{INT64_NAME} = "long long";?
-} else {
-    $DEF{MMAP}=has_mmap();
-}
+);
 
-$DEF{INT64_NAME} ||= find_int64();
-$DEF{INT64_NAME} ||= $Config{i64type};
-
-my $i;
-for ($i=0; $i<@ARGV; $i++)  {
-    if ($ARGV[$i]=~/^(PCRE|PEDANTIC|DEBUG|MMAP|IMITATE)=(.+)/) {
-	$DEF{$1}=$2;
-    } else {
-	next;
-    }
-    splice @ARGV, $i, 1;
-    $i--;
-}
-
-#$DEF{MMAP}=0 if $^O =~ /MSWin32/ and $DEF{'IMITATE'};
-$DEFINE.=' -DDEBUG' if ($DEF{DEBUG});
-$DEFINE.=' -DMMAP' if ($DEF{MMAP});
-$DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
-$DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
-$DEFINE.=' -DINT64_NAME="' . $DEF{'INT64_NAME'}.'"' if ($DEF{'INT64_NAME'});
-
-if ($DEF{PCRE}) {
-    $INC.=' -I/usr/include/pcre';
-    $DEFINE.=' -DHAVE_PCRE';
-    $LIBS.=' -lpcre';
-    print "
-=====================================================================
-build with libpcre (Stanislav Yadykin's regexp extension) is enabled.
-=====================================================================
-if you have not installed libpcre, you still can build the module 
-without libpcre (with this extension disabled) using 
-perl Makefile.PL PCRE=0
-";
-} else {
-    print "
-=================================================
-build with libpcre is disabled.
-=================================================
-Stanislav Yadykin's regexp extension is disabled.
-";
-}
-
-if ($DEF{IMITATE}) {
-    print "
-=====================================================================
-Compatibility mode for syntactically incorrect templates is enabled.
-Note, that this mode could be a bit slower than default but it will be
-useful if you rely on HTML::Template behaviour in undefined cases.
-=====================================================================
-";
-} else {
-    print "
-=====================================================================
-Compatibility mode for syntactically incorrect templates is disabled.
-It is the fast default.
-=====================================================================
-";
-}
+&configure() if $STATIC_BUILD;
 
 ### --------------------------------------
 ### testing whether sources are consistent
@@ -116,8 +58,6 @@ ENDTEXT
     chdir '..';
 }
 
-
-
 WriteMakefile(
     NAME              => 'HTML::Template::Pro',
     VERSION_FROM      => 'lib/HTML/Template/Pro.pm', # finds $VERSION
@@ -130,8 +70,8 @@ WriteMakefile(
     LIBS              => [$LIBS],
     DEFINE            => $DEFINE, # e.g., '-DHAVE_SOMETHING'
     INC               => $INC, 
-    OBJECT            => '$(O_FILES)', # link all the C files too
-#   PERL_MALLOC_OK    => 1 # read first
+    OBJECT            => $O_FILES, # link all the C files too
+#   PERL_MALLOC_OK    => 1 # read first, static only
 );
 
 sub MY::postamble {
@@ -166,7 +106,7 @@ sourceforge: tardist index.html
 MAKE_FRAG
 }
 
-# those tests are copied from Time-HiRes-01.20
+# those tests are based on ones from Time-HiRes-01.20
 
 sub try_compile_and_link {
     my ($c, $cccmd, $ccflags, $verbose) = @_;
@@ -266,7 +206,7 @@ mmap_load_file (const char* filepath) {
 }
 
 sub find_int64 {
-    foreach my $type ('__int64','long long','long','int') {
+    foreach my $type ('__int64','int64_t','long long','long','int') {
 	return $type if try_as_int64($type);
     }
     return;
@@ -289,3 +229,78 @@ sub try_as_int64 {
     return 0;
 }
 
+sub configure {
+    $DEF{PCRE}=has_pcre();
+    if ($^O eq 'os2' or $^O eq 'dos') {
+	$DEF{MMAP}=0;
+    } elsif ($^O eq 'MSWin32') {
+    # win 32 mmap is disabled by default
+#    $DEF{MMAP}=1;
+    $DEF{MMAP}=0;
+    # no, compiler is yet unknown here;
+    # and some creepy M**soft tools may not understand long long :(
+    # $DEF{INT64_NAME} = "long long";?
+    } else {
+	$DEF{HAS_MMAP}=has_mmap();
+    }
+
+    $DEF{INT64_NAME} ||= find_int64();
+    $DEF{INT64_NAME} ||= $Config{i64type};
+
+    my $i;
+    for ($i=0; $i<@ARGV; $i++)  {
+	if ($ARGV[$i]=~/^(PCRE|PEDANTIC|DEBUG|MMAP|IMITATE)=(.+)/) {
+	    $DEF{$1}=$2;
+	} else {
+	    next;
+	}
+	splice @ARGV, $i, 1;
+	$i--;
+    }
+
+    #$DEF{MMAP}=0 if $^O =~ /MSWin32/ and $DEF{'IMITATE'};
+    $DEFINE.=' -DDEBUG' if $DEF{DEBUG};
+    $DEFINE.=' -DUSE_MMAP ' if $DEF{MMAP};
+    $DEFINE.=' -DHAVE_SYS_MMAN_H -DHAVE_SYS_STAT_H' if ($DEF{HAS_MMAP});
+    $DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
+    $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
+    $DEFINE.=' -DINT64_NAME="' . $DEF{'INT64_NAME'}.'"' if ($DEF{'INT64_NAME'});
+
+    if ($DEF{PCRE}) {
+	$INC.=' -I/usr/include/pcre';
+	$DEFINE.=' -DHAVE_PCRE';
+	$LIBS.=' -lpcre';
+	print "
+=====================================================================
+build with libpcre (Stanislav Yadykin's regexp extension) is enabled.
+=====================================================================
+if you have not installed libpcre, you still can build the module 
+without libpcre (with this extension disabled) using 
+perl Makefile.PL PCRE=0
+";
+    } else {
+	print "
+=================================================
+build with libpcre is disabled.
+=================================================
+Stanislav Yadykin's regexp extension is disabled.
+";
+    }
+
+    if ($DEF{IMITATE}) {
+	print "
+=====================================================================
+Compatibility mode for syntactically incorrect templates is enabled.
+Note, that this mode could be a bit slower than default but it will be
+useful if you rely on HTML::Template behaviour in undefined cases.
+=====================================================================
+";
+    } else {
+	print "
+=====================================================================
+Compatibility mode for syntactically incorrect templates is disabled.
+It is the fast default.
+=====================================================================
+";
+    }
+}

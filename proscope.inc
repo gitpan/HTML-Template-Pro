@@ -14,13 +14,14 @@
 
 static
 void 
-Scope_init(struct scope_stack* scopestack) {
+_Scope_init(struct scope_stack* scopestack) {
     scopestack->max=START_NUMBER_OF_NESTED_LOOPS;
     scopestack->root=(struct ProLoopState*) malloc ((scopestack->max) * sizeof(struct ProLoopState));
-    if (NULL==scopestack->root) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:Scope_init:internal error:not enough memory\n");
+    if (NULL==scopestack->root) tmpl_log(NULL,TMPL_LOG_ERROR, "DIE:_Scope_init:internal error:not enough memory\n");
     scopestack->level=-1;
 }
 
+static
 void 
 Scope_free(struct scope_stack* scopestack) {
   if (--scopestack->_init_count<=0) {
@@ -31,32 +32,37 @@ Scope_free(struct scope_stack* scopestack) {
   }
 }
 
+static
 int curScopeLevel(struct scope_stack* scopestack) {
   return scopestack->level;
 }
 
+static
 struct ProLoopState* getCurrentScope(struct scope_stack* scopestack) {
   return scopestack->root+scopestack->level;
 }
 
+static
 struct ProLoopState* 
 getScope(struct scope_stack* scopestack, int depth) {
   return &(scopestack->root)[depth];
 }
 
+static
 void 
 popScope(struct scope_stack* scopestack) {
   if (scopestack->level>0) scopestack->level--;
   else tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:PopScope:internal error:scope is exhausted\n");
 }
 
+static
 void 
-pushScope2(struct scope_stack* scopestack, int maxloop, void *loops_AV) {
+pushScope2(struct scope_stack* scopestack, int loop_count, void *loops_AV) {
   struct ProLoopState* CurrentScope;
   if (scopestack->max<0) {
     
     tmpl_log(NULL,TMPL_LOG_ERROR, "WARN:PushScope:internal warning:why scope is empty?\n");
-    Scope_init(scopestack);
+    _Scope_init(scopestack);
   }
   ++scopestack->level;
   if (scopestack->level>scopestack->max) 
@@ -67,15 +73,16 @@ pushScope2(struct scope_stack* scopestack, int maxloop, void *loops_AV) {
     }
   CurrentScope=scopestack->root+scopestack->level;
   CurrentScope->loop=-1;
-  CurrentScope->maxloop = maxloop;
+  CurrentScope->loop_count = loop_count;
   CurrentScope->loops_AV=loops_AV;
   CurrentScope->param_HV=0;
 }
 
+static
 void 
 Scope_init_root(struct scope_stack* scopestack, void* param_HV) {
   if (scopestack->_init_count++==0) {
-    Scope_init(scopestack);
+    _Scope_init(scopestack);
     scopestack->level=0;
     scopestack->root->param_HV=param_HV;
   }

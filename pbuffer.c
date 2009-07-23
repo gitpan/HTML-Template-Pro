@@ -10,6 +10,11 @@ char* pbuffer_init(pbuffer* pBuffer) {
   pBuffer->buffer=(char*) malloc (pBuffer->bufsize * sizeof(char));
   return pBuffer->buffer;
 }
+char* pbuffer_init_as(pbuffer* pBuffer,size_t size) {
+  pBuffer->bufsize=size;
+  pBuffer->buffer=(char*) malloc (pBuffer->bufsize * sizeof(char));
+  return pBuffer->buffer;
+}
 char* pbuffer_string(pbuffer* pBuffer) {
   return pBuffer->buffer;
 }

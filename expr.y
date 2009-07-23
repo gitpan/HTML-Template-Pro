@@ -8,7 +8,9 @@
 #include <stdlib.h> /* for malloc */
 #include <ctype.h> /* for yylex alnum */
 #include "calc.h"  /* Contains definition of `symrec'.  */
-#include "procore.h"
+#include "tmpllog.h"
+/* for expr-specific only */
+#include "pabstract.h"
 #include "prostate.h"
 #include "provalue.h"
 #include "exprtool.h"
@@ -46,37 +48,34 @@
 
 line: numEXP		
 		 { 
-		   if (EXPRPSTR == $1.type) {
+		   /* TODO: move to exprtool.inc as expr_to_str1 */
+		   if (EXPR_TYPE_PSTR == $1.type) {
 		     *expr_retval_ptr=$1.val.strval;
+		   } else if (EXPR_TYPE_INT == $1.type) {
+		     *expr_retval_ptr=int_to_pstring($1.val.intval,state->param->left_buffer,sizeof(state->param->left_buffer));
 		   } else {
 		     expr_to_dbl1(state, &$1); 
-		     *expr_retval_ptr=double_to_pstring($1.val.dblval,left_buffer,sizeof(left_buffer));
+		     *expr_retval_ptr=double_to_pstring($1.val.dblval,state->param->left_buffer,sizeof(state->param->left_buffer));
 		   }
 		 }
 ;
 /* | error { yyerrok;                  } */
 
 numEXP: NUM			{ $$ = $1;			}
-| VAR				{ $$.type=EXPRDBL; $$.val.dblval = $1->var; }
+| VAR				{ $$.type=EXPR_TYPE_DBL; $$.val.dblval = $1->var; }
 /*| VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
 | EXTFUNC '(' arglist ')'
                  {
-		   $$ = state->param->CallExprUserfncFuncPtr(state->param->expr_func_arglist, $1);
-		   if (state->param->debug>6) _tmplpro_expnum_debug ($$, "EXPR: function call: returned ");
-		   state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
-		   state->param->expr_func_arglist = NULL;
+		   $$ = call_expr_userfunc(state, $1);
 		 }
 | EXTFUNC '(' ')'
                  {
-		   state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();
-		   $$ = state->param->CallExprUserfncFuncPtr(state->param->expr_func_arglist, $1);
-		   if (state->param->debug>6) _tmplpro_expnum_debug ($$, "EXPR: function call(): returned ");
-		   state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
-		   state->param->expr_func_arglist = NULL;
+		   state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr(state->param->ext_calluserfunc_state);
+		   $$ = call_expr_userfunc(state, $1);
 		 }
 | FNCT '(' numEXP ')'		
                  {
-		   $$.type=EXPRDBL;
+		   $$.type=EXPR_TYPE_DBL;
 		   expr_to_dbl1(state, &$3);
 		   $$.val.dblval = (*($1->fnctptr))($3.val.dblval); 
 		 }
@@ -85,7 +84,7 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP '*' numEXP		{ DO_MATHOP(state, $$,*,$1,$3);	}
 | numEXP '%' numEXP
 		 { 
-		   $$.type=EXPRINT;
+		   $$.type=EXPR_TYPE_INT;
 		   expr_to_int(state, &$1,&$3);
 		   $$.val.intval = $1.val.intval % $3.val.intval;
 		 }
@@ -93,7 +92,7 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP '/' numEXP
                  {
 		   switch ($$.type=expr_to_int_or_dbl(&$1,&$3)) {
-		   case EXPRINT: 
+		   case EXPR_TYPE_INT: 
                    if ($3.val.intval)
                      $$.val.intval = $1.val.intval / $3.val.intval;
                    else
@@ -102,7 +101,7 @@ numEXP: NUM			{ $$ = $1;			}
 		       expr_debug(state, "division by zero","");
                      }
 		   ;break;
-		   case EXPRDBL: 
+		   case EXPR_TYPE_DBL: 
                    if ($3.val.dblval)
                      $$.val.dblval = $1.val.dblval / $3.val.dblval;
                    else
@@ -116,7 +115,7 @@ numEXP: NUM			{ $$ = $1;			}
 */
 | numEXP '/' numEXP
                  {
-		   $$.type=EXPRDBL;
+		   $$.type=EXPR_TYPE_DBL;
 		   expr_to_dbl(state, &$1,&$3);
                    if ($3.val.dblval)
                      $$.val.dblval = $1.val.dblval / $3.val.dblval;
@@ -129,17 +128,17 @@ numEXP: NUM			{ $$ = $1;			}
 | '-' numEXP  %prec NEG
 		 { 
 		   switch ($$.type=$2.type) {
-		   case EXPRINT: 
+		   case EXPR_TYPE_INT: 
 		     $$.val.intval = -$2.val.intval;
 		   ;break;
-		   case EXPRDBL: 
+		   case EXPR_TYPE_DBL: 
 		     $$.val.dblval = -$2.val.dblval;
 		   ;break;
 		   }
 		 }
 | numEXP '^' numEXP 		
                  { 
-		   $$.type=EXPRDBL;
+		   $$.type=EXPR_TYPE_DBL;
 		   expr_to_dbl(state, &$1,&$3);
 		   $$.val.dblval = pow ($1.val.dblval, $3.val.dblval);
                  }
@@ -155,27 +154,26 @@ numEXP: NUM			{ $$ = $1;			}
 | NOT numEXP			{ DO_LOGOP1($$,!,$2);		}
 | '(' numEXP ')'		{ $$ = $2;			}
 | numEXP strCMP numEXP 		{ 
-  expr_to_str(&$1,&$3); 
-  $$.type=EXPRINT; $$.val.intval = pstring_ge ($1.val.strval,$3.val.strval)-pstring_le ($1.val.strval,$3.val.strval);
+  expr_to_str(&$1,&$3, state->param); 
+  $$.type=EXPR_TYPE_INT; $$.val.intval = pstring_ge ($1.val.strval,$3.val.strval)-pstring_le ($1.val.strval,$3.val.strval);
 }
-| numEXP strGE numEXP 		{ DO_TXTOP($$,pstring_ge,$1,$3);}
-| numEXP strLE numEXP 		{ DO_TXTOP($$,pstring_le,$1,$3);}
-| numEXP strNE numEXP 		{ DO_TXTOP($$,pstring_ne,$1,$3);}
-| numEXP strEQ numEXP 		{ DO_TXTOP($$,pstring_eq,$1,$3);}
-| numEXP strGT numEXP		{ DO_TXTOP($$,pstring_gt,$1,$3);}
-| numEXP strLT numEXP		{ DO_TXTOP($$,pstring_lt,$1,$3);}
-| numEXP reLIKE numEXP		{ DO_TXTOP($$,re_like,$1,$3);}
-| numEXP reNOTLIKE numEXP	{ DO_TXTOP($$,re_notlike,$1,$3);}
+| numEXP strGE numEXP 		{ DO_TXTOP($$,pstring_ge,$1,$3,state->param);}
+| numEXP strLE numEXP 		{ DO_TXTOP($$,pstring_le,$1,$3,state->param);}
+| numEXP strNE numEXP 		{ DO_TXTOP($$,pstring_ne,$1,$3,state->param);}
+| numEXP strEQ numEXP 		{ DO_TXTOP($$,pstring_eq,$1,$3,state->param);}
+| numEXP strGT numEXP		{ DO_TXTOP($$,pstring_gt,$1,$3,state->param);}
+| numEXP strLT numEXP		{ DO_TXTOP($$,pstring_lt,$1,$3,state->param);}
+| numEXP reLIKE numEXP		{ DO_TXTOP($$,re_like,$1,$3,state->param);}
+| numEXP reNOTLIKE numEXP	{ DO_TXTOP($$,re_notlike,$1,$3,state->param);}
 ;
 
-/*arglist: {state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();}
+/*arglist: {state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr(state->param->expr_func_map);}
   | numEXP 	 	 { */
-arglist: numEXP 	 	 { 
-  state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr();
-  state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,expr_unescape_pstring_val(state, $1));
-  if (state->param->debug>6) _tmplpro_expnum_debug ($$, "EXPR: arglist: pushed ");
+arglist: numEXP 	 	{ 
+  state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr(state->param->expr_func_map);
+  pusharg_expr_userfunc(state,$1);
 }
-| arglist ',' numEXP	 { state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,expr_unescape_pstring_val(state, $3));	}
+| arglist ',' numEXP	 { pusharg_expr_userfunc(state,$3);	}
 ;
 
 /* End of grammar.  */
@@ -218,7 +216,7 @@ const builtin_symrec[] =
 #include "calc.inc"
 
 PSTRING 
-parse_expr (PSTRING expression, struct tmplpro_state* state)
+parse_expr(PSTRING expression, struct tmplpro_state* state)
 {
   PSTRING expr_retval;
   state->expr_curpos=expression.begin;
@@ -227,6 +225,7 @@ parse_expr (PSTRING expression, struct tmplpro_state* state)
   expr_retval.endnext=expression.begin;
   state->is_expect_quote_like=1;
   yyparse (state, &expr_retval); 
+  if (NULL!=expr_retval.begin && NULL==expr_retval.endnext) expr_debug(state, "parse_expr internal warning:", "endnext is null pointer");
   return expr_retval;
 }
 
@@ -315,9 +314,12 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 
     strvalue.endnext=(state->expr_curpos);
     if ((state->expr_curpos)<(state->expr).endnext && ((c = *(state->expr_curpos)) == terminal_quote)) (state->expr_curpos)++;
-    (*lvalp).numval.val.strval=strvalue;
-    (*lvalp).numval.type=EXPRPSTR;
-    (*lvalp).numval.strval_escape_flag=escape_flag;
+    (*lvalp).numval.type=EXPR_TYPE_PSTR;
+    if (escape_flag) {
+      (*lvalp).numval.val.strval=expr_unescape_pstring_val(state,strvalue);
+    } else {
+      (*lvalp).numval.val.strval=strvalue;
+    }
     state->is_expect_quote_like=0;
     return NUM;
   }
@@ -377,8 +379,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 	  (*lvalp).numval.val.strval.endnext=(state->expr_curpos);
 	  if (state->param->strict) expr_debug(state, "non-initialized variable", name.begin);
 	} else (*lvalp).numval.val.strval=varvalue;
-	(*lvalp).numval.type=EXPRPSTR;
-	(*lvalp).numval.strval_escape_flag=0;
+	(*lvalp).numval.type=EXPR_TYPE_PSTR;
 	return NUM;
       }
     }
@@ -397,6 +398,28 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
   /* Any other character is a token by itself. */
   (state->expr_curpos)++;
   return c;
+}
+
+static
+struct exprval
+call_expr_userfunc(struct tmplpro_state* state, void* ABSTRACT_EXTFUNC) {
+  struct exprval emptyval = {EXPR_TYPE_PSTR};
+  emptyval.val.strval.begin=NULL;
+  emptyval.val.strval.endnext=NULL;
+  state->param->userfunc_call = emptyval;
+  state->param->CallExprUserfncFuncPtr(state->param->ext_calluserfunc_state,state->param->expr_func_arglist, ABSTRACT_EXTFUNC, state->param);
+  if (state->param->debug>6) _tmplpro_expnum_debug (state->param->userfunc_call, "EXPR: function call: returned ");
+  state->param->FreeExprArglistFuncPtr(state->param->expr_func_arglist);
+  state->param->expr_func_arglist = NULL;
+  return state->param->userfunc_call;
+}
+
+static
+void
+pusharg_expr_userfunc(struct tmplpro_state* state, struct exprval arg) {
+  state->param->userfunc_call = arg;
+  state->param->PushExprArglistFuncPtr(state->param->expr_func_arglist,state->param);
+  if (state->param->debug>6) _tmplpro_expnum_debug (arg, "EXPR: arglist: pushed ");
 }
 
 #include "exprtool.inc"

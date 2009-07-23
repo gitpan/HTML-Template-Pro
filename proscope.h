@@ -20,19 +20,19 @@ struct scope_stack {
 
 struct ProLoopState {
   int  loop; 		/* current loop */
-  int  maxloop;		/* max loop number */
+  int  loop_count;	/* total number of loops or negative value if unknown */
   /* objects are wrapper-specific so pointer is void */
   ABSTRACT_ARRAY* loops_AV;	/* pointer to array of loop's dictionaries */
   ABSTRACT_MAP*   param_HV;	/* pointer to dictionary of current loop   */
 };
 
-int curScopeLevel(struct scope_stack*);
-struct ProLoopState* getCurrentScope(struct scope_stack*);
-struct ProLoopState* getScope(struct scope_stack*, int depth);
-void popScope(struct scope_stack* scopestack);
-/* maxloop = number of loops - 1 in * loops_AV */
-void pushScope2(struct scope_stack*, int maxloop, void *loops_AV);
-void Scope_init_root(struct scope_stack*, void* param_HV);
-void Scope_free(struct scope_stack* scopestack);
-
+/*
+static int curScopeLevel(struct scope_stack*);
+static struct ProLoopState* getCurrentScope(struct scope_stack*);
+static struct ProLoopState* getScope(struct scope_stack*, int depth);
+static void popScope(struct scope_stack* scopestack);
+static void pushScope2(struct scope_stack*, int loop_count, void *loops_AV);
+static void Scope_init_root(struct scope_stack*, void* param_HV);
+static void Scope_free(struct scope_stack* scopestack);
+*/
 #endif /* _PROSCOPE_H */
