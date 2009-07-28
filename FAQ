@@ -45,7 +45,7 @@ my $template = HTML::Template->new( filename => $tmp_file )
 uses HTML::Template.
 
 > As I read the docs, the only reason to mix Template and Template::Pro
-> would be that you needed filter support from HTML::Template?
+> would be that you needed query support from HTML::Template?
 
 Maybe.
 I also used mixing it in the same file for benchmark.pl.t

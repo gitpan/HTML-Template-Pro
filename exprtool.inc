@@ -26,13 +26,6 @@
   ptr->type = EXPR_TYPE_INT; \
 }
 
-/* 
- * for snprintf %f
- * internal expr buffers for conversion int/double --> string 
- * static char left_buffer[40]; 
- * static char right_buffer[40];
- */
-
 static
 exprtype 
 expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
@@ -105,12 +98,12 @@ expr_to_int (struct tmplpro_state* state, struct exprval* val1, struct exprval* 
   EXPR_CHECK_NUMBER(state, val2);
   if (val1->type == EXPR_TYPE_DBL) {
     val1->type=EXPR_TYPE_INT;
-    val1->val.intval=val1->val.dblval;
+    val1->val.intval=(EXPR_int64) val1->val.dblval;
     /* _tmplpro_expnum_debug(*val1, "WARN:converting to `int' from `double'"); */
   }
   if (val2->type == EXPR_TYPE_DBL) {
     val2->type=EXPR_TYPE_INT;
-    val2->val.intval=val2->val.dblval;
+    val2->val.intval=(EXPR_int64) val2->val.dblval;
     /* _tmplpro_expnum_debug(*val2, "WARN:converting to `int' from `double'"); */
   }
 }

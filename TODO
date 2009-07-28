@@ -1,25 +1,8 @@
 HTML-Template-Pro TODO.
 =======================
 
-The current goal is to separate a C library
-and add wrappers for other languages.
-
-The main idea is following:
-Core C library should be as language neutral
-and portable as possible.
-
-As ANSI C lack standard map types,
-the code was designed so that wrapper should use
-its own language spacific (as Perl built-in hash)
-or library specific (C+glib, for example)
-HashOfHash type, and should provide abstract
-HashOfHash getters to the core C library
-as well as some other system specific calls.
-
-2. Public backend library.
-(libhtmltmplpro.so.1.0.0, htmltmplpro.dll)
-that can be built independently.
-
-3. A few wrappers for languages other then perl
+1. A few wrappers for languages other then perl
 (php, java, maybe high-level C/glib and C++ wrappers)
 to prove the API is designed good enough to fit a vast majority of languages.
+
+2. query() support.

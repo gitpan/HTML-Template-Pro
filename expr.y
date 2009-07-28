@@ -188,7 +188,10 @@ yyerror (struct tmplpro_state* state, PSTRING* expr_retval_ptr, char const *s)
 
 static
 const symrec_const
-const builtin_symrec[] =
+#ifndef __cplusplus
+const 
+#endif
+builtin_symrec[] =
   {
     /* built-in funcs */
     {"sin", FNCT,	0,	  sin},
@@ -371,7 +374,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 	if (! state->param->case_sensitive) {
 	  lowercase_pstring_inplace(name);
 	}
-	varvalue=get_variable_value(state->param, name);
+	varvalue=_get_variable_value(state->param, name);
 	/* tmpl_log(NULL, TMPL_LOG_ERROR, "lex:detected var %s=%s\n", name.begin,varvalue.begin); */
 	if (varvalue.begin==NULL) {
 	  /*(*lvalp).numval.val.strval=(PSTRING) {(state->expr_curpos), (state->expr_curpos)};*/

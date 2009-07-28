@@ -11,7 +11,6 @@
 # include <stdint.h>
 #endif
 
-typedef char exprtype;
 #define EXPR_TYPE_INT 'i'
 #define EXPR_TYPE_DBL 'd'
 #define EXPR_TYPE_PSTR 'p'
@@ -36,6 +35,7 @@ typedef char exprtype;
  * note that struct exprval is private structure,
  * not a part of the API, and is subject to change without prior notice.
  */
+typedef char exprtype;
 struct exprval {
   exprtype type;
   union uval {

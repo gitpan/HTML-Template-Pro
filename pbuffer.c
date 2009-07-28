@@ -21,7 +21,7 @@ char* pbuffer_string(pbuffer* pBuffer) {
 char* pbuffer_resize(pbuffer* pBuffer, size_t size) {
   if (pBuffer->bufsize< size) {
     pBuffer->bufsize=2*size; /* aggresive memory allocation to prevent frequent requests*/
-    pBuffer->buffer=realloc (pBuffer->buffer,pBuffer->bufsize * sizeof(char));
+    pBuffer->buffer=(char*) realloc (pBuffer->buffer,pBuffer->bufsize * sizeof(char));
   }
   return pBuffer->buffer;
 }

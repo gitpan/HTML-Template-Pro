@@ -5,13 +5,6 @@
 #include "tmpllog.h"
 #include "pabstract.h"
 
-/* MS VC++ support;
- * thanks to Viacheslav Sheveliov <slavash@aha.ru>
- */
-#ifdef _MSC_VER
-#  define snprintf _snprintf
-#endif
-
 struct tmplpro_param;
 
 static int tmplpro_exec_tmpl_filename (struct tmplpro_param* ProParams,const char* filename);

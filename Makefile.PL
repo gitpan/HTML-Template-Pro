@@ -19,7 +19,7 @@ if (grep {/^DYNAMIC=1/} @ARGV) {
 } else {
     $STATIC_BUILD=1;
     $INC='-I.';
-    $DEFINE='';
+    $DEFINE='-DHTMLTMPLPRO_STATIC';
     $LIBS='-lm';
     $O_FILES='$(O_FILES)';
 }
@@ -71,6 +71,7 @@ WriteMakefile(
     DEFINE            => $DEFINE, # e.g., '-DHAVE_SOMETHING'
     INC               => $INC, 
     OBJECT            => $O_FILES, # link all the C files too
+    LICENSE           => 'perl or LGPL2+',
 #   PERL_MALLOC_OK    => 1 # read first, static only
 );
 

@@ -9,12 +9,22 @@ print PARAMH '/* generated; do not edit */
 /*
  * public interface to set up libhtmltmplpro options
  */
+#ifndef _PROPARAM_H
+#define _PROPARAM_H	1
+
 struct tmplpro_param;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 ';
 print PARAMC '/* generated; do not edit */
+#include "pabidecl.h"
 #include "pabstract.h"
 #include "pparam.h"
+#include "proparam.h"
+
 ';
 
 print PARAMM1 '/* generated; do not edit */
@@ -43,8 +53,8 @@ while (<PP>) {
     $monotype=~s/struct exprval/exprval/;
     $monotype='C_API.'.$monotype if $monotype=~/functype/;
 
-    print PARAMH "$flagtype tmplpro_get_option_$name(struct tmplpro_param*);
-void tmplpro_set_option_$name(struct tmplpro_param*,$flagtype);
+    print PARAMH "HTMLTMPLPRO_API $flagtype tmplpro_get_option_$name(struct tmplpro_param*);
+HTMLTMPLPRO_API void tmplpro_set_option_$name(struct tmplpro_param*,$flagtype);
 
 ";
 
@@ -69,6 +79,16 @@ void tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
 #    print PARAMM2 'case "'.$name.'": '."\t".'return C_API.tmplpro_get_option_'.$name.'(_c_param); break;
 #' if $monotype!~/functype/ && $monotype ne 'IntPtr' && $monotype eq 'int';
 }
+
+print PARAMH '
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* proparam.h */
+';
+
+
 
 print PARAMM1 '
     }

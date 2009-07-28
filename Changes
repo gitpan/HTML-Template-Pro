@@ -205,3 +205,8 @@ Revision history for Perl extension HTML::Template::Pro.
 	- released separate public backend library.
 	(libhtmltmplpro.so.0.0.0, htmltmplpro.dll).
 	- explicitly stated "LGPL or Artistic" license for the library.
+
+0.81 Tue Jul 28 14:26:01 EEST 2009
+	- maintainance release, no API/ABI/behaviour changes
+	- support for mingw
+

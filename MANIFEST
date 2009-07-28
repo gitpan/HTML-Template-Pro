@@ -17,7 +17,6 @@ calc.inc
 callback_stubs.inc
 cmp_expr.t
 expr.c
-expr.h
 expr.y
 expr_iface.c
 exprpstr.h
@@ -30,10 +29,13 @@ lib/HTML/Template/Pro.pm
 lib/HTML/Template/SYNTAX.pod
 loadfile.h
 loadfile.inc
+pabidecl.h
 pabstract.h
+parse_expr.h
 pbuffer.c
 pbuffer.h
 perl-HTML-Template-Pro.spec
+pmiscdef.h
 pparam.h
 pparam2proparam
 ppport.h

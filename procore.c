@@ -6,15 +6,17 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "tmplpro.h"
 #include "procore.h"
 #include "prostate.h"
 #include "provalue.h"
 #include "tagstack.h"
 #include "pbuffer.h"
-#include "expr.h"
+#include "parse_expr.h"
 #include "pparam.h"
 #include "proscope.inc"
 #include "pstrutils.inc"
+#include "pmiscdef.h" /*for snprintf */
 
 #define HTML_TEMPLATE_BAD_TAG     0
 #define HTML_TEMPLATE_FIRST_TAG_USED 1
@@ -325,7 +327,7 @@ _tmpl_log_state (struct tmplpro_state *state, int level)
 	   state->tag_start - state->top);
 }
 
-PSTRING get_variable_value (struct tmplpro_param *param, PSTRING name) {
+PSTRING _get_variable_value (struct tmplpro_param *param, PSTRING name) {
   PSTRING varvalue ={NULL, NULL};
   ABSTRACT_VALUE* abstrval;
   if (param->loop_context_vars) {
@@ -348,7 +350,7 @@ tag_handler_var (struct tmplpro_state *state, PSTRING name, PSTRING defvalue, in
   if (state->is_expr) {
     varvalue=parse_expr(name, state);
   } else 
-    varvalue=get_variable_value(state->param, name);
+    varvalue=_get_variable_value(state->param, name);
   if (debuglevel>=TMPL_LOG_DEBUG) {
       if (varvalue.begin!=NULL) {
 	tmpl_log(state,TMPL_LOG_DEBUG,"variable value = %.*s\n",(int)(varvalue.endnext-varvalue.begin),varvalue.begin);

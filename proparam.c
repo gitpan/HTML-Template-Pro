@@ -1,6 +1,9 @@
 /* generated; do not edit */
+#include "pabidecl.h"
 #include "pabstract.h"
 #include "pparam.h"
+#include "proparam.h"
+
 
 int tmplpro_get_option_global_vars(struct tmplpro_param* param) {
     return param->global_vars;

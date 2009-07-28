@@ -5,8 +5,7 @@
  */
 
 #include <string.h>
-#include "pstring.h"
-#include "pabstract.h"
+#include "tmplpro.h"
 #include "exprval.h"
 #include "pparam.h"
 

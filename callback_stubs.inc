@@ -147,7 +147,7 @@ static const char* stub_find_file_func(ABSTRACT_FINDFILE* param,const char* file
   if (last_visited_file!=NULL && ! ((struct tmplpro_param*) param)->search_path_on_include) {
     extra_path = _ff_dirname(last_visited_file);
   }
-  filepath = _find_file(param,filename,extra_path);
+  filepath = _find_file((struct tmplpro_param*)param,filename,extra_path);
   if (filepath==NULL) {
     tmpl_log(NULL,TMPL_LOG_ERROR,"find_file_func stub: can't find file %s\n",filename);
     return NULL;

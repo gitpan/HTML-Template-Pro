@@ -589,8 +589,8 @@ Boolean logic is available:
 =head1 REGULAR EXPRESSION SUPPORT
 
 regexp support is added to HTML::Template::Expr and
-HTML::Template::Pro by Stanislav Yadykin <tosick at altlinux.ru>
-It is currently not included in official distribution of HTML::Template::Expr.
+HTML::Template::Pro by Stanislav Yadykin <tosick at altlinux.ru>.
+Currently it is not included in official distribution of HTML::Template::Expr.
 
 Standart regexp syntax:
 
@@ -1004,6 +1004,27 @@ iteration:
 B<NOTE>: C<global_vars> is not C<global_loops> (which does not exist).
 That means that loops you declare at one scope are not available
 inside other loops even when C<global_vars> is on.
+
+=item *
+
+path_like_variable_scope - this option switches on a Shigeki Morimoto 
+extension to HTML::Template::Pro that allows access to variables that
+are outside the current loop scope using path-like expressions.
+
+Example:
+{{{
+<TMPL_LOOP NAME=class>
+  <TMPL_LOOP NAME=person>
+    <TMPL_VAR NAME="../teacher_name">  <!-- access to class.teacher_name -->
+    <TMPL_VAR NAME="name">
+    <TMPL_VAR NAME="/top_level_value"> <!-- access to top level value -->
+    <TMPL_VAR NAME="age">
+      <TMPL_LOOP NAME="../../school">  <!-- enter loop before accessing its vars -->
+        <TMPL_VAR NAME="school_name">  <!-- access to [../../]school.school_name -->
+      </TMPL_LOOP>
+  </TMPL_LOOP>
+</TMPL_LOOP>
+}}}
 
 =item *
 

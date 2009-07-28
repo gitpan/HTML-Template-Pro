@@ -14,6 +14,8 @@
 #include "pstring.h"
 #include "tmpllog.h"
 #include <ctype.h>
+#include "exprval.h"
+#include "pmiscdef.h" /*for snprintf */
 
 static
 void 
