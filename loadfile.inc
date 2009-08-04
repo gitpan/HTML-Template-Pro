@@ -79,7 +79,7 @@ static PSTRING mmap_load_file(const char *filepath) {
 }
 
 /* we use function, not define, because someday we may need its address */
-static int mmap_unload_file(PSTRING memarea) { return UnmapViewOfFile((LPCVOID) memarea.begin) ? 0 : -1; };
+static int mmap_unload_file(PSTRING memarea) { return UnmapViewOfFile((void*) memarea.begin) ? 0 : -1; };
 /* define mmap_unload_file(map) (UnmapViewOfFile((LPCVOID) map.begin) ? 0 : -1) */
 
 #else /* unix, sweet unix :) */

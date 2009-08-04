@@ -1,4 +1,4 @@
-HTML-Template-Pro version 0.81
+HTML-Template-Pro version 0.82
 ==============================
 
 DESCRIPTION
@@ -11,7 +11,7 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template (as of 2.9) and HTML::Template::Expr (as of 0.0.5). 
+of HTML::Template (as of 2.9) and HTML::Template::Expr (as of 0.0.7). 
 It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
 quering, the extended facility of HTML::Template.

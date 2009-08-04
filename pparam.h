@@ -69,8 +69,8 @@ unload_file_functype UnloadFileFuncPtr;
   call_expr_userfnc_functype CallExprUserfncFuncPtr;
   is_expr_userfnc_functype   IsExprUserfncFuncPtr;
   ABSTRACT_FUNCMAP*  expr_func_map;
-  ABSTRACT_ARGLIST* expr_func_arglist;
   /* private */
+  ABSTRACT_ARGLIST* expr_func_arglist; /* can it possibly be moved to expr? */
   int cur_includes; /* internal counter of include depth */
   const char* selfpath; /* file that has included this file, or empty string */
   /* moved from state; are passed to include */

@@ -48,7 +48,7 @@ struct tmplpro_state {
   int is_expect_quote_like;
 };
 
-extern void _tmpl_log_state (struct tmplpro_state *state, int level);
+extern TMPLPRO_LOCAL void _tmpl_log_state (struct tmplpro_state *state, int level);
 
 /* 
  * Local Variables:

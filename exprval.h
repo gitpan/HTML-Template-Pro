@@ -7,29 +7,46 @@
 #ifndef _EXPRVAL_H
 #define _EXPRVAL_H	1
 
-#if HAVE_STDINT_H
-# include <stdint.h>
+#if HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  if HAVE_STDINT_H
+#    include <stdint.h>
+#  endif
 #endif
 
 #define EXPR_TYPE_INT 'i'
 #define EXPR_TYPE_DBL 'd'
 #define EXPR_TYPE_PSTR 'p'
 
-#if defined INT64_NAME && ! defined int64_t && ! defined INT64_MAX
-#define int64_t INT64_NAME
+#if defined INT64_MAX || defined int64_t
+   typedef int64_t EXPR_int64;
+#else 
+#  if defined SIZEOF_LONG_LONG && SIZEOF_LONG_LONG == 8
+     typedef long long int EXPR_int64;
+#  else 
+#    if defined INT64_NAME
+       typedef  INT64_NAME EXPR_int64;
+#    else
+       typedef long int EXPR_int64;
+#    endif 
+#  endif 
 #endif 
 
-#if defined INT64_MAX || defined int64_t
-     typedef int64_t EXPR_int64;
-#  ifdef _MSC_VER
-#    define EXPR_modifier "I64"
+#if defined PRId64
+#    define EXPR_PRId64 PRId64
+#else
+#  if defined SIZEOF_LONG_LONG && SIZEOF_LONG_LONG == 8
+#    define EXPR_PRId64 "lld"
 #  else
-#    define EXPR_modifier "ll"
+#    ifdef _MSC_VER
+#      define EXPR_PRId64 "I64d"
+#    else 
+#      define EXPR_PRId64 "ld"
+#    endif
 #  endif
-#else 
-     typedef long EXPR_int64;
-#    define EXPR_modifier "l"
 #endif 
+
 
 /* 
  * note that struct exprval is private structure,

@@ -4,7 +4,7 @@
  * Created: Mon Jul 13 21:24:55 2009
  */
 
-#define PACKAGE_VERSION 0
+#define PACKAGE_VERSION "0.0(not defined)"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -22,7 +22,8 @@ convenient for user programs that want to test its value. */
 #define XSTRING(s) STRING(s)
 
 const char* tmplpro_version(void) {
-  return "" XSTRING(PACKAGE_VERSION) ;
+  //return "" XSTRING(PACKAGE_VERSION) ;
+  return "" PACKAGE_VERSION ;
 }
 
 /*

@@ -53,7 +53,7 @@ PSTRING
 int_to_pstring (EXPR_int64 number, char buffer[], size_t bufsize) {
   size_t len=0;
   PSTRING retval;
-  snprintf(buffer, bufsize,"%" EXPR_modifier "d" , number);
+  snprintf(buffer, bufsize,"%" EXPR_PRId64 , number);
   len=strlen(buffer);
   retval.begin=buffer;
   retval.endnext=buffer+len;

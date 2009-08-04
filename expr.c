@@ -134,6 +134,7 @@
 #include "provalue.h"
 #include "exprtool.h"
 #include "exprpstr.h"
+#include "parse_expr.h"
 #include "pparam.h"
   
 
@@ -157,14 +158,14 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 20 "expr.y"
+#line 21 "expr.y"
 {
   struct exprval numval;   /* For returning numbers.  */
   const symrec_const  *tptr;   /* For returning symbol-table pointers.  */
   void* extfunc;  /* for user-defined function name */
 }
 /* Line 193 of yacc.c.  */
-#line 168 "y.tab.c"
+#line 169 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -174,7 +175,7 @@ typedef union YYSTYPE
 
 
 /* Copy the second part of user declarations.  */
-#line 25 "expr.y"
+#line 26 "expr.y"
 
   /* the second section is required as we use YYSTYPE here */
   static void yyerror (struct tmplpro_state* state, PSTRING* expr_retval_ptr, char const *);
@@ -182,7 +183,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 186 "y.tab.c"
+#line 187 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -482,10 +483,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    49,    49,    64,    65,    67,    71,    76,    82,    83,
-      84,    85,   116,   128,   139,   145,   146,   147,   148,   149,
-     150,   151,   152,   153,   154,   155,   156,   160,   161,   162,
-     163,   164,   165,   166,   167,   172,   176
+       0,    50,    50,    65,    66,    68,    72,    77,    83,    84,
+      85,    86,   117,   129,   140,   146,   147,   148,   149,   150,
+     151,   152,   153,   154,   155,   156,   157,   161,   162,   163,
+     164,   165,   166,   167,   168,   173,   177
 };
 #endif
 
@@ -1481,7 +1482,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 50 "expr.y"
+#line 51 "expr.y"
     { 
 		   /* TODO: move to exprtool.inc as expr_to_str1 */
 		   if (EXPR_TYPE_PSTR == (yyvsp[(1) - (1)].numval).type) {
@@ -1496,24 +1497,24 @@ yyreduce:
     break;
 
   case 3:
-#line 64 "expr.y"
+#line 65 "expr.y"
     { (yyval.numval) = (yyvsp[(1) - (1)].numval);			}
     break;
 
   case 4:
-#line 65 "expr.y"
+#line 66 "expr.y"
     { (yyval.numval).type=EXPR_TYPE_DBL; (yyval.numval).val.dblval = (yyvsp[(1) - (1)].tptr)->var; }
     break;
 
   case 5:
-#line 68 "expr.y"
+#line 69 "expr.y"
     {
 		   (yyval.numval) = call_expr_userfunc(state, (yyvsp[(1) - (4)].extfunc));
 		 }
     break;
 
   case 6:
-#line 72 "expr.y"
+#line 73 "expr.y"
     {
 		   state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr(state->param->ext_calluserfunc_state);
 		   (yyval.numval) = call_expr_userfunc(state, (yyvsp[(1) - (3)].extfunc));
@@ -1521,7 +1522,7 @@ yyreduce:
     break;
 
   case 7:
-#line 77 "expr.y"
+#line 78 "expr.y"
     {
 		   (yyval.numval).type=EXPR_TYPE_DBL;
 		   expr_to_dbl1(state, &(yyvsp[(3) - (4)].numval));
@@ -1530,22 +1531,22 @@ yyreduce:
     break;
 
   case 8:
-#line 82 "expr.y"
+#line 83 "expr.y"
     { DO_MATHOP(state, (yyval.numval),+,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 9:
-#line 83 "expr.y"
+#line 84 "expr.y"
     { DO_MATHOP(state, (yyval.numval),-,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 10:
-#line 84 "expr.y"
+#line 85 "expr.y"
     { DO_MATHOP(state, (yyval.numval),*,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 11:
-#line 86 "expr.y"
+#line 87 "expr.y"
     { 
 		   (yyval.numval).type=EXPR_TYPE_INT;
 		   expr_to_int(state, &(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval));
@@ -1554,7 +1555,7 @@ yyreduce:
     break;
 
   case 12:
-#line 117 "expr.y"
+#line 118 "expr.y"
     {
 		   (yyval.numval).type=EXPR_TYPE_DBL;
 		   expr_to_dbl(state, &(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval));
@@ -1569,7 +1570,7 @@ yyreduce:
     break;
 
   case 13:
-#line 129 "expr.y"
+#line 130 "expr.y"
     { 
 		   switch ((yyval.numval).type=(yyvsp[(2) - (2)].numval).type) {
 		   case EXPR_TYPE_INT: 
@@ -1583,7 +1584,7 @@ yyreduce:
     break;
 
   case 14:
-#line 140 "expr.y"
+#line 141 "expr.y"
     { 
 		   (yyval.numval).type=EXPR_TYPE_DBL;
 		   expr_to_dbl(state, &(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval));
@@ -1592,62 +1593,62 @@ yyreduce:
     break;
 
   case 15:
-#line 145 "expr.y"
+#line 146 "expr.y"
     { DO_LOGOP(state, (yyval.numval),&&,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 16:
-#line 146 "expr.y"
+#line 147 "expr.y"
     { DO_LOGOP(state, (yyval.numval),||,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 17:
-#line 147 "expr.y"
+#line 148 "expr.y"
     { DO_CMPOP(state, (yyval.numval),>=,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 18:
-#line 148 "expr.y"
+#line 149 "expr.y"
     { DO_CMPOP(state, (yyval.numval),<=,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 19:
-#line 149 "expr.y"
+#line 150 "expr.y"
     { DO_CMPOP(state, (yyval.numval),!=,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 20:
-#line 150 "expr.y"
+#line 151 "expr.y"
     { DO_CMPOP(state, (yyval.numval),==,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 21:
-#line 151 "expr.y"
+#line 152 "expr.y"
     { DO_CMPOP(state, (yyval.numval),>,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 22:
-#line 152 "expr.y"
+#line 153 "expr.y"
     { DO_CMPOP(state, (yyval.numval),<,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval));	}
     break;
 
   case 23:
-#line 153 "expr.y"
-    { DO_LOGOP1((yyval.numval),!,(yyvsp[(2) - (2)].numval));		}
-    break;
-
-  case 24:
 #line 154 "expr.y"
     { DO_LOGOP1((yyval.numval),!,(yyvsp[(2) - (2)].numval));		}
     break;
 
-  case 25:
+  case 24:
 #line 155 "expr.y"
+    { DO_LOGOP1((yyval.numval),!,(yyvsp[(2) - (2)].numval));		}
+    break;
+
+  case 25:
+#line 156 "expr.y"
     { (yyval.numval) = (yyvsp[(2) - (3)].numval);			}
     break;
 
   case 26:
-#line 156 "expr.y"
+#line 157 "expr.y"
     { 
   expr_to_str(&(yyvsp[(1) - (3)].numval),&(yyvsp[(3) - (3)].numval), state->param); 
   (yyval.numval).type=EXPR_TYPE_INT; (yyval.numval).val.intval = pstring_ge ((yyvsp[(1) - (3)].numval).val.strval,(yyvsp[(3) - (3)].numval).val.strval)-pstring_le ((yyvsp[(1) - (3)].numval).val.strval,(yyvsp[(3) - (3)].numval).val.strval);
@@ -1655,47 +1656,47 @@ yyreduce:
     break;
 
   case 27:
-#line 160 "expr.y"
+#line 161 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_ge,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 28:
-#line 161 "expr.y"
+#line 162 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_le,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 29:
-#line 162 "expr.y"
+#line 163 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_ne,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 30:
-#line 163 "expr.y"
+#line 164 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_eq,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 31:
-#line 164 "expr.y"
+#line 165 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_gt,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 32:
-#line 165 "expr.y"
+#line 166 "expr.y"
     { DO_TXTOP((yyval.numval),pstring_lt,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 33:
-#line 166 "expr.y"
+#line 167 "expr.y"
     { DO_TXTOP((yyval.numval),re_like,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 34:
-#line 167 "expr.y"
+#line 168 "expr.y"
     { DO_TXTOP((yyval.numval),re_notlike,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state->param);}
     break;
 
   case 35:
-#line 172 "expr.y"
+#line 173 "expr.y"
     { 
   state->param->expr_func_arglist=state->param->InitExprArglistFuncPtr(state->param->expr_func_map);
   pusharg_expr_userfunc(state,(yyvsp[(1) - (1)].numval));
@@ -1703,13 +1704,13 @@ yyreduce:
     break;
 
   case 36:
-#line 176 "expr.y"
+#line 177 "expr.y"
     { pusharg_expr_userfunc(state,(yyvsp[(3) - (3)].numval));	}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1713 "y.tab.c"
+#line 1714 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1923,7 +1924,7 @@ yyreturn:
 }
 
 
-#line 180 "expr.y"
+#line 181 "expr.y"
 
 
 /* Called by yyparse on error.  */
@@ -1965,6 +1966,7 @@ builtin_symrec[] =
 
 #include "calc.inc"
 
+TMPLPRO_LOCAL
 PSTRING 
 parse_expr(PSTRING expression, struct tmplpro_state* state)
 {

@@ -150,6 +150,27 @@ sub try_compile_and_link {
     $ok;
 }
 
+sub has_header {
+    my $header=shift;
+    print "looking for $header...\n";
+    if (try_compile_and_link('
+#include <'.$header.'>
+    static int foo()
+    {
+	return 0;
+    }
+    int main (int argc, char** argv)
+    {
+	foo();
+    }
+',undef, '')){
+	print "$header found.\n";
+	return 1;
+    }
+    print "$header not found.\n";
+    return 0;
+}
+
 sub has_pcre {
     print "looking for pcre...\n";
     if (try_compile_and_link('
@@ -207,7 +228,7 @@ mmap_load_file (const char* filepath) {
 }
 
 sub find_int64 {
-    foreach my $type ('__int64','int64_t','long long','long','int') {
+    foreach my $type ('__int64','long long','int64_t','long','int') {
 	return $type if try_as_int64($type);
     }
     return;
@@ -262,10 +283,21 @@ sub configure {
     #$DEF{MMAP}=0 if $^O =~ /MSWin32/ and $DEF{'IMITATE'};
     $DEFINE.=' -DDEBUG' if $DEF{DEBUG};
     $DEFINE.=' -DUSE_MMAP ' if $DEF{MMAP};
+
+    $DEFINE.=' -DHAVE_STDINT_H ' if has_header('stdint.h');
+    $DEFINE.=' -DHAVE_INTTYPES_H ' if has_header('inttypes.h');
+
     $DEFINE.=' -DHAVE_SYS_MMAN_H -DHAVE_SYS_STAT_H' if ($DEF{HAS_MMAP});
     $DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
     $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});
     $DEFINE.=' -DINT64_NAME="' . $DEF{'INT64_NAME'}.'"' if ($DEF{'INT64_NAME'});
+    if ($DEF{'INT64_NAME'}) {
+	if ($DEF{'INT64_NAME'} eq "long long") {
+	    $DEFINE.=' -DSIZEOF_LONG_LONG=8';
+	} elsif ($DEF{'INT64_NAME'} eq "long") {
+	    $DEFINE.=' -DSIZEOF_LONG=8';
+	}
+    }
 
     if ($DEF{PCRE}) {
 	$INC.=' -I/usr/include/pcre';

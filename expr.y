@@ -15,6 +15,7 @@
 #include "provalue.h"
 #include "exprtool.h"
 #include "exprpstr.h"
+#include "parse_expr.h"
 #include "pparam.h"
   %}
 %union {
@@ -218,6 +219,7 @@ builtin_symrec[] =
 
 #include "calc.inc"
 
+TMPLPRO_LOCAL
 PSTRING 
 parse_expr(PSTRING expression, struct tmplpro_state* state)
 {

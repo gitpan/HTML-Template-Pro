@@ -210,3 +210,12 @@ Revision history for Perl extension HTML::Template::Pro.
 	- maintainance release, no API/ABI/behaviour changes
 	- support for mingw
 
+0.82 Thu Jul 30 11:56:16 EEST 2009
+	- maintainance release, no API/behaviour changes
+	- CMake fixes
+	- added library documentation
+	- ABI: removed 2 garbage symbols
+	- ABI is officially released as 0:0:0.
+	- library default case-sensitive = 1 (Note: perl module dedault is 0).
+
+	

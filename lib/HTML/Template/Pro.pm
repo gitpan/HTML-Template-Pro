@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.81';
+$VERSION = '0.82';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -437,14 +437,15 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template (as of 2.8) and HTML::Template::Expr (as of 0.0.5). 
+of HTML::Template (as of 2.9) and HTML::Template::Expr (as of 0.0.5). 
 It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
 quering, the extended facility of HTML::Template.
 Designed for heavy upload, resource limitations, abcence of mod_perl.
 
 HTML::Template::Pro has complete support of filters and HTML::Template::Expr's 
-tag EXPR="<expression>", including user-defined functions.
+tag EXPR="<expression>", including user-defined functions and
+construction <TMPL_INCLUDE EXPR="...">.
 
 HTML::Template work cycle uses 2 steps. First, it loads and parse template.
 Then it accepts param() calls until you call output().

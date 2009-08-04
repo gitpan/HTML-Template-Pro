@@ -35,6 +35,7 @@ tmpl_log_default_callback(void* ptr, int level, const char* fmt, va_list vl)
 
 static void (*tmpl_log_callback)(void*, int, const char*, va_list) = tmpl_log_default_callback;
 
+TMPLPRO_LOCAL
 void 
 tmpl_log(void* state, int level, const char *fmt, ...)
 {
@@ -44,28 +45,30 @@ tmpl_log(void* state, int level, const char *fmt, ...)
     va_end(vl);
 }
 
+TMPLPRO_LOCAL
 void 
 tmpl_vlog(void* state, int level, const char *fmt, va_list vl)
 {
     tmpl_log_callback(state, level, fmt, vl);
 }
 
+TMPLPRO_LOCAL
 int 
 tmpl_log_get_level(void)
 {
     return tmpl_log_level;
 }
 
+TMPLPRO_LOCAL
 void 
 tmpl_log_set_level(int level)
 {
     tmpl_log_level = level;
 }
 
+TMPLPRO_LOCAL
 void 
 tmpl_log_set_callback(void (*callback)(void*, int, const char*, va_list))
 {
     tmpl_log_callback = callback;
 }
-
-

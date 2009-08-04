@@ -4,7 +4,6 @@ Changes
 FAQ
 LGPL
 MANIFEST
-META.yml
 Makefile.PL
 Pro.xs
 README
@@ -192,3 +191,4 @@ tmpllog.c
 tmpllog.h
 tmplpro.h
 tmplpro_version.c
+META.yml                                 Module meta-data (added by MakeMaker)

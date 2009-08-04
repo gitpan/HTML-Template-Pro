@@ -1,11 +1,11 @@
-Compiling and using perl module HTML::Template::Pro and 
+Compiling and using either perl module HTML::Template::Pro or
 C library backend htmltmplpro.dll under win32/win64.
 ----------------------------------------------------------
 Note that issues related to other languages' bindings 
 are discussed in corresponding bindings.
 
-Perl modules release 0.62 and later have full native support for win32 
-and win64. The source of HTML-Template-Pro should be portable,
+Release 0.82 and later have full native support for win32 
+and win64. The source of HTML-Template-Pro should be ANSI C portable,
 except unix/win specific sections of file loadfile.inc.
 Those sections can be enabled with MMAP=1 or disabled with MMAP=0.
 If MMAP=0 (--without-mmap) slow ANSI C buffered read will be used instead.
@@ -33,6 +33,9 @@ consequent releases.
 If you do want to use regexps in EXPR="..." you need an optional PCRE library.
 Optional PCRE library for win32 can be obtained from
 http://gnuwin32.sourceforge.net/packages/pcre.htm
+Unpack them into pcre subdirectory.
+There are still issues about PCRE on win,
+I need your help to fix them.
 
 Perl module should be built using Makefile.PL.
 
@@ -56,13 +59,24 @@ which has a GUI interface and can generate projects for
 # MinGW Makefiles
 # NMake Makefiles
 
-Also autotools-based mingw32 cross-compilation from linux to win32 
-is also known to work. Maybe autotools-based cygwin and mingw32 
+Also autotools-based miniGW cross-compilation from linux to win32 
+is also known to work. Maybe autotools-based cygwin and minGW 
 compilation will work too.
+
+Example CMake usage.
+
+Unpack source tree. Run CMakeSetup.exe, set up path to the source tree,
+set up path to the build tree to the same value.
+press configure button, choose, for example, 
+Visual Studio 9 2008. verify red-labelled configuration
+options. Change, for example, CMAKE_INSTALL_PREFIX.
+press configure button again, press generate button.
+Then open generated config in Visual Studio 9 2008
+and compile it.
 
 If you want to use another build system, 
 be sure to define properly int64_type, used in EXPR internally.
-for list of possible defines consult CMakeLists.txt or configure.ac/config.h.in
+for list of possible defines consult CMakeLists.txt and configure.ac/config.h.in
 in the library source distribution.
 
 If you will try to complie this code on a win system, 

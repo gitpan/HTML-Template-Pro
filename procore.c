@@ -318,6 +318,7 @@ escape_pstring (pbuffer* StrBuffer, PSTRING pstring, int escapeopt) {
   return retval;
 }
 
+TMPLPRO_LOCAL
 void 
 _tmpl_log_state (struct tmplpro_state *state, int level)
 {
@@ -327,6 +328,7 @@ _tmpl_log_state (struct tmplpro_state *state, int level)
 	   state->tag_start - state->top);
 }
 
+TMPLPRO_LOCAL
 PSTRING _get_variable_value (struct tmplpro_param *param, PSTRING name) {
   PSTRING varvalue ={NULL, NULL};
   ABSTRACT_VALUE* abstrval;
@@ -1036,16 +1038,30 @@ tmplpro_exec_tmpl_scalarref (struct tmplpro_param *param, PSTRING memarea)
 
 #include "callback_stubs.inc"
 
+API_IMPL 
 int 
+APICALL
 tmplpro_exec_tmpl (struct tmplpro_param *param)
 {
   if (param->GetAbstractValFuncPtr==NULL ||
-      param->AbstractVal2pstringFuncPtr==NULL ||
-      param->AbstractVal2abstractArrayFuncPtr==NULL ||
-      /*param->GetAbstractArrayLengthFuncPtr==NULL ||*/
-      param->GetAbstractMapFuncPtr==NULL) {
+       param->AbstractVal2pstringFuncPtr==NULL ||
+       param->AbstractVal2abstractArrayFuncPtr==NULL ||
+       /*param->GetAbstractArrayLengthFuncPtr==NULL ||*/
+       param->GetAbstractMapFuncPtr==NULL ||
+      (param->IsExprUserfncFuncPtr!=NULL &&
+       (param->InitExprArglistFuncPtr==NULL ||
+	param->PushExprArglistFuncPtr==NULL ||
+	param->FreeExprArglistFuncPtr==NULL ||
+	param->CallExprUserfncFuncPtr==NULL))
+      )
+    {
     tmpl_log(NULL,TMPL_LOG_ERROR,"tmplpro_exec_tmpl: a required callback is missing.");
     return 1;
+  }
+  if (param->filters &&
+      (param->LoadFileFuncPtr==NULL ||
+       param->UnloadFileFuncPtr==NULL)) {
+    tmpl_log(NULL,TMPL_LOG_ERROR,"tmplpro_exec_tmpl: filters is set but filter callbacks are missing.");
   }
   /* set up stabs */
   if (NULL==param->WriterFuncPtr) param->WriterFuncPtr = stub_write_chars_to_stdout;
@@ -1062,20 +1078,26 @@ tmplpro_exec_tmpl (struct tmplpro_param *param)
   return 1;
 }
 
+API_IMPL 
 void 
+APICALL
 tmplpro_procore_init()
 {
   /* to save time on malloc/free at each included template */
   /* tagstack_selftest(); */
 }
 
+API_IMPL 
 void 
+APICALL
 tmplpro_procore_done()
 {
 }
 
 /* internal initialization of struct tmplpro_param */
+API_IMPL 
 struct tmplpro_param* 
+APICALL
 tmplpro_param_init()
 {
   struct tmplpro_param* param=(struct tmplpro_param*) malloc (sizeof(struct tmplpro_param));
@@ -1091,10 +1113,13 @@ tmplpro_param_init()
      param->expr_func_map=NULL;
      param->expr_func_arglist=NULL;
   */
+  param->case_sensitive=1;
   return param;
 }
 
+API_IMPL 
 void
+APICALL
 tmplpro_param_free(struct tmplpro_param* param)
 {
   if (0!=pbuffer_size(&param->builtin_findfile_buffer)) pbuffer_free(&param->builtin_findfile_buffer);
