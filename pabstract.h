@@ -31,6 +31,8 @@ typedef void ABSTRACT_VALUE;
 typedef void ABSTRACT_FUNCMAP;
 typedef void ABSTRACT_ARGLIST;
 typedef void ABSTRACT_USERFUNC;
+typedef struct tmplpro_param ABSTRACT_EXPRVAL;
+
 
 typedef void BACKCALL (*writer_functype) (ABSTRACT_WRITER*,const char* begin, const char* endnext);
 
@@ -64,9 +66,9 @@ typedef int     BACKCALL (*unload_file_functype) (ABSTRACT_FILTER*, PSTRING mema
 /* those are needed for EXPR= extension */
 typedef ABSTRACT_USERFUNC* BACKCALL (*is_expr_userfnc_functype) (ABSTRACT_FUNCMAP*, PSTRING name);
 typedef ABSTRACT_ARGLIST*  BACKCALL (*init_expr_arglist_functype) (ABSTRACT_CALLER*);
-typedef void BACKCALL (*push_expr_arglist_functype) (ABSTRACT_ARGLIST*, struct tmplpro_param* param);
+typedef void BACKCALL (*push_expr_arglist_functype) (ABSTRACT_ARGLIST*, ABSTRACT_EXPRVAL*);
 typedef void BACKCALL (*free_expr_arglist_functype) (ABSTRACT_ARGLIST*);
-typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*, struct tmplpro_param* param);
+typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*, ABSTRACT_EXPRVAL*);
 
 /* ------- end Expr extension -------- */
 
@@ -236,6 +238,10 @@ typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_
 /** \typedef typedef ABSTRACT_ARGLIST* (*init_expr_arglist_functype) (ABSTRACT_CALLER*);
     \brief optional callback to initialize the list of arguments for a user-provided function.
 
+    Note that if function calls are nested, then the calls to a callbacks of 
+    ::init_expr_arglist_functype, ::push_expr_arglist_functype, ::free_expr_arglist_functype
+    will also be nested.
+
     \param ABSTRACT_CALLER*  optional pointer stored by tmplpro_set_option_ext_calluserfunc_state().
     \return value to be passed to callbacks of push_expr_arglist_functype, 
     free_expr_arglist_functype and call_expr_userfnc_functype.
@@ -246,16 +252,25 @@ typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_
 /** \typedef typedef void (*free_expr_arglist_functype) (ABSTRACT_ARGLIST*);
     \brief optional callback to release the list of arguments for a user-provided function.
 
+    Note that if function calls are nested, then the calls to a callbacks of 
+    ::init_expr_arglist_functype, ::push_expr_arglist_functype, ::free_expr_arglist_functype
+    will also be nested.
+
     \param ABSTRACT_ARGLIST*  optional pointer returned by callback of init_expr_arglist_functype.
 
     @see tmplpro_set_option_FreeExprArglistFuncPtr
  */
 
-/** \typedef typedef void (*push_expr_arglist_functype) (ABSTRACT_ARGLIST*, struct tmplpro_param* param);
+/** \typedef typedef void (*push_expr_arglist_functype) (ABSTRACT_ARGLIST*, ABSTRACT_EXPRVAL*);
     \brief optional callback to add new value to the list of arguments for a user-provided function.
 
+    Note that if function calls are nested, then the calls to a callbacks of 
+    ::init_expr_arglist_functype, ::push_expr_arglist_functype, ::free_expr_arglist_functype
+    will also be nested.
+
     \param ABSTRACT_ARGLIST*  optional pointer returned by callback of init_expr_arglist_functype.
-    \param param pointer to the struct tmplpro_param (main libhtmltmplpro class)
+    \param ABSTRACT_EXPRVAL*  pointer required by tmplpro_get_expr_* functions to retrieve the value
+    (a place the pushed value is stored).
 
     A value to be added to the list of arguments for a user-provided function is not passed 
     as argument to a callback of push_expr_arglist_functype. Instead, a pointer to 
@@ -270,14 +285,15 @@ typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_
     @see tmplpro_set_option_PushExprArglistFuncPtr
  */
 
-/** \typedef typedef void (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*, struct tmplpro_param* param);
+/** \typedef typedef void (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*, ABSTRACT_EXPRVAL*);
 
     \brief optional callback to call a user-provided function with a current list of arguments.
 
     \param ABSTRACT_CALLER*  optional pointer stored by tmplpro_set_option_ext_calluserfunc_state().
     \param ABSTRACT_ARGLIST*  optional pointer returned by callback of init_expr_arglist_functype.
     \param ABSTRACT_USERFUNC* optional pointer returned by callback of is_expr_userfnc_functype.
-    \param param pointer to the struct tmplpro_param (main libhtmltmplpro class)
+    \param ABSTRACT_EXPRVAL*  pointer required by tmplpro_set_expr_as_* functions 
+    (a place the return value will be stored).
 
     To return the result user function returned the callback of call_expr_userfnc_functype should 
     call one of the functions 
@@ -285,7 +301,7 @@ typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_
     \li tmplpro_set_expr_as_double()
     \li tmplpro_set_expr_as_string()
     \li tmplpro_set_expr_as_pstring()
-    passing them the struct tmplpro_param* param as argument.
+    passing them the ABSTRACT_EXPRVAL* as argument.
 
     @see tmplpro_set_option_CallExprUserfncFuncPtr
  */
@@ -376,21 +392,12 @@ typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_
     and is passed to callback of ::call_expr_userfnc_functype.
  */
 
-/** \struct tmplpro_param
+/** \typedef typedef void ABSTRACT_EXPRVAL
 
-    \brief main htmltmplpro class.
-    
-    Main htmltmplpro class. Passed by reference.
-    Its internal structure is hidden and is not part of the API.
+    \brief optional pointer representing user function argument or return value.
 
-    Constructor is  tmplpro_param_init()
-    
-    Destructor is tmplpro_param_free()
-
-    Main method is tmplpro_exec_tmpl()
-
+    It is passed to callbacks of ::push_expr_arglist_functype and ::call_expr_userfnc_functype.
  */
-
 
 /*
  *  Local Variables:

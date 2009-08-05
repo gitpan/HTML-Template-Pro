@@ -70,13 +70,12 @@ unload_file_functype UnloadFileFuncPtr;
   is_expr_userfnc_functype   IsExprUserfncFuncPtr;
   ABSTRACT_FUNCMAP*  expr_func_map;
   /* private */
-  ABSTRACT_ARGLIST* expr_func_arglist; /* can it possibly be moved to expr? */
   int cur_includes; /* internal counter of include depth */
   const char* selfpath; /* file that has included this file, or empty string */
   /* moved from state; are passed to include */
   /* variable scope (nested loops) */
   struct scope_stack var_scope_stack;
-  // not used; TODO: use
+  // for callbacks
   struct exprval userfunc_call;
 /* 
  * buffers for snprintf %f

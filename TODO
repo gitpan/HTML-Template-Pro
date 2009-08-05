@@ -26,8 +26,13 @@ but an extra {malloc()+memcopying}/free() management of the memory area.
 at least tmpl_var).
 see for strdup: http://sourceware.org/autobook/autobook/autobook_246.html
 
-
 4. support of HTML::Template::SET:
 <TMPL_SET NAME="name" VALUE="value">
 This change will require the change of C library API.
 It requires callback for (add name/value pair to a current scope).
+
+5. optimization: expr.y: lexer should look forward for ( and ask is name is userfunc
+only if it is before \s*\( pattern.
+
+6. param optimization; move exprval buffer to the expr.y.$$
+split exprval.h and remove it from include.

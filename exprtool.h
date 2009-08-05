@@ -62,9 +62,15 @@ PSTRING expr_unescape_pstring_val(struct tmplpro_state* state, PSTRING val);
 static
 void _tmplpro_expnum_debug (struct exprval val, char* msg);
 
-static 
-struct exprval call_expr_userfunc(struct tmplpro_state* state, void* ABSTRACT_EXTFUNC);
+
+struct user_func_call {
+  ABSTRACT_USERFUNC* func;  /* for user-defined function name */
+  ABSTRACT_ARGLIST* arglist;
+};
+
 static
-void pusharg_expr_userfunc(struct tmplpro_state* state, struct exprval arg);
+struct exprval call_expr_userfunc(struct tmplpro_state* state, struct user_func_call extfunc);
+static
+void pusharg_expr_userfunc(struct tmplpro_state* state, struct user_func_call extfunc, struct exprval arg);
 
 #endif /* exprtool.h */

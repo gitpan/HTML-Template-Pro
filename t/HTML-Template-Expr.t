@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+2*10 };
+BEGIN { plan tests => 1+2*11 };
 #use HTML::Template;
 use HTML::Template::Pro;
 ok(1); # If we made it this far, we're ok.
@@ -22,6 +22,8 @@ $DEBUG||=0;
 HTML::Template::Pro->register_function('registered_func'=>sub { return shift(); });
 HTML::Template::Pro->register_function('hello_string'=>sub { return 'hello!'; });
 HTML::Template::Pro->register_function('arglist'=>sub { return '['.join('][',@_).']'; });
+HTML::Template::Pro->register_function( f1 => sub { return "F1: @_"; });
+HTML::Template::Pro->register_function( f2 => sub { return "F2: @_"; });
 
 my @exprset1=(ONE=>1,TWO=>2,THREE=>3,ZERO=>0,MINUSTEN=>-10, FILE=>'test_if1.tmpl', TWENTY=>20,FOURTY=>50);
 my @brunoext=('foo.bar'=>'<test passed>');
@@ -46,6 +48,7 @@ test_tmpl('test_expr7', @refset1);
 test_tmpl('test_expr8', @exprset1);
 test_tmpl('test_expr9', @exprset1);
 test_tmpl('test_expr10', @exprset1);
+test_tmpl('test_expr11', @exprset1);
 
 # -------------------------
 

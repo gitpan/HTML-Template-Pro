@@ -218,4 +218,8 @@ Revision history for Perl extension HTML::Template::Pro.
 	- ABI is officially released as 0:0:0.
 	- library default case-sensitive = 1 (Note: perl module dedault is 0).
 
-	
+0.83 Wed Aug  5 20:42:28 EEST 2009
+	- bugfix release: fixed nested functions bug
+	  thanks to Rebenok Kirill
+	- added ABSTRACT_EXPRVAL to hide 0.82 implementation details.
+

@@ -7,6 +7,7 @@
 /* writer_functype stub */
 /* endnext points on next character to end of interval as in c++ */
 static void BACKCALL stub_write_chars_to_stdout (ABSTRACT_WRITER* none,const char* begin, const char* endnext) {
+  if (endnext==begin) return;
   /* register const char* i;
   for (i=begin; i<endnext; i++) putchar(*i); */
   if (0==fwrite(begin, sizeof(char), endnext-begin, stdout)) {

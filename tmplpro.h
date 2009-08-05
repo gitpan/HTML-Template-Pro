@@ -22,6 +22,7 @@ TMPLPRO_API void APICALL tmplpro_procore_done();
 
 TMPLPRO_API const char* APICALL tmplpro_version(void);
 
+struct tmplpro_param;
 /* 
  * Constructor and destructor of tmplpro_param. 
  * Note that struct tmplpro_param is not part of the interface
@@ -32,16 +33,16 @@ TMPLPRO_API void APICALL tmplpro_param_free(struct tmplpro_param*);
 
 TMPLPRO_API int APICALL tmplpro_exec_tmpl (struct tmplpro_param*);
 
-TMPLPRO_API void APICALL tmplpro_set_expr_as_int64 (struct tmplpro_param*,EXPR_int64);
-TMPLPRO_API void APICALL tmplpro_set_expr_as_double (struct tmplpro_param*,double);
-TMPLPRO_API void APICALL tmplpro_set_expr_as_string (struct tmplpro_param*,char*);
-TMPLPRO_API void APICALL tmplpro_set_expr_as_pstring (struct tmplpro_param*,PSTRING);
+TMPLPRO_API void APICALL tmplpro_set_expr_as_int64 (ABSTRACT_EXPRVAL*,EXPR_int64);
+TMPLPRO_API void APICALL tmplpro_set_expr_as_double (ABSTRACT_EXPRVAL*,double);
+TMPLPRO_API void APICALL tmplpro_set_expr_as_string (ABSTRACT_EXPRVAL*,char*);
+TMPLPRO_API void APICALL tmplpro_set_expr_as_pstring (ABSTRACT_EXPRVAL*,PSTRING);
 
-TMPLPRO_API int  APICALL tmplpro_get_expr_type (struct tmplpro_param*);
-TMPLPRO_API EXPR_int64 APICALL tmplpro_get_expr_as_int64 (struct tmplpro_param*);
-TMPLPRO_API double APICALL tmplpro_get_expr_as_double (struct tmplpro_param*);
-TMPLPRO_API char* APICALL tmplpro_get_expr_as_string (struct tmplpro_param*);
-TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (struct tmplpro_param*);
+TMPLPRO_API int  APICALL tmplpro_get_expr_type (ABSTRACT_EXPRVAL*);
+TMPLPRO_API EXPR_int64 APICALL tmplpro_get_expr_as_int64 (ABSTRACT_EXPRVAL*);
+TMPLPRO_API double APICALL tmplpro_get_expr_as_double (ABSTRACT_EXPRVAL*);
+TMPLPRO_API char* APICALL tmplpro_get_expr_as_string (ABSTRACT_EXPRVAL*);
+TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
 
 #endif /* tmplpro.h */
 
@@ -82,57 +83,72 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (struct tmplpro_param*);
     \brief main method of libhtmltmplpro.
 */
 
-/*! \fn void tmplpro_set_expr_as_int64 (struct tmplpro_param*,EXPR_int64);
+/*! \fn void tmplpro_set_expr_as_int64 (ABSTRACT_EXPRVAL*,EXPR_int64);
     \brief method to return int64 value from callback of call_expr_userfnc_functype.
 
     It should only be used in a callback of call_expr_userfnc_functype.
 */
 
-/*! \fn void tmplpro_set_expr_as_double (struct tmplpro_param*,double);
+/*! \fn void tmplpro_set_expr_as_double (ABSTRACT_EXPRVAL*,double);
     \brief method to return double value from callback of call_expr_userfnc_functype.
 
     It should only be used in a callback of call_expr_userfnc_functype.
 */
 
-/*! \fn void tmplpro_set_expr_as_string (struct tmplpro_param*,char*);
+/*! \fn void tmplpro_set_expr_as_string (ABSTRACT_EXPRVAL*,char*);
     \brief method to return C string value from callback of call_expr_userfnc_functype.
 
     It should only be used in a callback of call_expr_userfnc_functype.
 */
 
-/*! \fn void tmplpro_set_expr_as_pstring (struct tmplpro_param*,PSTRING);
+/*! \fn void tmplpro_set_expr_as_pstring (ABSTRACT_EXPRVAL*,PSTRING);
     \brief method to return PSTRING value from callback of call_expr_userfnc_functype.
 
     It should only be used in a callback of call_expr_userfnc_functype.
 */
 
-/*! \fn EXPR_int64 tmplpro_get_expr_as_int64 (struct tmplpro_param*);
+/*! \fn EXPR_int64 tmplpro_get_expr_as_int64 (ABSTRACT_EXPRVAL*);
     \brief method for callback of push_expr_arglist_functype to retrieve a value as int64.
 */
 
-/*! \fn double tmplpro_get_expr_as_double (struct tmplpro_param*);
+/*! \fn double tmplpro_get_expr_as_double (ABSTRACT_EXPRVAL*);
     \brief method for callback of push_expr_arglist_functype to retrieve a value as double.
 
     It should only be used in a callback of push_expr_arglist_functype.
 */
 
-/*! \fn char* tmplpro_get_expr_as_string (struct tmplpro_param*);
+/*! \fn char* tmplpro_get_expr_as_string (ABSTRACT_EXPRVAL*);
     \brief method for callback of push_expr_arglist_functype to retrieve a value as C string.
 
     It should only be used in a callback of push_expr_arglist_functype.
 */
 
-/*! \fn PSTRING tmplpro_get_expr_as_pstring (struct tmplpro_param*);
+/*! \fn PSTRING tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
     \brief method for callback of push_expr_arglist_functype to retrieve a value as PSTRING.
 
     It should only be used in a callback of push_expr_arglist_functype.
 */
 
-/*! \fn int  tmplpro_get_expr_type (struct tmplpro_param*);
+/*! \fn int  tmplpro_get_expr_type (ABSTRACT_EXPRVAL*);
     \brief method for callback of push_expr_arglist_functype to determine the type of a value.
 
     It should only be used in a callback of push_expr_arglist_functype.
 */
+
+/** \struct tmplpro_param
+
+    \brief main htmltmplpro class.
+    
+    Main htmltmplpro class. Passed by reference.
+    Its internal structure is hidden and is not part of the API.
+
+    Constructor is  tmplpro_param_init()
+    
+    Destructor is tmplpro_param_free()
+
+    Main method is tmplpro_exec_tmpl()
+
+ */
 
 /*! \mainpage
  *
@@ -146,4 +162,9 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (struct tmplpro_param*);
  *  
  * \subsection CMake
  * etc...
+ *  
+ * \section api_sec History of API and ABI changes
+ *
+ * \include API
+ *
  */
