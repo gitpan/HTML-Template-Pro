@@ -6,10 +6,10 @@ use warnings;
 open (PP,'pparam.h');
 open (PARAMH,'>','proparam.h');
 open (PARAMC,'>','proparam.c');
-open (PARAMM1,'>','mono-wrapper/htp-c-opts.cs.inc');
-open (PARAMM2,'>','mono-wrapper/htp-intset.cs.inc');
-open (PARAMM3,'>','mono-wrapper/htp-intget.cs.inc');
-open (PARAMM4,'>','mono-wrapper/htp-intprop.cs.inc');
+open (PARAMM1,'>','mono-wrapper/src/htp-c-opts.cs.inc');
+open (PARAMM2,'>','mono-wrapper/src/htp-intset.cs.inc');
+open (PARAMM3,'>','mono-wrapper/src/htp-intget.cs.inc');
+open (PARAMM4,'>','mono-wrapper/src/htp-intprop.cs.inc');
 open (PARAMDLLSYM,'>','htmltmplpro/src/libhtmltmplpro.sym');
 open (PARAMDLLDEF,'>','htmltmplpro/src/libhtmltmplpro.def');
 
@@ -155,10 +155,10 @@ APICALL tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
 }
 ";
     print PARAMM1 "
-    [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention)]
+    [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention, CharSet=DLL.HTPCharSet)]
       internal static extern $monotype tmplpro_get_option_$name(IntPtr c_param);
 
-    [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention)]
+    [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention, CharSet=DLL.HTPCharSet)]
       internal static extern void tmplpro_set_option_$name(IntPtr c_param, $monotype val);
 ";
     print PARAMM2 '      case "'.$name.'": '."\t".'C_OPTS.tmplpro_set_option_'.$name.'(_c_param, val); break;

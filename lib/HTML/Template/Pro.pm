@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.83';
+$VERSION = '0.84';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -244,14 +244,27 @@ sub param {
 
 sub register_function {
   my($self, $name, $sub) = @_;
-  croak("HTML::Template::Pro : last arg of register_function must be subroutine reference\n")
-    unless ref($sub) eq 'CODE';
-  if (ref $self) {
-      # per object call
-      $self->{expr_func}->{$name} = $sub;
+  if ( ref($sub) eq 'CODE' ) {
+      if (ref $self) {
+          # per object call
+          $self->{expr_func}->{$name} = $sub;
+          $self->{expr_func_user_list}->{$name} = 1;
+      } else {
+          # per class call
+          $FUNC{$name} = $sub;
+      }
+  } elsif ( defined $sub ) {
+      croak("HTML::Template::Pro : last arg of register_function must be subroutine reference\n")
   } else {
-      # per class call
-      $FUNC{$name} = $sub;
+      if (ref $self) {
+          if ( defined $name ) {
+              return $self->{expr_func}->{$name};
+          } else {
+              return keys %{ $self->{expr_func_user_list} };
+          }
+      } else {
+          return keys %FUNC;
+      }
   }
 }
 

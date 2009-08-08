@@ -35,4 +35,3 @@ It requires callback for (add name/value pair to a current scope).
 only if it is before \s*\( pattern.
 
 6. param optimization; move exprval buffer to the expr.y.$$
-split exprval.h and remove it from include.

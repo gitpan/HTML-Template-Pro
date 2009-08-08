@@ -10,6 +10,7 @@
 #define _EXPRTOOL_H	1
 
 #include "pstring.h"
+#include "exprval.h"
 
 #define DO_MATHOP(state, z,op,x,y) switch (z.type=expr_to_int_or_dbl(state, &x,&y)) { \
 case EXPR_TYPE_INT: z.val.intval=x.val.intval op y.val.intval;break; \
@@ -34,9 +35,9 @@ case EXPR_TYPE_DBL: z.val.intval=x.val.dblval op y.val.dblval;break; \
 #define DO_TXTOP(z,op,x,y,buf) expr_to_str(&x,&y,buf); z.type=EXPR_TYPE_INT; z.val.intval = op (x.val.strval,y.val.strval);
 
 static
-exprtype expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2);
+EXPR_char expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2);
 static
-exprtype expr_to_int_or_dbl_logop (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2);
+EXPR_char expr_to_int_or_dbl_logop (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2);
 static
 void expr_to_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2);
 static

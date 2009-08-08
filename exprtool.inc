@@ -15,19 +15,19 @@
 #define EXPR_CHECK_NUMBER(state, ptr)   switch (ptr->type) {	\
   case EXPR_TYPE_INT: case EXPR_TYPE_DBL: break; \
   case EXPR_TYPE_PSTR: expr_to_num(state, ptr); break;				\
-  default: _tmplpro_expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
+  default: _tmplpro_expnum_debug(*ptr, "FATAL:internal expr type error. please report\n"); \
   ptr->type = EXPR_TYPE_INT; \
 }
 
 #define EXPR_CHECK_LOGICAL(state, ptr)   switch (ptr->type) {	\
   case EXPR_TYPE_INT: case EXPR_TYPE_DBL: break; \
   case EXPR_TYPE_PSTR: expr_to_bool(state, ptr); break;			\
-  default: _tmplpro_expnum_debug(*ptr, "FATAL:internal exprtype error. please report\n"); \
+  default: _tmplpro_expnum_debug(*ptr, "FATAL:internal expr type error. please report\n"); \
   ptr->type = EXPR_TYPE_INT; \
 }
 
 static
-exprtype 
+EXPR_char 
 expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_NUMBER(state, val1);
   EXPR_CHECK_NUMBER(state, val2);
@@ -47,7 +47,7 @@ expr_to_int_or_dbl (struct tmplpro_state* state, struct exprval* val1, struct ex
 }
 
 static
-exprtype 
+EXPR_char 
 expr_to_int_or_dbl_logop (struct tmplpro_state* state, struct exprval* val1, struct exprval* val2) {
   EXPR_CHECK_LOGICAL(state, val1);
   EXPR_CHECK_LOGICAL(state, val2);
@@ -191,8 +191,14 @@ static
 void 
 expr_to_num (struct tmplpro_state* state, struct exprval* val1)
 {
+  char* curpos=val1->val.strval.begin;
   if (val1->type == EXPR_TYPE_PSTR) {
-    char* curpos=val1->val.strval.begin;
+    /* extra check for an undefined value */
+    if (NULL==val1->val.strval.begin) {
+      val1->type = EXPR_TYPE_INT;
+      val1->val.intval = 0;
+      return;
+    }
     *val1=exp_read_number (state, &curpos, val1->val.strval.endnext);
   }
 }

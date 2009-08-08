@@ -275,10 +275,10 @@ void call_expr_userfnc (ABSTRACT_CALLER* callback_state, ABSTRACT_ARGLIST* argli
 	tmplpro_set_expr_as_pstring(exprval,retvalpstr);
       }
     } else {
-      warn ("user defined function returned undef");
+      if (debuglevel) warn ("user defined function returned undef\n");
     }
   } else {
-    warn ("user defined function returned nothing");
+    if (debuglevel) warn ("user defined function returned nothing\n");
   }
 
   FREETMPS ;
@@ -437,6 +437,7 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
   /* tmplpro_set_option_search_path_on_include(param,get_integer_from_hash(SelfHash,"search_path_on_include")); */
   tmplpro_set_option_global_vars(param, get_integer_from_hash(SelfHash,"global_vars"));
   tmplpro_set_option_debug(param, get_integer_from_hash(SelfHash,"debug"));
+  debuglevel = tmplpro_get_option_debug(param);
   tmplpro_set_option_loop_context_vars(param, get_integer_from_hash(SelfHash,"loop_context_vars"));
   tmplpro_set_option_case_sensitive(param, get_integer_from_hash(SelfHash,"case_sensitive"));
   tmplpro_set_option_path_like_variable_scope(param, get_integer_from_hash(SelfHash,"path_like_variable_scope"));
@@ -507,7 +508,7 @@ exec_tmpl(self_ptr,possible_output)
 	  tmplpro_set_option_ext_writer_state(proparam,PerlIO_stdout());
 	} else {
 	  tmplpro_set_option_ext_writer_state(proparam,possible_output);
-	  if (debuglevel) warn("output=given descriptor\n");
+	  if (debuglevel>1) warn("output=given descriptor\n");
 	}
 	tmplpro_set_option_WriterFuncPtr(proparam,&write_chars_to_file);
 	RETVAL = tmplpro_exec_tmpl(proparam);
@@ -529,7 +530,7 @@ exec_tmpl_string(self_ptr)
 	/* 1) estimate string as 2*filesize */
 	/* 2) make it mortal ? auto...  */
 	struct tmplpro_param* proparam=process_tmplpro_options(&callback_state);
-	if (debuglevel) warn("output=string\n");
+	if (debuglevel>1) warn("output=string\n");
 	OutputString=newSV(256); /* 256 allocated bytes -- should be approx. filesize*/
 	sv_setpvn(OutputString, "", 0);
 	tmplpro_set_option_WriterFuncPtr(proparam,&write_chars_to_string);

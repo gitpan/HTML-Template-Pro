@@ -9,6 +9,7 @@
 
 #include "proscope.h"
 #include "pbuffer.h"
+#include "exprval.h" /* TODO: remove together with buffer */
 
 typedef int flag;
 

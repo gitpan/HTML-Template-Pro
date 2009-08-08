@@ -11,6 +11,7 @@
 
 #include "pabidecl.h"
 #include "pstring.h"
+#include "exprtype.h"
 #include "pabstract.h"
 #include "proparam.h"
 
@@ -33,6 +34,7 @@ TMPLPRO_API void APICALL tmplpro_param_free(struct tmplpro_param*);
 
 TMPLPRO_API int APICALL tmplpro_exec_tmpl (struct tmplpro_param*);
 
+struct exprval;
 TMPLPRO_API void APICALL tmplpro_set_expr_as_int64 (ABSTRACT_EXPRVAL*,EXPR_int64);
 TMPLPRO_API void APICALL tmplpro_set_expr_as_double (ABSTRACT_EXPRVAL*,double);
 TMPLPRO_API void APICALL tmplpro_set_expr_as_string (ABSTRACT_EXPRVAL*,char*);
@@ -149,6 +151,28 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
     Main method is tmplpro_exec_tmpl()
 
  */
+
+/** \struct exprval
+
+    \brief EXPR="..." variable class.
+    
+    EXPR="..." expression variable class. Passed by reference.
+    Its internal structure is hidden and is not part of the API.
+    It can contain string, 64-bit integer or double.
+
+    Methods:
+    \li tmplpro_set_expr_as_int64(ABSTRACT_EXPRVAL*,EXPR_int64)
+    \li tmplpro_set_expr_as_double(ABSTRACT_EXPRVAL*,double)
+    \li tmplpro_set_expr_as_string(ABSTRACT_EXPRVAL*,char*)
+    \li tmplpro_set_expr_as_pstring(ABSTRACT_EXPRVAL*,PSTRING)
+
+    \li tmplpro_get_expr_type(ABSTRACT_EXPRVAL*)
+    \li tmplpro_get_expr_as_int64(ABSTRACT_EXPRVAL*)
+    \li tmplpro_get_expr_as_double(ABSTRACT_EXPRVAL*)
+    \li tmplpro_get_expr_as_string(ABSTRACT_EXPRVAL*)
+    \li tmplpro_get_expr_as_pstring(ABSTRACT_EXPRVAL*)
+ */
+
 
 /*! \mainpage
  *

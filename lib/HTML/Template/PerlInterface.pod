@@ -856,6 +856,46 @@ Then you can use it in your template:
 
 This can be abused in ways that make my teeth hurt.
 
+=head2 register_function() extended usage (HTML::Template::Pro specific)
+
+C<register_function()> can be called in a number of ways
+
+1) To fetch the names of registered functions in the template:
+
+=over 4
+
+=item *
+   if C<register_function()> was called in a newly created object it returns a
+
+   list of function's that set _after_ or _in_ new():
+
+   my @registered_functions_names = $self->register_function();
+
+=item *
+   in global context C<register_function()> will return a list of _ALL_
+   avalible function's
+
+   my @all_avalible_functions_names =
+HTML::Template::Pro->register_function();
+
+2) To fetching the function by name:
+
+   my $function = $self->register_function('FUNCTION_NAME');
+
+3) To set a new function:
+
+    # Set function, that can be called in templates, wich are processed
+    # by the current object:
+    $self->register_function(foozicate => sub { ... });
+
+    # Set global function:
+    HTML::Template::Pro->register_function(barify    => sub { ... });
+
+=back
+
+for details of "how to defined a function" see in
+L<EXPR: DEFINING NEW FUNCTIONS>.
+
 =head1 EXPR MOD_PERL TIP
 
 C<register_function> class method can be called in mod_perl's

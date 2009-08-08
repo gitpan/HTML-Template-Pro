@@ -15,9 +15,9 @@
 
 #include "pstring.h"
 #include "pabidecl.h"
-#include "exprval.h"
 
 struct tmplpro_param;
+struct exprval;
 
 typedef void ABSTRACT_WRITER;
 typedef void ABSTRACT_FINDFILE;
@@ -31,7 +31,7 @@ typedef void ABSTRACT_VALUE;
 typedef void ABSTRACT_FUNCMAP;
 typedef void ABSTRACT_ARGLIST;
 typedef void ABSTRACT_USERFUNC;
-typedef struct tmplpro_param ABSTRACT_EXPRVAL;
+typedef struct exprval ABSTRACT_EXPRVAL;
 
 
 typedef void BACKCALL (*writer_functype) (ABSTRACT_WRITER*,const char* begin, const char* endnext);

@@ -223,3 +223,8 @@ Revision history for Perl extension HTML::Template::Pro.
 	  thanks to Rebenok Kirill
 	- added ABSTRACT_EXPRVAL to hide 0.82 implementation details.
 
+0.84 Thu Aug  6 13:03:23 EEST 2009
+	- perl: register_function (name), register_function() calls
+	  thanks to Rebenok Kirill
+	- bugfix: fixed function returned undef crush bug
+	  thanks to Rebenok Kirill

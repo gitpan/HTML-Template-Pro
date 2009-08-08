@@ -22,6 +22,7 @@ exprpstr.h
 exprpstr.inc
 exprtool.h
 exprtool.inc
+exprtype.h
 exprval.h
 lib/HTML/Template/PerlInterface.pod
 lib/HTML/Template/Pro.pm
@@ -91,6 +92,10 @@ templates-Pro/test_expr10.out
 templates-Pro/test_expr10.tmpl
 templates-Pro/test_expr11.out
 templates-Pro/test_expr11.tmpl
+templates-Pro/test_expr12.out
+templates-Pro/test_expr12.tmpl
+templates-Pro/test_expr13.out
+templates-Pro/test_expr13.tmpl
 templates-Pro/test_expr2.out
 templates-Pro/test_expr2.tmpl
 templates-Pro/test_expr3.out

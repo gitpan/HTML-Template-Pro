@@ -17,6 +17,14 @@
 #include "exprpstr.h"
 #include "parse_expr.h"
 #include "pparam.h"
+  /* kill them.
+Debug Assertion Failed! f:\dd\vctools\crt_bld\self_x86\crt\src \isctype.c Expression:(unsigned)(c + 1) <= 256 
+   */
+#ifdef _MSC_VER
+#  define TO_UNSIGNED_CHAR (unsigned char)
+#else
+#  define TO_UNSIGNED_CHAR
+#endif
   %}
 %union {
   struct exprval numval;   /* For returning numbers.  */
@@ -273,7 +281,7 @@ static
 int 
 is_alnum_lex (char c)
 {
-  return (c == '_' || isalnum (c));
+  return (c == '_' || isalnum (TO_UNSIGNED_CHAR c));
 }
 
 static 
@@ -330,7 +338,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 	
   state->is_expect_quote_like=0;
   /* Char starts a number => parse the number.         */
-  if (c == '.' || isdigit (c))
+  if (c == '.' || isdigit (TO_UNSIGNED_CHAR c))
     {
       (*lvalp).numval=exp_read_number (state, &(state->expr_curpos), (state->expr).endnext);
       return NUM;
@@ -411,7 +419,7 @@ call_expr_userfunc(struct tmplpro_state* state, struct user_func_call USERFUNC) 
   emptyval.val.strval.begin=NULL;
   emptyval.val.strval.endnext=NULL;
   state->param->userfunc_call = emptyval;
-  state->param->CallExprUserfncFuncPtr(state->param->ext_calluserfunc_state, USERFUNC.arglist, USERFUNC.func, state->param);
+  state->param->CallExprUserfncFuncPtr(state->param->ext_calluserfunc_state, USERFUNC.arglist, USERFUNC.func, &(state->param->userfunc_call));
   if (state->param->debug>6) _tmplpro_expnum_debug (state->param->userfunc_call, "EXPR: function call: returned ");
   state->param->FreeExprArglistFuncPtr(USERFUNC.arglist);
   USERFUNC.arglist = NULL;
@@ -422,7 +430,7 @@ static
 void
 pusharg_expr_userfunc(struct tmplpro_state* state, struct user_func_call USERFUNC, struct exprval arg) {
   state->param->userfunc_call = arg;
-  state->param->PushExprArglistFuncPtr(USERFUNC.arglist,state->param);
+  state->param->PushExprArglistFuncPtr(USERFUNC.arglist,&(state->param->userfunc_call));
   if (state->param->debug>6) _tmplpro_expnum_debug (arg, "EXPR: arglist: pushed ");
 }
 
