@@ -9,21 +9,22 @@
 #include <ctype.h> /* for yylex alnum */
 #include "calc.h"  /* Contains definition of `symrec'.  */
 #include "tmpllog.h"
-/* for expr-specific only */
 #include "pabstract.h"
 #include "prostate.h"
 #include "provalue.h"
+#include "pparam.h"
+#include "pmiscdef.h"
+/* for expr-specific only */
 #include "exprtool.h"
 #include "exprpstr.h"
 #include "parse_expr.h"
-#include "pparam.h"
   /* kill them.
 Debug Assertion Failed! f:\dd\vctools\crt_bld\self_x86\crt\src \isctype.c Expression:(unsigned)(c + 1) <= 256 
    */
 #ifdef _MSC_VER
-#  define TO_UNSIGNED_CHAR (unsigned char)
+#  define TO_UNSIGNED_CHAR(X) ((unsigned char) (X))
 #else
-#  define TO_UNSIGNED_CHAR
+#  define TO_UNSIGNED_CHAR(X) X
 #endif
   %}
 %union {
@@ -244,7 +245,10 @@ parse_expr(PSTRING expression, struct tmplpro_state* state)
 static
 void 
 expr_debug(struct tmplpro_state* state, char const *msg1, char const *msg2) {
-  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos %td [%td]: %s %s\n", (state->expr_curpos)-(state->top),(state->expr_curpos)-(state->expr).begin,msg1,msg2);
+  tmpl_log(NULL, TMPL_LOG_ERROR, "EXPR:at pos " MOD_TD " [" MOD_TD "]: %s %s\n", 
+	   TO_PTRDIFF_T((state->expr_curpos)-(state->top)),
+	   TO_PTRDIFF_T((state->expr_curpos)-(state->expr).begin),
+	   msg1,msg2);
 }
 
 static
@@ -281,7 +285,7 @@ static
 int 
 is_alnum_lex (char c)
 {
-  return (c == '_' || isalnum (TO_UNSIGNED_CHAR c));
+  return (c == '_' || isalnum (TO_UNSIGNED_CHAR(c)));
 }
 
 static 
@@ -338,7 +342,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state)
 	
   state->is_expect_quote_like=0;
   /* Char starts a number => parse the number.         */
-  if (c == '.' || isdigit (TO_UNSIGNED_CHAR c))
+  if (c == '.' || isdigit (TO_UNSIGNED_CHAR(c)))
     {
       (*lvalp).numval=exp_read_number (state, &(state->expr_curpos), (state->expr).endnext);
       return NUM;

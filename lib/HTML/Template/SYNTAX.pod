@@ -500,7 +500,7 @@ Nevertheless, in HTML::Template::Pro, you can safely write things like
 
 with proper priority of operations.
 
-Pattern in regular expression must be enclosed with "/":
+Pattern in a regular expression must be enclosed with "/":
 
    <TMPL_VAR EXPR="foo =~ /bar/">
 

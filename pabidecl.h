@@ -22,22 +22,22 @@
 #endif
 
 #if defined( __WIN32__ ) || defined( _WIN32 ) || defined __CYGWIN__
-#   if !defined(HTMLTMPLPRO_STATIC)
-#       if defined( htmltmplpro_EXPORTS ) || defined (DLL_EXPORT)
-#           define TMPLPRO_EXPORT_SYM __declspec(dllexport)
-#       else
-#           define TMPLPRO_EXPORT_SYM __declspec(dllimport)
-#       endif
-#   endif
-#   define TMPLPRO_HIDDEN_SYM
+# define TMPLPRO_HIDDEN_SYM
+# if defined(HTMLTMPLPRO_STATIC)
+#  define TMPLPRO_EXPORT_SYM
+# else
+#  if defined( htmltmplpro_EXPORTS ) || defined (DLL_EXPORT)
+#   define TMPLPRO_EXPORT_SYM __declspec(dllexport)
+#  else
+#   define TMPLPRO_EXPORT_SYM __declspec(dllimport)
+#  endif
+# endif
+#elif __GNUC__ >= 4
+# define TMPLPRO_EXPORT_SYM __attribute__ ((visibility("default")))
+# define TMPLPRO_HIDDEN_SYM __attribute__ ((visibility("hidden")))
 #else
-#   if __GNUC__ >= 4
-#       define TMPLPRO_EXPORT_SYM __attribute__ ((visibility("default")))
-#       define TMPLPRO_HIDDEN_SYM __attribute__ ((visibility("hidden")))
-#   else
-#       define TMPLPRO_EXPORT_SYM
-#       define TMPLPRO_HIDDEN_SYM
-#   endif
+# define TMPLPRO_EXPORT_SYM
+# define TMPLPRO_HIDDEN_SYM
 #endif
 
 #ifndef APICALL

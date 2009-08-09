@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.84';
+$VERSION = '0.85';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -450,7 +450,7 @@ Yet powerful, HTML::Template is slow, especially if mod_perl isn't
 available or in case of disk usage and memory limitations.
 
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
-of HTML::Template (as of 2.9) and HTML::Template::Expr (as of 0.0.5). 
+of HTML::Template (as of 2.9) and HTML::Template::Expr (as of 0.0.7). 
 It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
 quering, the extended facility of HTML::Template.
@@ -499,13 +499,15 @@ See L<HTML::Template::PerlInterface/BUGS>
 I. Vlasenko, E<lt>viy@altlinux.orgE<gt>
 
 with contributions of
-Bruni Emiliano, <info@ebruni.it>
-Stanislav Yadykin, <tosick at altlinux.ru>
-Viacheslav Sheveliov <slavash at aha.ru>
+Bruni Emiliano, E<lt>info at ebruni.itE<gt>
+Stanislav Yadykin, E<lt>tosick at altlinux.ruE<gt>
+Viacheslav Sheveliov E<lt>slavash at aha.ruE<gt>
+Shigeki Morimoto E<lt>shigeki.morimoto at mixi.co.jpE<gt>
+Kirill Rebenok E<lt>kirill at rebenok.plE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005 by I. Yu. Vlasenko.
+Copyright (C) 2005-2009 by I. Yu. Vlasenko.
 Pieces of code in Pro.pm and documentation of HTML::Template are
 copyright (C) 2000-2002 Sam Tregar (sam@tregar.com)
 
