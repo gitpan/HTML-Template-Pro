@@ -30,7 +30,6 @@ struct tmplpro_param {
   const char* filename; /* template file */
   PSTRING scalarref; /* memory area */
   flag path_like_variable_scope;
-  /* currently unsupported, because used in Perl code only */
   flag search_path_on_include;
   char** path;
   /* still unsupported  */
@@ -72,19 +71,11 @@ unload_file_functype UnloadFileFuncPtr;
   ABSTRACT_FUNCMAP*  expr_func_map;
   /* private */
   int cur_includes; /* internal counter of include depth */
-  const char* selfpath; /* file that has included this file, or empty string */
+  const char* masterpath; /* file that has included this file, or NULL */
   /* moved from state; are passed to include */
   /* variable scope (nested loops) */
   struct scope_stack var_scope_stack;
-  // for callbacks
-  struct exprval userfunc_call;
-/* 
- * buffers for snprintf %f
- * internal expr buffers for conversion int/double --> string 
- * moved to param(private) to support multithreading
- */
-  char left_buffer[50];
-  char right_buffer[50];
+
   pbuffer builtin_findfile_buffer;
 };
 

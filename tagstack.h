@@ -20,8 +20,6 @@ static
 struct tagstack_entry* tagstack_top(struct tagstack* tagstack);
 static 
 int tagstack_notempty(struct tagstack* tagstack);
-static 
-int tagstack_selftest(struct tagstack* tagstack);
 
 #endif /* tagstack.h */
 

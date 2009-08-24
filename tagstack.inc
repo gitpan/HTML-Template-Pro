@@ -22,10 +22,12 @@ int tagstack_notempty(struct tagstack* tagstack) {
   return tagstack->pos>=0;
 }
 
+/*
 static 
-void tagstack_debug(struct tagstack* tagstack, struct tagstack_entry item) {
+void tagstack_entry_debug(struct tagstack_entry item) {
  tmpl_log(NULL,TMPL_LOG_DEBUG,"vcontext = %d value=%d\n",item.vcontext,item.value);
 }
+*/
 
 static 
 struct tagstack_entry* tagstack_top(struct tagstack* tagstack) {
@@ -54,21 +56,6 @@ void tagstack_push(struct tagstack* tagstack, struct tagstack_entry item) {
     tagstack->entry=(struct tagstack_entry*) realloc (tagstack->entry, tagstack->depth * sizeof(struct tagstack_entry));
   }
   *(tagstack->entry+tagstack->pos)=item;
-}
-
-  /* stack tests */
-static 
-int tagstack_selftest(struct tagstack* tagstack) {
-  struct tagstack_entry azz;
-  assert(! tagstack_notempty(tagstack));
-  azz.vcontext=9;
-  tagstack_push(tagstack, azz);
-  azz.vcontext=6;
-  assert(tagstack_notempty(tagstack));
-  azz=tagstack_pop(tagstack);
-  assert(! tagstack_notempty(tagstack));
-  assert(azz.vcontext==9);
-  return 0;
 }
 
 /* 

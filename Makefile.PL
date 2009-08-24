@@ -227,6 +227,23 @@ mmap_load_file (const char* filepath) {
     return 0;
 }
 
+sub has_func {
+    my ($func_call)=@_;
+    print "looking for $func_call\n";
+    if (try_compile_and_link('
+#include <string.h>
+    int main (int argc, char** argv)
+    {
+	'.$func_call.';
+    }
+',undef, '')){
+	print "$func_call found.\n";
+	return 1;
+    }
+    print "$func_call not found.\n";
+    return 0;
+}
+
 sub find_int64 {
     foreach my $type ('__int64','long long','int64_t','long','int') {
 	return $type if try_as_int64($type);
@@ -265,7 +282,6 @@ sub configure {
     } else {
 	$DEF{HAS_MMAP}=has_mmap();
     }
-
     $DEF{INT64_NAME} ||= find_int64();
     $DEF{INT64_NAME} ||= $Config{i64type};
 
@@ -286,7 +302,9 @@ sub configure {
 
     $DEFINE.=' -DHAVE_STDINT_H ' if has_header('stdint.h');
     $DEFINE.=' -DHAVE_INTTYPES_H ' if has_header('inttypes.h');
-
+    $DEFINE.=' -DHAVE_STRDUP' if  has_func('strdup("str")');
+    $DEFINE.=' -DHAVE__STRDUP' if  has_func('_strdup("str")');
+    
     $DEFINE.=' -DHAVE_SYS_MMAN_H -DHAVE_SYS_STAT_H' if ($DEF{HAS_MMAP});
     $DEFINE.=' -DCOMPAT_ON_BROKEN_QUOTE -DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG' if ($DEF{'IMITATE'});
     $DEFINE.=' -pedantic -DPEDANTIC' if ($DEF{'PEDANTIC'});

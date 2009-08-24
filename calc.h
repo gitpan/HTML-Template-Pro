@@ -1,7 +1,12 @@
 #include <string.h>
 
-/* Function type.  */
-typedef double (*func_t) (double);
+struct expr_parser;
+
+/* Function types  */
+typedef int (*func_t_ii) (int);
+typedef double (*func_t_dd) (double);
+typedef double (*func_t_ddd) (double,double);
+typedef struct exprval (*func_t_ee) (struct expr_parser* exprobj, struct exprval);
      
 /* memory is allocated at compile time. it is also thread safe */
 struct symrec_const
@@ -9,7 +14,7 @@ struct symrec_const
   char *name;  /* name of symbol */
   int type;    /* type of symbol: either VAR or FNCT */
   double var;      /* value of a VAR */
-  func_t fnctptr;  /* value of a FNCT */
+  void* fnctptr;  /* value of a FNCT */
 };
 
 typedef struct symrec_const symrec_const;

@@ -1,3 +1,6 @@
+#ifndef _PROSTATE_H
+#define _PROSTATE_H	1
+
 #include "pbuffer.h"
 
 struct tagstack {
@@ -30,22 +33,14 @@ struct tmplpro_state {
   /* tag stack */
   struct tagstack tag_stack;
 
-  /* expr state variables */
-  /* expr string buffer; used to unescape pstring arg */
-  /* TODO: test and move it too (otherwise it will cause bugs in included exprs?) */
-  pbuffer expr_pusharg_buffer;
-
-  char* expr_curpos;
-  PSTRING expr;
-/* 
- * is_expect_quote_like allows recognization of quotelike.
- * if not is_expect_quote_like we look only for 'str' and, possibly, "str"
- * if is_expect_quote_like we also look for /str/.
- */
-  int is_expect_quote_like;
+  /* expr string buffers; used to unescape pstring args and for num -> string */
+  pbuffer expr_left_pbuffer;
+  pbuffer expr_right_pbuffer;
 };
 
 extern TMPLPRO_LOCAL void _tmpl_log_state (struct tmplpro_state *state, int level);
+
+#endif /* prostate.h */
 
 /* 
  * Local Variables:

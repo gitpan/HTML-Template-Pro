@@ -48,7 +48,7 @@ your browser when visiting the CGI:
   My Home Directory is /home/some/directory
   My Path is set to /bin;/usr/bin
 
-It is recommended to use case_sensitive=>1 in new()
+It is recommended to use always case_sensitive=>1 in new()
 and print_to=>\*STDOUT in output() for best perfomance.
 
 IMPORTANT NOTE: you can safely write 

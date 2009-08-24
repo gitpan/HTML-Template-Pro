@@ -33,5 +33,3 @@ It requires callback for (add name/value pair to a current scope).
 
 5. optimization: expr.y: lexer should look forward for ( and ask is name is userfunc
 only if it is before \s*\( pattern.
-
-6. param optimization; move exprval buffer to the expr.y.$$

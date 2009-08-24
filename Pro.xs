@@ -213,6 +213,7 @@ void push_expr_arglist(ABSTRACT_ARGLIST* arglist, ABSTRACT_EXPRVAL* exprval)
   int exprval_type=tmplpro_get_expr_type(exprval);
   PSTRING parg;
   switch (exprval_type) {
+  case EXPR_TYPE_NULL: val=newSV(0);break;
   case EXPR_TYPE_INT:  val=newSViv(tmplpro_get_expr_as_int64(exprval));break;
   case EXPR_TYPE_DBL:  val=newSVnv(tmplpro_get_expr_as_double(exprval));break;
   case EXPR_TYPE_PSTR: parg=tmplpro_get_expr_as_pstring(exprval);
@@ -313,7 +314,7 @@ PSTRING get_string_from_hash(HV* TheHash, char* key) {
   return retval;
 }
 
-/*
+
 static 
 char** get_array_of_strings_from_hash(HV* TheHash, char* key, struct perl_callback_state* callback_state) {
   SV** valptr=hv_fetch(TheHash, key, strlen(key), 0);
@@ -345,11 +346,10 @@ char** get_array_of_strings_from_hash(HV* TheHash, char* key, struct perl_callba
       }
     }
   } else {
-    warn ("get_array_of_strings:option %s not found :(\n");
+    warn ("get_array_of_strings:option %s not found :(\n", key);
   }
   return path;
 }
-*/
 
 static 
 struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callback_state) {
@@ -433,8 +433,7 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
 
   tmplpro_set_option_max_includes(param, get_integer_from_hash(SelfHash,"max_includes"));
   tmplpro_set_option_no_includes(param, get_integer_from_hash(SelfHash,"no_includes"));
-  /* search_path_on_include proccessed directly in perl code */
-  /* tmplpro_set_option_search_path_on_include(param,get_integer_from_hash(SelfHash,"search_path_on_include")); */
+  tmplpro_set_option_search_path_on_include(param,get_integer_from_hash(SelfHash,"search_path_on_include"));
   tmplpro_set_option_global_vars(param, get_integer_from_hash(SelfHash,"global_vars"));
   tmplpro_set_option_debug(param, get_integer_from_hash(SelfHash,"debug"));
   debuglevel = tmplpro_get_option_debug(param);
@@ -465,10 +464,11 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
     }
     tmplpro_set_option_default_escape(param, default_escape);
 
-    /* enable to use buit-in find_file 
+  }
+  /* enable to use buit-in find_file */
+  if (0) {
     tmplpro_set_option_path(param, get_array_of_strings_from_hash(SelfHash, "path", callback_state));
     tmplpro_set_option_FindFileFuncPtr(param, NULL);
-    */
   }
   return param;
 }

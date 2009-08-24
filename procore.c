@@ -377,7 +377,7 @@ tag_handler_include (struct tmplpro_state *state, PSTRING name, PSTRING defvalue
 {
   struct tmplpro_param* param;
   char* filename;
-  const char* selfpath;
+  const char* masterpath;
   int x;
   PSTRING varvalue=name;
   if (! state->is_visible) return;
@@ -401,10 +401,10 @@ tag_handler_include (struct tmplpro_state *state, PSTRING name, PSTRING defvalue
   }
   *(filename+(varvalue.endnext-varvalue.begin))=0;
   /* end pstrdup */
-  selfpath=param->selfpath; /* saving current file name */
+  masterpath=param->masterpath; /* saving current file name */
   tmplpro_exec_tmpl_filename (param,filename);
   free (filename);
-  param->selfpath=selfpath;
+  param->masterpath=masterpath;
   param->cur_includes--; 
   return;
 }
@@ -939,7 +939,9 @@ process_state (struct tmplpro_state * state)
   if (debuglevel) tmpl_log(NULL,TMPL_LOG_DEBUG,"process_state:initiated\n");
   tagstack_init(&(state->tag_stack));
   pbuffer_init(&(state->str_buffer));
-  pbuffer_init(&(state->expr_pusharg_buffer));
+  /* magic; 256 > 50 (50 is min.required for double to string conversion */
+  pbuffer_init_as(&(state->expr_left_pbuffer), 256); 
+  pbuffer_init_as(&(state->expr_right_pbuffer), 256);
   Scope_init_root(&state->param->var_scope_stack,state->param->root_param_map);
 
 
@@ -954,7 +956,7 @@ process_state (struct tmplpro_state * state)
     if (('!'==*(cur_pos)) && ('-'==*(cur_pos+1)) && ('-'==*(cur_pos+2))) {
       state->cur_pos+=3;
       jump_over_space(state);
-    is_tag_commented=1;
+      is_tag_commented=1;
     }
     if ('/'==*(state->cur_pos)) {
       state->cur_pos++;
@@ -969,7 +971,8 @@ process_state (struct tmplpro_state * state)
   (state->param->WriterFuncPtr)(state->param->ext_writer_state,state->last_processed_pos,state->next_to_end);
 
   Scope_free(&state->param->var_scope_stack);
-  pbuffer_free(&(state->expr_pusharg_buffer));
+  pbuffer_free(&(state->expr_right_pbuffer));
+  pbuffer_free(&(state->expr_left_pbuffer));
   pbuffer_free(&(state->str_buffer));
   tagstack_free(&(state->tag_stack));
   if (debuglevel) tmpl_log(NULL,TMPL_LOG_DEBUG,"process_state:finished\n");
@@ -999,20 +1002,24 @@ tmplpro_exec_tmpl_filename (struct tmplpro_param *param, const char* filename)
   struct tmplpro_state state;
   int mmapstatus;
   PSTRING memarea;
+  int retval = 0;
   /* 
-   * param->selfpath is path to upper level template 
+   * param->masterpath is path to upper level template 
    * (or NULL in toplevel) which called <include filename>.
    * we use it to calculate filepath for filename.
    * Then filename becames upper level template for its <include>.
    */
-  const char* filepath=(param->FindFileFuncPtr)(param->ext_findfile_state,filename, param->selfpath);
-  param->selfpath=filepath;
+  const char* filepath=(param->FindFileFuncPtr)(param->ext_findfile_state,filename, param->masterpath);
   if (NULL==filepath) return ERR_PRO_FILE_NOT_FOUND;
+  /* filepath should be alive for every nested template */
+  filepath = strdup(filepath);
+
+  param->masterpath=filepath;
   if (param->filters) memarea=(param->LoadFileFuncPtr)(param->ext_filter_state,filepath);
   else memarea=mmap_load_file(filepath);
   if (memarea.begin == NULL) {
-    /* param-> */
-    return ERR_PRO_CANT_OPEN_FILE;
+    retval = ERR_PRO_CANT_OPEN_FILE;
+    goto cleanup_filepath;
   }
   state.top =memarea.begin;
   state.next_to_end=memarea.endnext;
@@ -1025,7 +1032,9 @@ tmplpro_exec_tmpl_filename (struct tmplpro_param *param, const char* filename)
   /* destroying */
   if (param->filters) mmapstatus=(param->UnloadFileFuncPtr)(param->ext_filter_state,memarea);
   else mmapstatus=mmap_unload_file(memarea);
-  return 0;
+ cleanup_filepath:
+  if (filepath!=NULL) free((void*) filepath);
+  return retval;
 }
 
 static
@@ -1033,7 +1042,7 @@ int
 tmplpro_exec_tmpl_scalarref (struct tmplpro_param *param, PSTRING memarea)
 {
   struct tmplpro_state state;
-  param->selfpath=NULL; /* no upper file */
+  param->masterpath=NULL; /* no upper file */
   state.top = memarea.begin;
   state.next_to_end=memarea.endnext;
   if (memarea.begin == memarea.endnext) return 0;
@@ -1072,7 +1081,11 @@ tmplpro_exec_tmpl (struct tmplpro_param *param)
   /* set up stabs */
   if (NULL==param->WriterFuncPtr) param->WriterFuncPtr = stub_write_chars_to_stdout;
   if (NULL==param->ext_findfile_state) param->ext_findfile_state = param;
-  if (NULL==param->FindFileFuncPtr) param->FindFileFuncPtr = stub_find_file_func;
+  if (NULL==param->FindFileFuncPtr) {
+    param->FindFileFuncPtr = stub_find_file_func;
+    param->ext_findfile_state = param;
+    /*pbuffer_init(&param->builtin_findfile_buffer);*/
+  }
   if (NULL==param->IsExprUserfncFuncPtr) param->IsExprUserfncFuncPtr = stub_is_expr_userfnc_func;
   if (NULL==param->LoadFileFuncPtr) param->LoadFileFuncPtr = stub_load_file_func;
   if (NULL==param->UnloadFileFuncPtr) param->UnloadFileFuncPtr = stub_unload_file_func;
@@ -1089,8 +1102,6 @@ void
 APICALL
 tmplpro_procore_init()
 {
-  /* to save time on malloc/free at each included template */
-  /* tagstack_selftest(); */
 }
 
 API_IMPL 
@@ -1115,7 +1126,7 @@ tmplpro_param_init()
   /* not to use external file loader */
   /* param->filters=0;
      param->default_escape=HTML_TEMPLATE_OPT_ESCAPE_NO;
-     param->selfpath=NULL; *//* we are not included by something *//*
+     param->masterpath=NULL; *//* we are not included by something *//*
      param->expr_func_map=NULL;
      param->expr_func_arglist=NULL;
   */

@@ -25,7 +25,7 @@ char* pbuffer_string(pbuffer* pBuffer) {
 TMPLPRO_LOCAL
 char* pbuffer_resize(pbuffer* pBuffer, size_t size) {
   if (pBuffer->bufsize< size) {
-    pBuffer->bufsize=2*size; /* aggresive memory allocation to prevent frequent requests*/
+    pBuffer->bufsize=PBUFFER_MULTIPLICATOR*size; /* aggresive memory allocation to prevent frequent requests*/
     pBuffer->buffer=(char*) realloc (pBuffer->buffer,pBuffer->bufsize * sizeof(char));
   }
   return pBuffer->buffer;

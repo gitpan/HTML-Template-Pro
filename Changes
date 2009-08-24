@@ -231,3 +231,10 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.85 Sun Aug  9 19:31:26 EEST 2009
 	- windows specific fixes
+
+0.86 Sat Aug 22 13:49:10 EEST 2009
+	- bugfix(expr): both strings should be unescaped.
+	- bugfix(built-in find_file).
+	- defined future NULL expr type.
+	- added buit-in funcs: atan2, int, abs, defined, length.
+	- mono: bugfix for case_sensitive=0 root keys.

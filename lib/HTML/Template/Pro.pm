@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.85';
+$VERSION = '0.86';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -42,14 +42,14 @@ use vars qw(%FUNC);
    'lcfirst' => sub { lcfirst($_[0]); },
    'uc'      => sub { uc($_[0]); },
    'ucfirst' => sub { ucfirst($_[0]); },
-   'length'  => sub { length($_[0]); },
-   'defined' => sub { defined($_[0]); },
-   'abs'     => sub { abs($_[0]); },
-   'atan2'   => sub { atan2($_[0], $_[1]); },
+#   'length'  => sub { length($_[0]); },
+#   'defined' => sub { defined($_[0]); },
+#   'abs'     => sub { abs($_[0]); },
+#   'atan2'   => sub { atan2($_[0], $_[1]); },
 #   'cos'     => sub { cos($_[0]); },
 #   'exp'     => sub { exp($_[0]); },
    'hex'     => sub { hex($_[0]); },
-   'int'     => sub { int($_[0]); },
+#   'int'     => sub { int($_[0]); },
 #   'log'     => sub { log($_[0]); },
    'oct'     => sub { oct($_[0]); },
    'rand'    => sub { rand($_[0]); },

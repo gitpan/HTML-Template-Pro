@@ -9,6 +9,8 @@ typedef struct pbuffer {
   char*  buffer;
 } pbuffer;
 
+#define PBUFFER_MULTIPLICATOR 2
+
 TMPLPRO_LOCAL size_t pbuffer_size(pbuffer*);
 TMPLPRO_LOCAL char*  pbuffer_init(pbuffer*);
 TMPLPRO_LOCAL char*  pbuffer_init_as(pbuffer* pBuffer,size_t size);
