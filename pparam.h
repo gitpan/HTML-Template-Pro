@@ -76,7 +76,10 @@ unload_file_functype UnloadFileFuncPtr;
   /* variable scope (nested loops) */
   struct scope_stack var_scope_stack;
 
+  /* private buffer of builtin_findfile */
   pbuffer builtin_findfile_buffer;
+  /* private buffers of walk_through_nested_loops */
+  pbuffer lowercase_varname_buffer;
 };
 
 #endif /* _PPARAM_H */

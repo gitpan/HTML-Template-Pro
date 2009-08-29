@@ -11,6 +11,7 @@ README.ru
 README.win32
 TODO
 benchmark.pl.t
+builtin_findfile.inc
 calc.h
 calc.inc
 callback_stubs.inc

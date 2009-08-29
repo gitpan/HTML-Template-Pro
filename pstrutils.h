@@ -11,11 +11,15 @@
 
 #include "pbuffer.h"
 
-/* 
- * use 1 internal pbuffer; be careful
- * todo: move pbuffer to state - like thread context
- */
+static 
 PSTRING lowercase_pstring (pbuffer*, PSTRING);
+static 
 int is_pstring_true (PSTRING s);
+static 
+PSTRING escape_pstring (pbuffer* StrBuffer, PSTRING pstring, int escapeopt);
 
+/*
+static
+void lowercase_pstring_inplace (PSTRING pstring);
+*/
 #endif /* pstrutils.h */

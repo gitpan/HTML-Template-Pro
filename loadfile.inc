@@ -68,7 +68,7 @@ static PSTRING mmap_load_file(const char *filepath) {
                 // Mapping of zero-length file cause CreateFileMapping to fail.
                 // So skip error messages in this case.
                 if (hFile == INVALID_HANDLE_VALUE || GetFileSize(hFile, NULL) != 0)
-                        fprintf(stderr, "Could not open file '%s'. (system error#%d)\n", filepath, dwLastError);
+                        fprintf(stderr, "Could not open file '%s'. (system error#%ld)\n", filepath, dwLastError);
 
         }
         // Close all opened handles

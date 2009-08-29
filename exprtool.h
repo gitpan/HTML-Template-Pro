@@ -15,7 +15,7 @@
 struct expr_parser {
   struct tmplpro_state* state;
   PSTRING exprarea;
-  char* expr_curpos;
+  const char* expr_curpos;
   /* for callbacks */
   struct exprval userfunc_call;
   /* 
@@ -73,11 +73,11 @@ void expr_to_num (struct expr_parser* exprobj, struct exprval* val1);
 static
 void expr_to_bool (struct expr_parser* exprobj, struct exprval* val1);
 static
-struct exprval exp_read_number (struct expr_parser* exprobj, char* *curposptr, char* endchars);
+struct exprval exp_read_number (struct expr_parser* exprobj, const char* *curposptr, const char* endchars);
 
 /* this stuff is defined or used in expr.y */
 static
-void expr_debug(struct expr_parser* exprobj, char const *,char const *);
+void expr_error(struct expr_parser* exprobj, char const *,char const *);
 
 static
 PSTRING expr_unescape_pstring_val(pbuffer* pbuff, PSTRING val);

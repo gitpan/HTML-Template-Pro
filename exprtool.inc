@@ -146,7 +146,7 @@ is_float_lex (char c)
 
 static
 struct exprval 
-exp_read_number (struct expr_parser* exprobj, char* *curposptr, char* endchars) {
+exp_read_number (struct expr_parser* exprobj, const char* *curposptr, const char* endchars) {
   char c = **curposptr;
   struct exprval retval;
   EXPR_int64 iretval=0;
@@ -172,7 +172,7 @@ exp_read_number (struct expr_parser* exprobj, char* *curposptr, char* endchars) 
 	offset=1;
       } else {
 	/* (*curposptr)--; ??? */
-	expr_debug(exprobj, "uninspected declimal point","");
+	expr_error(exprobj, "uninspected declimal point","");
 	retval.val.dblval=dretval*sign;
 	retval.type=EXPR_TYPE_DBL;
 	return retval;
@@ -200,7 +200,7 @@ static
 void 
 expr_to_num (struct expr_parser* exprobj, struct exprval* val1)
 {
-  char* curpos=val1->val.strval.begin;
+  const char* curpos=val1->val.strval.begin;
   EXPR_char type = val1->type;
   if (type == EXPR_TYPE_PSTR || type == EXPR_TYPE_UPSTR) {
     if (NULL==curpos) {
@@ -218,9 +218,9 @@ void
 expr_to_bool (struct expr_parser* exprobj, struct exprval* val1)
 {
   if (val1->type == EXPR_TYPE_PSTR || val1->type == EXPR_TYPE_UPSTR) {
-    char* begin=val1->val.strval.begin;
-    char* end=val1->val.strval.endnext;
-    char* curpos=begin;
+    const char* begin=val1->val.strval.begin;
+    const char* end=val1->val.strval.endnext;
+    const char* curpos=begin;
     if (begin==end) {
       val1->type = EXPR_TYPE_INT;
       val1->val.intval = 0;
@@ -270,8 +270,8 @@ static
 PSTRING
 expr_unescape_pstring_val(pbuffer* pbuff, PSTRING val) {
   PSTRING retval;
-    char* curpos = val.begin;
-    char* endnext= val.endnext;
+    const char* curpos = val.begin;
+    const char* endnext= val.endnext;
     char* buf=pbuffer_resize(pbuff, endnext-curpos+1);
     char* bufpos = buf;
     while (curpos < endnext) {

@@ -9,7 +9,7 @@ use Carp;
 use vars qw($VERSION @ISA);
 @ISA = qw(DynaLoader);
 
-$VERSION = '0.86';
+$VERSION = '0.87';
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -303,7 +303,11 @@ sub _lowercase_keys {
 
 ## HTML::Template based
 
-## callback function called inside C code
+#### callback function called from C library ##############
+# Note that this _get_filepath perl code is deprecated;  ##
+# by default built-in find_file implementation is used.  ##
+# use magic option __use_perl_find_file => 1 to re-enable it.
+###########################################################
 sub _get_filepath {
   my ($self, $filename, $last_visited_file) = @_;
   # look for the included file...
@@ -315,7 +319,7 @@ sub _get_filepath {
 				    [File::Spec->splitdir($last_visited_file)]
 				    );
   }
-  carp "HTML::Template::Pro:template $filename not found!"  unless $filepath;
+  carp "HTML::Template::Pro (using callback): template $filename not found!"  unless $filepath;
   return $filepath;
 }
 

@@ -44,9 +44,32 @@ tmplpro_set_expr_as_pstring (struct exprval* p,PSTRING pval) {
 }
 
 API_IMPL 
+void 
+APICALL
+tmplpro_set_expr_as_null (struct exprval* p) {
+  p->type=EXPR_TYPE_PSTR;
+  p->val.strval.begin=NULL;
+  p->val.strval.endnext=NULL;
+}
+
+API_IMPL 
 int
 APICALL
 tmplpro_get_expr_type (struct exprval* p) {
+  if (p->type == EXPR_TYPE_PSTR) {
+    if (NULL==p->val.strval.begin) {
+      p->val.strval.endnext=NULL;
+      /* TODO (ABI change)
+      p->type = EXPR_TYPE_NULL;
+      */
+    } else if (NULL==p->val.strval.endnext) {
+      p->val.strval.endnext=p->val.strval.begin+strlen(p->val.strval.begin);
+    }
+  /* never happen; but let it be for future compatibility */
+  } else if (p->type == EXPR_TYPE_NULL) {
+      p->val.strval.begin=NULL;
+      p->val.strval.endnext=NULL;
+  }
   return (int) p->type;
 }
 
@@ -68,6 +91,7 @@ API_IMPL
 char*
 APICALL
 tmplpro_get_expr_as_string (struct exprval* p) {
+  /* BUG! incorrect implementation --- should always use a buffer */
   PSTRING pval = p->val.strval;
   *(pval.endnext)=0;
   return pval.begin;

@@ -238,3 +238,10 @@ Revision history for Perl extension HTML::Template::Pro.
 	- defined future NULL expr type.
 	- added buit-in funcs: atan2, int, abs, defined, length.
 	- mono: bugfix for case_sensitive=0 root keys.
+
+0.87 Wed Aug 26 22:08:41 EEST 2009
+	- bugfix(expr): fixed memory leak.
+	- perl: by default, built-in find_file implementation is used.
+	  the old perl find_file implementation can be re-enabled with 
+	  __use_perl_find_file option. 
+	  Please, report any misbehavior of built-in find_file implementation.

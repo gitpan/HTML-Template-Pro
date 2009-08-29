@@ -288,6 +288,15 @@ void call_expr_userfnc (ABSTRACT_CALLER* callback_state, ABSTRACT_ARGLIST* argli
   return;
 }
 
+typedef void (*set_int_option_functype) (struct tmplpro_param*, int);
+
+static 
+void set_integer_from_hash(HV* TheHash, char* key, struct tmplpro_param* param, set_int_option_functype setfunc) {
+  SV** hashvalptr=hv_fetch(TheHash, key, strlen(key), 0);
+  if (hashvalptr==NULL) return;
+  setfunc(param,SvIV(*hashvalptr));
+}
+
 static 
 int get_integer_from_hash(HV* TheHash, char* key) {
   SV** hashvalptr=hv_fetch(TheHash, key, strlen(key), 0);
@@ -355,7 +364,7 @@ static
 struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callback_state) {
   HV* SelfHash;
   SV** hashvalptr;
-  char* tmpstring;
+  const char* tmpstring;
   SV* PerlSelfPtr=callback_state->perl_obj_self_ptr;
   int default_escape=HTML_TEMPLATE_OPT_ESCAPE_NO;
 
@@ -376,8 +385,6 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
   tmplpro_set_option_GetAbstractMapFuncPtr(param, &get_ABSTRACT_MAP_impl);
   tmplpro_set_option_LoadFileFuncPtr(param, &load_file);
   tmplpro_set_option_UnloadFileFuncPtr(param, &unload_file);
-  tmplpro_set_option_FindFileFuncPtr(param, &get_filepath);
-
 
   /*   setting initial Expr hooks */
   tmplpro_set_option_InitExprArglistFuncPtr(param, &init_expr_arglist);
@@ -431,19 +438,19 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
   if (av_len((AV*)SvRV(*hashvalptr))>=0) tmplpro_set_option_filters(param, 1);
   /* end setting param_map */
 
-  tmplpro_set_option_max_includes(param, get_integer_from_hash(SelfHash,"max_includes"));
-  tmplpro_set_option_no_includes(param, get_integer_from_hash(SelfHash,"no_includes"));
-  tmplpro_set_option_search_path_on_include(param,get_integer_from_hash(SelfHash,"search_path_on_include"));
-  tmplpro_set_option_global_vars(param, get_integer_from_hash(SelfHash,"global_vars"));
-  tmplpro_set_option_debug(param, get_integer_from_hash(SelfHash,"debug"));
+  set_integer_from_hash(SelfHash,"max_includes",param,tmplpro_set_option_max_includes);
+  set_integer_from_hash(SelfHash,"no_includes",param,tmplpro_set_option_no_includes);
+  set_integer_from_hash(SelfHash,"search_path_on_include",param,tmplpro_set_option_search_path_on_include);
+  set_integer_from_hash(SelfHash,"global_vars",param,tmplpro_set_option_global_vars);
+  set_integer_from_hash(SelfHash,"debug",param,tmplpro_set_option_debug);
   debuglevel = tmplpro_get_option_debug(param);
-  tmplpro_set_option_loop_context_vars(param, get_integer_from_hash(SelfHash,"loop_context_vars"));
-  tmplpro_set_option_case_sensitive(param, get_integer_from_hash(SelfHash,"case_sensitive"));
-  tmplpro_set_option_path_like_variable_scope(param, get_integer_from_hash(SelfHash,"path_like_variable_scope"));
+  set_integer_from_hash(SelfHash,"loop_context_vars",param,tmplpro_set_option_loop_context_vars);
+  set_integer_from_hash(SelfHash,"case_sensitive",param,tmplpro_set_option_case_sensitive);
+  set_integer_from_hash(SelfHash,"path_like_variable_scope",param,tmplpro_set_option_path_like_variable_scope);
   /* still unsupported */
-  tmplpro_set_option_strict(param, get_integer_from_hash(SelfHash,"strict"));
-  tmplpro_set_option_die_on_bad_params(param, get_integer_from_hash(SelfHash,"die_on_bad_params"));
-  
+  set_integer_from_hash(SelfHash,"strict",param,tmplpro_set_option_strict);
+  set_integer_from_hash(SelfHash,"die_on_bad_params",param,tmplpro_set_option_die_on_bad_params);
+ 
   tmpstring=get_string_from_hash(SelfHash,"default_escape").begin;
   if (tmpstring && *tmpstring) {
     switch (*tmpstring) {
@@ -465,8 +472,10 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
     tmplpro_set_option_default_escape(param, default_escape);
 
   }
-  /* enable to use buit-in find_file */
-  if (0) {
+
+  if (get_integer_from_hash(SelfHash,"__use_perl_find_file")) {
+    tmplpro_set_option_FindFileFuncPtr(param, &get_filepath);
+  } else {
     tmplpro_set_option_path(param, get_array_of_strings_from_hash(SelfHash, "path", callback_state));
     tmplpro_set_option_FindFileFuncPtr(param, NULL);
   }
@@ -508,12 +517,11 @@ exec_tmpl(self_ptr,possible_output)
 	  tmplpro_set_option_ext_writer_state(proparam,PerlIO_stdout());
 	} else {
 	  tmplpro_set_option_ext_writer_state(proparam,possible_output);
-	  if (debuglevel>1) warn("output=given descriptor\n");
 	}
 	tmplpro_set_option_WriterFuncPtr(proparam,&write_chars_to_file);
 	RETVAL = tmplpro_exec_tmpl(proparam);
 	release_tmplpro_options(proparam,callback_state);
-	if (RETVAL!=0) warn ("non-zero exit code");
+	if (RETVAL!=0) warn ("Pro.xs: non-zero exit code %d",RETVAL);
     OUTPUT:
 	RETVAL
 
@@ -530,14 +538,13 @@ exec_tmpl_string(self_ptr)
 	/* 1) estimate string as 2*filesize */
 	/* 2) make it mortal ? auto...  */
 	struct tmplpro_param* proparam=process_tmplpro_options(&callback_state);
-	if (debuglevel>1) warn("output=string\n");
 	OutputString=newSV(256); /* 256 allocated bytes -- should be approx. filesize*/
 	sv_setpvn(OutputString, "", 0);
 	tmplpro_set_option_WriterFuncPtr(proparam,&write_chars_to_string);
 	tmplpro_set_option_ext_writer_state(proparam,OutputString);
 	retstate = tmplpro_exec_tmpl(proparam);
 	release_tmplpro_options(proparam,callback_state);
-	if (retstate!=0) warn ("non-zero exit code");
+	if (retstate!=0) warn ("Pro.xs: non-zero exit code %d",retstate);
 	RETVAL = OutputString;
     OUTPUT:
 	RETVAL

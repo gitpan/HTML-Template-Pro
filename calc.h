@@ -1,9 +1,10 @@
 #include <string.h>
+#include "exprtype.h"
 
 struct expr_parser;
 
 /* Function types  */
-typedef int (*func_t_ii) (int);
+typedef EXPR_int64 (*func_t_ii) (EXPR_int64);
 typedef double (*func_t_dd) (double);
 typedef double (*func_t_ddd) (double,double);
 typedef struct exprval (*func_t_ee) (struct expr_parser* exprobj, struct exprval);

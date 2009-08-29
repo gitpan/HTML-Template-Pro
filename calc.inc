@@ -4,24 +4,26 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 static
 const symrec_const *
-getsym (const symrec_const symrec_array[], char const *sym_name)
+getsym (const symrec_const symrec_array[], PSTRING sym_name)
 {
   const symrec_const* ptr;
   for (ptr=symrec_array; ptr->name!=NULL; ptr++) 
-    if (strcmp (ptr->name,sym_name) == 0)
+    if (strncmp (ptr->name,sym_name.begin,sym_name.endnext-sym_name.begin) == 0)
       return ptr;
   return 0;
 }
 
-static 
-int builtin_int (int i) {
-  return i;
-}
-
 #define ABS(X) (((X)<0)? (-X) : (X))
+
+static 
+struct exprval builtin_int (struct expr_parser* exprobj, struct exprval e) {
+  expr_to_int1(exprobj, &e);
+  return e;
+}
 
 static 
 struct exprval builtin_abs (struct expr_parser* exprobj, struct exprval e) {

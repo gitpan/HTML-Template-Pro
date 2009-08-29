@@ -13,20 +13,8 @@
 #include <string.h>
 #include "pstring.h"
 #include "tmpllog.h"
-#include <ctype.h>
 #include "exprval.h"
 #include "pmiscdef.h" /*for snprintf */
-
-static
-void 
-lowercase_pstring_inplace (PSTRING pstring) {
-  char* i=pstring.begin;
-  while (i<pstring.endnext) {
-    *i=tolower(*i);
-    i++;
-  }
-}
-
 
 static
 PSTRING 
@@ -63,8 +51,8 @@ int_to_pstring (EXPR_int64 number, char buffer[], size_t bufsize) {
 static
 int 
 pstring_ge(PSTRING a, PSTRING b) {
-  char* in_a=a.begin;
-  char* in_b=b.begin;
+  const char* in_a=a.begin;
+  const char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) >= *(--in_b) ) return 1; else return 0;
 }
@@ -72,8 +60,8 @@ pstring_ge(PSTRING a, PSTRING b) {
 static
 int 
 pstring_le(PSTRING a, PSTRING b) {
-  char* in_a=a.begin;
-  char* in_b=b.begin;
+  const char* in_a=a.begin;
+  const char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) <= *(--in_b) ) return 1; else return 0;
 }
@@ -81,8 +69,8 @@ pstring_le(PSTRING a, PSTRING b) {
 static
 int 
 pstring_ne(PSTRING a, PSTRING b) {
-  char* in_a=a.begin;
-  char* in_b=b.begin;
+  const char* in_a=a.begin;
+  const char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 0; else return 1;
 }
@@ -90,8 +78,8 @@ pstring_ne(PSTRING a, PSTRING b) {
 static
 int 
 pstring_eq(PSTRING a, PSTRING b) {
-  char* in_a=a.begin;
-  char* in_b=b.begin;
+  const char* in_a=a.begin;
+  const char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 1; else return 0;
 }
@@ -99,8 +87,8 @@ pstring_eq(PSTRING a, PSTRING b) {
 static
 int 
 pstring_gt(PSTRING a, PSTRING b) {
-  char* in_a=a.begin;
-  char* in_b=b.begin;
+  const char* in_a=a.begin;
+  const char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_b==b.endnext && in_a!=a.endnext)
       || (*(--in_a) > *(--in_b)) ) return 1; else return 0;
@@ -109,8 +97,8 @@ pstring_gt(PSTRING a, PSTRING b) {
 static
 int 
 pstring_lt(PSTRING a, PSTRING b) {
-  char* in_a=a.begin;
-  char* in_b=b.begin;
+  const char* in_a=a.begin;
+  const char* in_b=b.begin;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_b!=b.endnext && in_a==a.endnext)
       ||  *(--in_a) < *(--in_b) ) return 1; else return 0;
@@ -138,7 +126,7 @@ re_like(PSTRING a, PSTRING b) {
   int ovector[30];
   int rc, erroffset;
   const char* error;
-  char* subject=a.begin;
+  const char* subject=a.begin;
   int subject_length=(int)(a.endnext-a.begin);
   char* pattern=(char*)malloc(b.endnext-b.begin);
   strncpy(pattern, b.begin, (b.endnext-b.begin));

@@ -36,6 +36,13 @@ typedef struct PSTRING {
   char* endnext; /*!< pointer to the byte next to the last char of the string. */
 } PSTRING;
 
+/* temporary hack for migration to const PSTRING */
+#define P_UNCONST_CAST (char*)
+
+typedef struct MPSTRING {
+  char* begin;   /*!< pointer to begin of the string. */
+  char* endnext; /*!< pointer to the byte next to the last char of the string. */
+} MPSTRING;
 
 
 #endif /* pstring.h */

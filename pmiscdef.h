@@ -28,6 +28,9 @@
 # endif
 #endif
 
+#define COMPILE_TIME_ASSERT(x) \
+void __cta_proto__(int __cta_foo__[(x) ? 1 : -1])
+
 #endif /* pmiscdef.h */
 
 /*

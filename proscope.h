@@ -14,11 +14,11 @@
 struct scope_stack {
   int level;
   int max;
-  int _init_count;
-  struct ProLoopState* root;
+  struct ProScopeEntry* root;
 };
 
-struct ProLoopState {
+struct ProScopeEntry {
+  int flags;		/* type of scope */
   int  loop; 		/* current loop */
   int  loop_count;	/* total number of loops or negative value if unknown */
   /* objects are wrapper-specific so pointer is void */
@@ -26,13 +26,7 @@ struct ProLoopState {
   ABSTRACT_MAP*   param_HV;	/* pointer to dictionary of current loop   */
 };
 
-/*
-static int curScopeLevel(struct scope_stack*);
-static struct ProLoopState* getCurrentScope(struct scope_stack*);
-static struct ProLoopState* getScope(struct scope_stack*, int depth);
-static void popScope(struct scope_stack* scopestack);
-static void pushScope2(struct scope_stack*, int loop_count, void *loops_AV);
-static void Scope_init_root(struct scope_stack*, void* param_HV);
-static void Scope_free(struct scope_stack* scopestack);
-*/
+#define isScopeLoop(X) ((X)->loops_AV!=NULL)
+#define isScopeMap(X) ((X)->loops_AV==NULL)
+
 #endif /* _PROSCOPE_H */

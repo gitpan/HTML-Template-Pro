@@ -1,7 +1,4 @@
 #include <stdio.h>
-#ifndef WIN32
-#  include <unistd.h>
-#endif
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -17,6 +14,8 @@
 #include "proscope.inc"
 #include "pstrutils.inc"
 #include "pmiscdef.h" /*for snprintf */
+/* for mmap_load_file & mmap_unload_file */
+#include "loadfile.inc"
 
 #define HTML_TEMPLATE_BAD_TAG     0
 #define HTML_TEMPLATE_FIRST_TAG_USED 1
@@ -109,7 +108,8 @@ get_loop_context_vars_value (struct tmplpro_param *param, PSTRING name) {
   static char buffer[20]; /* for snprintf %d */
   int loop;
   PSTRING retval={NULL,NULL};
-  if (curScopeLevel(&param->var_scope_stack)>0 
+  struct ProScopeEntry* currentScope = getCurrentScope(&param->var_scope_stack);
+  if (isScopeLoop(currentScope)
       && name.endnext-name.begin>4
       && '_'==*(name.begin)
       && '_'==*(name.begin+1)
@@ -117,7 +117,6 @@ get_loop_context_vars_value (struct tmplpro_param *param, PSTRING name) {
     /* we can meet loop variables here -- try it first */
     /* length of its name >4 */
     /* __first__ __last__ __inner__ __odd__ __counter__ */
-    struct ProLoopState* currentScope = getCurrentScope(&param->var_scope_stack);
     PSTRING shiftedname; /* (PSTRING) {name.begin+2,name.endnext} */
     shiftedname.begin=name.begin+2;
     shiftedname.endnext=name.endnext;
@@ -159,12 +158,17 @@ get_loop_context_vars_value (struct tmplpro_param *param, PSTRING name) {
   return retval;
 }
 
+static 
+ABSTRACT_VALUE* get_abstract_value (struct tmplpro_param *param, int scope_level, PSTRING name) {
+  if (0==param->case_sensitive) name=lowercase_pstring(&(param->lowercase_varname_buffer), name);
+  if (NULL!=param->SelectLoopScopeFuncPtr) param->SelectLoopScopeFuncPtr(param->root_param_map,scope_level);
+  return param->GetAbstractValFuncPtr(getScope(&param->var_scope_stack, scope_level)->param_HV, name);
+}
+
 static
 ABSTRACT_VALUE* walk_through_nested_loops (struct tmplpro_param *param, PSTRING name) {
   int CurLevel;
-  struct ProLoopState* currentScope;
   ABSTRACT_VALUE* valptr;
-  ABSTRACT_MAP* root_HV = param->root_param_map;
   /* Shigeki Morimoto path_like_variable_scope extension */
   if (param->path_like_variable_scope) {
     if(*(name.begin) == '/' || strncmp(name.begin, "../", 3) == 0){
@@ -183,21 +187,16 @@ ABSTRACT_VALUE* walk_through_nested_loops (struct tmplpro_param *param, PSTRING 
 	  GoalHash --;
 	}
       }
-      if (NULL!=param->SelectLoopScopeFuncPtr) param->SelectLoopScopeFuncPtr(root_HV,GoalHash);
-      valptr = param->GetAbstractValFuncPtr(getScope(&param->var_scope_stack, GoalHash)->param_HV, tmp_name);
-      return valptr;
+      return get_abstract_value(param, GoalHash, tmp_name);
     }
   }
   /* end Shigeki Morimoto path_like_variable_scope extension */
 
-  currentScope = getCurrentScope(&param->var_scope_stack);
   CurLevel = curScopeLevel(&param->var_scope_stack);
-  if (NULL!=param->SelectLoopScopeFuncPtr) param->SelectLoopScopeFuncPtr(root_HV,CurLevel);
-  valptr= param->GetAbstractValFuncPtr(currentScope->param_HV, name);
+  valptr = get_abstract_value(param, CurLevel, name);
   if ((0==param->global_vars) || (valptr)) return valptr;
   while (--CurLevel>=0) {
-    if (NULL!=param->SelectLoopScopeFuncPtr) param->SelectLoopScopeFuncPtr(root_HV,CurLevel);
-    valptr=param->GetAbstractValFuncPtr(getScope(&param->var_scope_stack, CurLevel)->param_HV,name);
+    valptr = get_abstract_value(param, CurLevel, name);
     if (valptr!=NULL) return valptr;
   }
   return NULL;
@@ -239,90 +238,11 @@ jump_to_char(struct tmplpro_state *state, char c)
   while (c!=*(state->cur_pos) && state->cur_pos<state->next_to_end) {state->cur_pos++;};
 }
 
-static 
-PSTRING 
-escape_pstring (pbuffer* StrBuffer, PSTRING pstring, int escapeopt) {
-  char* buf=pbuffer_resize(StrBuffer, 2*(pstring.endnext-pstring.begin+1));
-  char* curpos=pstring.begin;
-  size_t offset=0;
-  size_t buflen=pbuffer_size(StrBuffer);
-  PSTRING retval;
-  switch (escapeopt) {
-  case HTML_TEMPLATE_OPT_ESCAPE_HTML:
-    while (curpos<pstring.endnext) {
-      char curchar=*curpos++;
-      int bufdelta=1;
-      if (offset>=buflen) {
-	buf=pbuffer_resize(StrBuffer, 2*offset);
-	buflen=pbuffer_size(StrBuffer);
-      }
-      switch (curchar) {
-	/* straight from the CGI.pm bible. (HTML::Template) */
-      case '&' : bufdelta=5; strncpy(buf+offset, "&amp;", bufdelta);break;
-      case '"' : bufdelta=6; strncpy(buf+offset, "&quot;",bufdelta);break;
-      case '>' : bufdelta=4; strncpy(buf+offset, "&gt;",  bufdelta);break;
-      case '<' : bufdelta=4; strncpy(buf+offset, "&lt;",  bufdelta);break;
-      case '\'': bufdelta=5; strncpy(buf+offset, "&#39;", bufdelta);break;
-      default: *(buf+offset)=curchar;
-      }
-      offset+=bufdelta;
-    }
-    break;
-  case HTML_TEMPLATE_OPT_ESCAPE_JS:
-    while (curpos<pstring.endnext) {
-      char curchar=*curpos++;
-      int bufdelta=1;
-      if (offset>=buflen) {
-	buf=pbuffer_resize(StrBuffer, 2*offset);
-	buflen=pbuffer_size(StrBuffer);
-      }
-      switch (curchar) {
-      case '\\' : bufdelta=2; strncpy(buf+offset, "\\\\", bufdelta);break;
-      case '"'  : bufdelta=2; strncpy(buf+offset, "\\\"",bufdelta);break;
-      case '\'' : bufdelta=2; strncpy(buf+offset, "\\'",bufdelta);break;
-      case '\n' : bufdelta=2; strncpy(buf+offset, "\\n",bufdelta);break;
-      case '\r' : bufdelta=2; strncpy(buf+offset, "\\r",bufdelta);break;
-      default: *(buf+offset)=curchar;
-      }
-      offset+=bufdelta;
-    }
-    break;
-  case HTML_TEMPLATE_OPT_ESCAPE_URL: 
-    while (curpos<pstring.endnext) {
-      unsigned char curchar=*curpos++;
-      int bufdelta=1;
-      if (offset>=buflen) {
-	buf=pbuffer_resize(StrBuffer, 2*offset);
-	buflen=pbuffer_size(StrBuffer);
-      }
-      /* 
-       * # do the translation (RFC 2396 ^uric)
-       * s!([^a-zA-Z0-9_.\-])!sprintf('%%%02X', $_)
-       */
-      if ((curchar>='a' && curchar<='z') ||
-	  (curchar>='A' && curchar<='Z') ||
-	  (curchar>='0' && curchar<='9') ||
-	  curchar=='_' || curchar=='.' || curchar=='\\' || curchar=='-'
-	  ) 
-	*(buf+offset)=curchar;
-      else {
-	bufdelta=3; sprintf(buf+offset,"%%%.2X",(int) curchar);
-      }
-      offset+=bufdelta;
-    }
-    break;
-  default : return pstring;
-  }
-  retval.begin=buf;
-  retval.endnext=buf+offset;
-  return retval;
-}
-
 TMPLPRO_LOCAL
 void 
 _tmpl_log_state (struct tmplpro_state *state, int level)
 {
-  tmpl_log(NULL,level, "HTML::Template::Pro:in %cTMPL_%s at pos " MOD_TD ":",
+  tmpl_log(NULL,level, "HTML::Template::Pro:in %cTMPL_%s at pos " MOD_TD ": ",
 	  (state->is_tag_closed ? '/' : ' '), 
 	   (state->tag>HTML_TEMPLATE_BAD_TAG && state->tag <=HTML_TEMPLATE_LAST_TAG_USED) ? TAGNAME[state->tag] : "", 
 	   TO_PTRDIFF_T(state->tag_start - state->top));
@@ -587,12 +507,16 @@ next_loop (struct tmplpro_state* state) {
 #ifdef DEBUG
   tmpl_log(state,TMPL_LOG_DEBUG2,"next_loop:before NextLoopFuncPtr\n");
 #endif
-  struct ProLoopState* currentScope = getCurrentScope(&state->param->var_scope_stack);
+  struct ProScopeEntry* currentScope = getCurrentScope(&state->param->var_scope_stack);
+  if (!isScopeLoop(currentScope)) {
+    tmpl_log(state,TMPL_LOG_ERROR, "next_loop:at scope level %d: internal error - loop is null", curScopeLevel(&state->param->var_scope_stack));
+    return 0;
+  }
   if (++currentScope->loop < currentScope->loop_count || currentScope->loop_count< 0) {
     ABSTRACT_MAP* arrayvalptr=(state->param->GetAbstractMapFuncPtr)(currentScope->loops_AV,currentScope->loop);
     if ((arrayvalptr==NULL)) {
       /* either undefined loop ended normally or defined loop ended ubnormally */
-      if (currentScope->loop_count>0) tmpl_log(state,TMPL_LOG_ERROR, "PARAM:LOOP:next_loop(%d): non-null pointer was expected", currentScope->loop);
+      if (currentScope->loop_count>0) tmpl_log(state,TMPL_LOG_ERROR, "PARAM:LOOP:next_loop(%d): callback returned null scope", currentScope->loop);
       popScope(&state->param->var_scope_stack);
       if (state->param->EndLoopFuncPtr) state->param->EndLoopFuncPtr(state->param->root_param_map, curScopeLevel(&state->param->var_scope_stack));
       return 0;
@@ -624,7 +548,7 @@ int init_loop (struct tmplpro_state *state, PSTRING name) {
     loop_count = (*state->param->GetAbstractArrayLengthFuncPtr)(loopptr);
     /* 0 is an empty array; <0 is an undefined array (iterated until next_loop==NULL */
     if (0==loop_count) return 0;
-    pushScope2(&state->param->var_scope_stack, loop_count, loopptr);
+    pushScopeLoop(&state->param->var_scope_stack, loop_count, loopptr);
     return 1;
   }
 }
@@ -890,9 +814,6 @@ process_tmpl_tag(struct tmplpro_state *state)
   } else {
     /* int escape = HTML_TEMPLATE_OPT_ESCAPE_NO; */
     int escape = state->param->default_escape;
-    if (tag_type!= HTML_TEMPLATE_TAG_INCLUDE &&
-	0==state->is_expr &&
-	0==state->param->case_sensitive) OptName=lowercase_pstring(&(state->str_buffer), OptName);
     switch (tag_type) {
     case HTML_TEMPLATE_TAG_VAR:	
       if (OptEscape.begin!=OptEscape.endnext) {
@@ -942,8 +863,6 @@ process_state (struct tmplpro_state * state)
   /* magic; 256 > 50 (50 is min.required for double to string conversion */
   pbuffer_init_as(&(state->expr_left_pbuffer), 256); 
   pbuffer_init_as(&(state->expr_right_pbuffer), 256);
-  Scope_init_root(&state->param->var_scope_stack,state->param->root_param_map);
-
 
   while (state->cur_pos < last_safe_pos) {
     register char* cur_pos=state->cur_pos;
@@ -970,7 +889,6 @@ process_state (struct tmplpro_state * state)
   }
   (state->param->WriterFuncPtr)(state->param->ext_writer_state,state->last_processed_pos,state->next_to_end);
 
-  Scope_free(&state->param->var_scope_stack);
   pbuffer_free(&(state->expr_right_pbuffer));
   pbuffer_free(&(state->expr_left_pbuffer));
   pbuffer_free(&(state->str_buffer));
@@ -990,10 +908,6 @@ init_state (struct tmplpro_state *state, struct tmplpro_param *param)
   state->cur_pos=state->top;
   state->is_visible=1;
 }
-
-/* for mmap_load_file & mmap_unload_file */
-#include "loadfile.inc"
-
 
 static
 int 
@@ -1051,6 +965,7 @@ tmplpro_exec_tmpl_scalarref (struct tmplpro_param *param, PSTRING memarea)
   return 0;
 }
 
+#include "builtin_findfile.inc"
 #include "callback_stubs.inc"
 
 API_IMPL 
@@ -1058,6 +973,7 @@ int
 APICALL
 tmplpro_exec_tmpl (struct tmplpro_param *param)
 {
+  int exitcode=0;
   if (param->GetAbstractValFuncPtr==NULL ||
        param->AbstractVal2pstringFuncPtr==NULL ||
        param->AbstractVal2abstractArrayFuncPtr==NULL ||
@@ -1091,10 +1007,17 @@ tmplpro_exec_tmpl (struct tmplpro_param *param)
   if (NULL==param->UnloadFileFuncPtr) param->UnloadFileFuncPtr = stub_unload_file_func;
   if (NULL==param->GetAbstractArrayLengthFuncPtr) param->GetAbstractArrayLengthFuncPtr = stub_get_ABSTRACT_ARRAY_length_func;
 
-  if (param->scalarref.begin) return tmplpro_exec_tmpl_scalarref(param, param->scalarref);
-  if (param->filename) return tmplpro_exec_tmpl_filename(param, param->filename);
-  tmpl_log(NULL,TMPL_LOG_ERROR,"tmplpro_exec_tmpl: neither scalarref nor filename was specified.");
-  return 1;
+  Scope_reset(&param->var_scope_stack);
+  pushScopeMap(&param->var_scope_stack, param->root_param_map, 0);
+
+  if (param->scalarref.begin) exitcode = tmplpro_exec_tmpl_scalarref(param, param->scalarref);
+  else if (param->filename) exitcode = tmplpro_exec_tmpl_filename(param, param->filename);
+  else {
+    tmpl_log(NULL,TMPL_LOG_ERROR,"tmplpro_exec_tmpl: neither scalarref nor filename was specified.");
+    exitcode = ERR_PRO_INVALID_ARGUMENT;
+  }
+
+  return exitcode;
 }
 
 API_IMPL 
@@ -1131,6 +1054,12 @@ tmplpro_param_init()
      param->expr_func_arglist=NULL;
   */
   param->case_sensitive=1;
+  param->max_includes=256;
+  Scope_init(&param->var_scope_stack);
+  /* no need for them due to memset 0
+  pbuffer_preinit(&param->builtin_findfile_buffer);
+  pbuffer_preinit(&param->lowercase_varname_buffer);
+  */
   return param;
 }
 
@@ -1139,7 +1068,9 @@ void
 APICALL
 tmplpro_param_free(struct tmplpro_param* param)
 {
-  if (0!=pbuffer_size(&param->builtin_findfile_buffer)) pbuffer_free(&param->builtin_findfile_buffer);
+  pbuffer_free(&param->builtin_findfile_buffer);
+  pbuffer_free(&param->lowercase_varname_buffer);
+  Scope_free(&param->var_scope_stack);
   free(param);
 }
 
