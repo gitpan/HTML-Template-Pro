@@ -61,7 +61,9 @@ ENDTEXT
 WriteMakefile(
     NAME              => 'HTML::Template::Pro',
     VERSION_FROM      => 'lib/HTML/Template/Pro.pm', # finds $VERSION
-    PREREQ_PM         => {'File::Spec' => 0,
+    PREREQ_PM         => {'JSON', => 2.0, # safe to skip
+			  'File::Path' => 2.0,
+			  'File::Spec' => 0,
 			  'Test::More' => 0,
 			  }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
@@ -87,7 +89,7 @@ rpm: dist
 	rpmbuild -ta --clean HTML-Template-Pro-$(VERSION).tar.gz
 
 MANIFEST.git::
-	git-ls-index > MANIFEST.git
+	git-ls-files > MANIFEST.git
 
 index.html: README Makefile
 	echo '<html><body><p><a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=138507&amp;type=5" width="210" height="62" border="0" alt="SourceForge.net Logo" /></a><br> <a href="http://sourceforge.net/projects/html-tmpl-pro/">SourceForge Summary page of the project</a><br><a href="http://www.imath.kiev.ua/~vlasenko/">Home page of the author</a><br><a href="http://prdownloads.sourceforge.net/html-tmpl-pro/HTML-Template-Pro-$(VERSION).tar.gz?download">Download</a><p><pre>' > $@
@@ -103,6 +105,9 @@ sourceforge: tardist index.html
 	  echo quit ) | /usr/bin/sftp viy2@frs.sourceforge.net
 	scp index.html $(SF_HOME)
  
+json::
+	rm -rf templates-Pro/json
+	export HTP_DUMP=1; $(MAKE) test
 
 MAKE_FRAG
 }

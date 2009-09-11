@@ -5,23 +5,22 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
+use strict;
 use Test;
-BEGIN {plan tests => 1+2*(19+4+1) };
+BEGIN {
+    my $test_tmpl_std = 4;
+    my $test_tmpl = 2;
+    plan tests => 1+$test_tmpl_std*21+$test_tmpl*5;
+}
 use File::Spec;
-#use HTML::Template;
 use HTML::Template::Pro;
+use HTML::Template::Pro::CommonTest;
 ok(1); # If we made it this far, we're ok.
 
 #########################
 
-my $tmpl;
-my $output;
-
-my $DEBUG=$ENV{HTMLTEMPLATEPRODEBUG};
-$DEBUG||=0;
-
-my @varset1=(VAR1=>VAR1,VAR2=>VAR2,VAR3=>VAR3,VAR10=>VAR10);
-my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\012end", STUFF2=>'Срср пур');
+my @varset1=(VAR1=>'VAR1',VAR2=>'VAR2',VAR3=>'VAR3',VAR10=>'VAR10');
+my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\012end", STUFF2=>'Some"'."' Txt'");
 my @refset1=(
 HASHREF0=>[],
 HASHREF2=>[{},{}],
@@ -33,111 +32,54 @@ HASHREF1=>[
 ]);
 my @outer=({TEST=>'1'},{TEST=>'2'},{TEST=>'3'});
 my @inner=({TST=>'A'},{TST=>'B'});
+my @refset2=(INNER=>\@inner, OUTER=>\@outer);
 
-if ($ENV{HTMLTEMPLATEPROBROKEN}) {
+if ($ENV{HTP_TEST_BROKEN}) {
     # manual test
-    test_tmpl('test_broken', @varset1, @refset1);
+    test_tmpl_std('test_broken', @varset1, @refset1);
 }
 
-test_tmpl('test_esc1', @varset1, @varset2);
-test_tmpl('test_esc2', @varset1, @varset2);
-test_tmpl('test_esc3', @varset1, @varset2);
-test_tmpl('test_esc4', @varset1, @varset2);
+test_tmpl_std('test_esc1', @varset1, @varset2);
+test_tmpl_std('test_esc2', @varset1, @varset2);
+test_tmpl_std('test_esc3', @varset1, @varset2);
+test_tmpl_std('test_esc4', @varset1, @varset2);
 
-test_tmpl('test_var1', @varset1);
-test_tmpl('test_var2', @varset1);
-test_tmpl('test_var3', @varset1, @varset2);
-test_tmpl('test_if1',  @varset1);
-test_tmpl('test_if2',  @varset1);
-test_tmpl('test_if3',  @refset1);
-test_tmpl('test_if4',  @varset1);
-test_tmpl('test_if5',  @varset1);
-test_tmpl('test_if7',  @varset1);
-test_tmpl('test_include1', @varset1);
-test_tmpl('test_include2', @varset1);
-test_tmpl('test_include3', @varset1);
-test_tmpl('test_loop1', @varset1, @refset1);
-test_tmpl('test_loop2', @varset1, @refset1);
-test_tmpl('test_loop3', @varset1, @refset1);
-test_tmpl('test_loop4', @varset1, @refset1);
-test_tmpl('test_loop5', @varset1, @refset1);
-test_tmpl_options('test_loop6',[loop_context_vars=>1,debug=>1,global_vars=>1,die_on_bad_params=>0], INNER=>\@inner, OUTER=>\@outer);
+test_tmpl_std('test_var1', @varset1);
+test_tmpl_std('test_var2', @varset1);
+test_tmpl_std('test_var3', @varset1, @varset2);
+test_tmpl_std('test_if1',  @varset1);
+test_tmpl_std('test_if2',  @varset1);
+test_tmpl_std('test_if3',  @refset1);
+test_tmpl_std('test_if4',  @varset1);
+test_tmpl_std('test_if5',  @varset1);
+test_tmpl_std('test_if7',  @varset1);
+test_tmpl_std('test_include1', @varset1);
+test_tmpl('test_include2', [max_includes=>10], @varset1);
+test_tmpl_std('test_include3', @varset1);
+test_tmpl('test_include4', [path=>['include/1', 'include/2']]);
+test_tmpl('test_include5', [path=>['include/1', 'include/2'], search_path_on_include=>1]);
+test_tmpl_std('test_loop1', @varset1, @refset1);
+test_tmpl_std('test_loop2', @varset1, @refset1);
+test_tmpl_std('test_loop3', @varset1, @refset1);
+test_tmpl_std('test_loop4', @varset1, @refset1);
+test_tmpl_std('test_loop5', @varset1, @refset1);
+test_tmpl('test_loop6',[loop_context_vars=>1,global_vars=>1], @refset2);
+
+test_tmpl_std('include/2', 'LIST', [{TEST => 1}, {TEST=>2}]);
 
 # todo: use config.h and grep defines from here
 # if IMITATE==1 (-DCOMPAT_ALLOW_NAME_IN_CLOSING_TAG)
-#test_tmpl('test_if6',  @varset1);
-#
-
-
-test_tmpl('include/2', 'list', [{test => 1}, {test=>2}]);
-
+#test_tmpl_std('test_if6',  @varset1);
 
 my $devnull=File::Spec->devnull();
 if (defined $devnull) {
     close (STDERR);
     #open(STDERR, '>>', $devnull); # is better, but seems not for perl 5.005
-    open (STDERR, '>/dev/null');
+    open (STDERR, '>/dev/null') || print STDERR "devnull: $!\n";
 }
-test_tmpl('test_broken1', @varset1, @refset1);
+test_tmpl('test_broken1',[debug=>-1], @varset1, @refset1);
 # not a test -- to see warnings on broken tmpl
-# test_tmpl('test_broken', @varset1, @refset1);
-
-
-# -------------------------
-
-
-sub test_tmpl_options {
-    my $file=shift;
-    my $optref=shift;
-    my $tmpl;
-    print "\n--------------- Test: $file ---------------------\n";
-    chdir 'templates-Pro';
-#    $tmpl=HTML::Template->new(filename=>$file.'.tmpl', die_on_bad_params=>0, strict=>0);
-    $tmpl=HTML::Template::Pro->new(filename=>$file.'.tmpl', @$optref,debug=>$DEBUG);
-    $tmpl->param(@_);
-    &dryrun($tmpl,$file);
-    chdir '..';
-}
-
-sub test_tmpl {
-    my ($file,@args)=@_;
-    &test_tmpl_options($file, [
-			   loop_context_vars=>1, 
-			   case_sensitive=>0,
-			   debug=>$DEBUG
-		       ],@args);
-}
-
-sub dryrun {
-    my $tmpl=shift;
-    my $file=shift;
-    open (OUTFILE, ">$file.raw") || die "can't open $file.raw: $!";
-    binmode (OUTFILE);
-    $tmpl->output(print_to => *OUTFILE);
-    close (OUTFILE) || die "can't close $file.raw: $!";
-    my $files_equal=&catfile("$file.raw") eq &catfile("$file.out");
-    if ($files_equal) {
-	ok($files_equal) && unlink "$file.raw";
-    } else {
-	if (-x '/usr/bin/diff') {
-	    print STDERR `diff -C 3 $file.out $file.raw`;
-	} else {
-	    print STDERR "# >>> ---$file.raw---\n$output\n>>> ---end $file.raw---\n";
-	}
-    }
-    my $output=$tmpl->output();
-    ok (defined $output and $output eq &catfile("$file.out"));
-}
-
-sub catfile {
-    my $file=shift;
-    open (INFILE, $file) || die "can't open $file: $!";
-    binmode (INFILE);
-    local $/;
-    my $catfile=<INFILE>;
-    close (INFILE) || die "can't close $file: $!";
-    return $catfile;
-}
+# test_tmpl_std('test_broken', @varset1, @refset1);
 
 ### Local Variables: 
 ### mode: perl

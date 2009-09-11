@@ -24,18 +24,18 @@ Windows users, please, test and enlighten me!]
 Nevertheless, compiling with MMAP=1 (--with-mmap, -DUSE_MMAP) should
 improve perfomance and/or memory consumption.
 
-it is known that versions before 0.61 didn't compile with
-Microsoft C/C++ compilers, but versions starting from 0.61
-should compile and work, thanks to Viacheslav Sheveliov. 
-Unfortunately, I have no place to test win32/win64 code in fresh
-consequent releases.
+Latest releases of htmltmplpro, built with mingw32 for win32 are 
+avaliable on sourceforge and in sisyphus.ru: see
+http://www.sisyphus.ru/en/srpm/Sisyphus/mingw32-htmltmplpro
+http://www.sisyphus.ru/en/srpm/Sisyphus/mingw32-pcre
 
-If you do want to use regexps in EXPR="..." you need an optional PCRE library.
-Optional PCRE library for win32 can be obtained from
-http://gnuwin32.sourceforge.net/packages/pcre.htm
-Unpack them into pcre subdirectory.
-There are still issues about PCRE on win,
-I need your help to fix them.
+If you want to compile htmltmplpro from sources and you do want to use 
+regexps in EXPR="..." you need an optional PCRE library.
+
+Optional PCRE library for win32 can be obtained either from Sisyphus,
+http://www.sisyphus.ru/en/srpm/Sisyphus/mingw32-pcre
+or from http://gnuwin32.sourceforge.net/packages/pcre.htm (seems to be too old)
+Unpack it into pcre subdirectory.
 
 Perl module should be built using Makefile.PL.
 
@@ -59,9 +59,9 @@ which has a GUI interface and can generate projects for
 # MinGW Makefiles
 # NMake Makefiles
 
-Also autotools-based miniGW cross-compilation from linux to win32 
-is also known to work. Maybe autotools-based cygwin and minGW 
-compilation will work too.
+Also autotools-based minGW cross-compilation from linux to win32 
+is also known to work. Maybe autotools-based cygwin and minGW 64
+compilation will work too, please, report your success.
 
 Example CMake usage.
 
@@ -82,6 +82,6 @@ in the library source distribution.
 If you will try to complie this code on a win system, 
 and will get a trouble, be so kind to send me a bugreport
 including logs of failed build.
-Note that I have no place to test win32/win64 code,
+Note that I often have no place to test win32/win64 code,
 so patches are always welcome.
 

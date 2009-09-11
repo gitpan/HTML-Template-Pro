@@ -22,23 +22,14 @@ For example, test.tmpl:
   </body>
   </html>
 
-Now create a small CGI program:
+Now define the value for HOME and PATH, for example, 
+in perl it will look like
 
-  #!/usr/bin/perl -w
-  use HTML::Template;
-
-  # open the html template
-  my $template = HTML::Template->new(filename => 'test.tmpl');
-
-  # fill in some parameters
   $template->param(HOME => $ENV{HOME});
   $template->param(PATH => $ENV{PATH});
 
-  # send the obligatory Content-Type and print the template output
-  print "Content-Type: text/html\n\n", $template->output;
-
-If all is well in the universe this should show something like this in
-your browser when visiting the CGI:
+and process the template. If all is well in the universe 
+this should show something like this in your browser:
 
   My Home Directory is /home/some/directory
   My Path is set to /bin;/usr/bin
@@ -56,8 +47,8 @@ variables, loops and branches declared in the template.  This allows
 you to separate design - the HTML - from the data, which you generate
 in the Perl script.
 
-This module is licensed under the GPL.  See the LICENSE section
-below for more details.
+This module is licensed under the (L)GPL or perl license.  
+See the LICENSE section below for more details.
 
 =head1 TUTORIAL
 
@@ -98,6 +89,24 @@ to replace Perl and HTML, it just augments them to interact a little
 better.  And it's pretty fast.
 
 =head1 THE TAGS
+
+=head2 GENERAL TAG SYNTAX
+
+A generic HTML::Template tag that is supported by HTML::Template::Pro
+looks like <TMPL_SOMETHING A="B" [C="D" ...]>. Tags are case-insensitve:
+<tmpl_something a="B" [c="D" ...]> is acceptable.
+Single quotes can be used, <TMPL_SOMETHING A='B' [C='D' ...]>
+quotes can be omitted, <TMPL_SOMETHING A=B ... >
+and option name could be often guessed as in <TMPL_SOMETHING B>.
+
+template tags could be decorated as html comments
+<!-- TMPL_SOMETHING A="B" -->
+
+Also, as HTML::Template::Pro extension (starting from version 0.90),
+template tags could also be decorated as xml 
+<TMPL_SOMETHING A="B" />
+
+See L<NOTES>.
 
 =head2 TMPL_VAR
 
@@ -257,6 +266,7 @@ call.  If you want your variables to be global you can use
 =head2 TMPL_INCLUDE
 
   <TMPL_INCLUDE NAME="filename.tmpl">
+  <TMPL_INCLUDE EXPR="function_call, variable, expression" DEFAULT='some_file'>
 
 This tag includes a template directly into the current template at the
 point where the tag is found.  The included template contents are used
@@ -276,6 +286,9 @@ As a protection against infinitly recursive includes, an arbitary
 limit of 10 levels deep is imposed.  You can alter this limit with the
 "max_includes" option.  See the entry for the "max_includes" option
 below for more details.
+
+For the <TMPL_INCLUDE EXPR=".."> see L<INCLUDE extension to Expr>
+for more details.
 
 =head2 TMPL_IF
 
@@ -453,7 +466,9 @@ but original HTML::Template::Expr (as to 0.04) allows variables in the
 'EXPR' tag to be only m![A-Za-z_][A-Za-z0-9_]*!.
 
 With this extension, arbitrary chars can be used in variable name inside 
-the 'EXPR' tag if bracketed in {}, as, for example, EXPR="{foo.bar} eq 'a'".
+the 'EXPR' tag if bracketed in ${}, as, for example, EXPR="${foo.bar} eq 'a'".
+Note that old bracketing into {} is considered obsolete, as it will clash 
+with JSON assignments like A = { "key" => "val" }.
 
 COMPATIBILITY WARNING.
 Currently, this extension is not present in HTML::Template::Expr (as of 0.04).
@@ -1574,13 +1589,13 @@ I. Vlasenko, E<lt>viy@altlinux.orgE<gt> (Pecularities of HTML::Template::Pro)
 =head1 LICENSE
 
   HTML::Template : A module for using HTML Templates with Perl
-  Copyright (C) 2000-2002 Sam Tregar (sam@tregar.com)
+  Copyright (C) 2000-2008 Sam Tregar (sam@tregar.com)
 
   This module is free software; you can redistribute it and/or modify it
   under the terms of either:
 
   a) the GNU General Public License as published by the Free Software
-  Foundation; either version 1, or (at your option) any later version,
+  Foundation; either version 2, or (at your option) any later version,
   
   or
 

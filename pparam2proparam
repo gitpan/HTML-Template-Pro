@@ -3,6 +3,15 @@
 use strict;
 use warnings;
 
+my %proparam_c_set_hook = (
+filename =>  
+"    if (NULL!=val) {
+      param->scalarref.begin=NULL;
+      param->scalarref.endnext=NULL;
+}\n", 
+scalarref => "    if (NULL!=val.begin) param->filename=NULL;\n",
+);
+
 open (PP,'pparam.h');
 open (PARAMH,'>','proparam.h');
 open (PARAMC,'>','proparam.c');
@@ -10,6 +19,7 @@ open (PARAMM1,'>','mono-wrapper/src/htp-c-opts.cs.inc');
 open (PARAMM2,'>','mono-wrapper/src/htp-intset.cs.inc');
 open (PARAMM3,'>','mono-wrapper/src/htp-intget.cs.inc');
 open (PARAMM4,'>','mono-wrapper/src/htp-intprop.cs.inc');
+open (PARAMM5,'>','mono-wrapper/src/htp-intclear.cs.inc');
 open (PARAMDLLSYM,'>','htmltmplpro/src/libhtmltmplpro.sym');
 open (PARAMDLLDEF,'>','htmltmplpro/src/libhtmltmplpro.def');
 
@@ -61,6 +71,8 @@ print PARAMM1 '
 print PARAMM2 '/* generated; do not edit */
 ';
 print PARAMM3 '/* generated; do not edit */
+';
+print PARAMM5 '/* generated; do not edit */
 ';
 
 #----------- BEGIN LOOP-------------------
@@ -152,7 +164,8 @@ API_IMPL
 void
 APICALL tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
     param->$name=".($type eq 'flag' ? '(flag)':'')."val;
-}
+".($proparam_c_set_hook{$name} ? $proparam_c_set_hook{$name} : '').
+"}
 ";
     print PARAMM1 "
     [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention, CharSet=DLL.HTPCharSet)]
@@ -164,6 +177,8 @@ APICALL tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
     print PARAMM2 '      case "'.$name.'": '."\t".'C_OPTS.tmplpro_set_option_'.$name.'(_c_param, val); break;
 ' if $monotype eq 'int';
     print PARAMM3 '      case "'.$name.'": '."\t".'return C_OPTS.tmplpro_get_option_'.$name.'(_c_param);
+' if $monotype eq 'int';
+    print PARAMM5 '    C_OPTS.tmplpro_set_option_'.$name.'(_c_param, 0);
 ' if $monotype eq 'int';
 
     print PARAMM4 '
@@ -204,4 +219,5 @@ close (PARAMM1);
 close (PARAMM2);
 close (PARAMM3);
 close (PARAMM4);
+close (PARAMM5);
 close (PARAMDLLDEF);

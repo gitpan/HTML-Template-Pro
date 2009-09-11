@@ -40,7 +40,16 @@ Now create a small CGI program:
 
   # send the obligatory Content-Type and print the template output
   print "Content-Type: text/html\n\n";
+
+  # print output
   $template->output(print_to=>\*STDOUT);
+
+  # this would also work.
+  # print $template->output();
+
+  # this would also work. It is faster,
+  # but (WARNING!) not compatible with original HTML::Template.
+  # $template->output();
 
 If all is well in the universe this should show something like this in
 your browser when visiting the CGI:
@@ -48,8 +57,15 @@ your browser when visiting the CGI:
   My Home Directory is /home/some/directory
   My Path is set to /bin;/usr/bin
 
-It is recommended to use always case_sensitive=>1 in new()
-and print_to=>\*STDOUT in output() for best perfomance.
+For the best performance it is recommended to use 
+case_sensitive=>1 in new()
+and print_to=>\*STDOUT in output().
+
+Note that (HTML::Template::Pro version 0.90+) 
+output(), called in void context, also prints to stdout
+using built-in htmltmplpro C library calls, so the last call 
+"$template->output();"
+might be, in fact, the fastest way to call output().
 
 IMPORTANT NOTE: you can safely write 
 
@@ -183,9 +199,35 @@ are available:
 die_on_bad_params - if set to 0 the module will let you call
 $template->param(param_name => 'value') even if 'param_name' doesn't
 exist in the template body.  Defaults to 1 in HTML::Template.
+
 HTML::Template::Pro always use die_on_bad_params => 0.
 It currently can't be changed, because HTML::Template::Pro can't
 know whether a parameter is bad until it finishes output.
+
+Note that it is wrapper-only option: it is not implemented 
+in the htmltmplpro C library.
+
+=item *
+
+force_untaint - if set to 1 the module will not allow you to set 
+unescaped parameters with tainted values. If set to 2 you will have 
+to untaint all parameters, including ones with the escape attribute.
+This option makes sure you untaint everything so you don't accidentally
+introduce e.g. cross-site-scripting (CSS) vulnerabilities. Requires 
+taint mode. Defaults to 0.
+
+In the original HTML::Template, if the "force_untaint" option is set
+an error occurs if you try to set a value that is tainted in the param()
+call. In HTML::Template::Pro, an error occurs when output is called.
+
+Note that the tainted value will never be printed; but, to completely 
+suppress output, one should use call to output() that returns string, 
+like 
+print $tmpl->output();
+Then output() will die before it returns the string to print.
+
+Note that it is wrapper-only perl-specific option: it is not 
+implemented in the htmltmplpro C library.
 
 =item *
 
@@ -317,10 +359,11 @@ considered obsolete.
 
 =end comment
 
-NOTE: The parameter names are matched in a case-insensitve manner.  If
+NOTE: If the option case_sensitive => 0,
+the parameter names are matched in a case-insensitive manner.  If
 you have two parameters in a CGI object like 'NAME' and 'Name' one
 will be chosen randomly by associate.  This behavior can be changed by
-the following option.
+setting option case_sensitive to 1.
 
 =item *
 
@@ -337,10 +380,31 @@ would only set one parameter without the "case_sensitive" option:
 
 This option defaults to off to keep compatibility with HTML::Template.
 Nevertheless, setting case_sensitive => 1 is encouraged, because
-it improves performance.
+it significantly improves performance.
 
-NOTE: with case_sensitive and loop_context_vars the special loop
-variables are available in lower-case only.
+If case_sensitive is set to 0, the perl wrapper is forced to lowercase
+keys in every hash it will find in "param" tree, which is sometimes 
+an expensive operation. To avoid this, set case_sensitive => 1.
+
+If case conversion is nessessary, there is an alternative lightweight 
+option tmpl_var_case, which is HTML::Template::Pro specific.
+
+Note that case_sensitive is wrapper-only option: it is not implemented 
+in the htmltmplpro C library.
+
+=item *
+
+tmpl_var_case - this option is similar to case_sensitive, but is
+implemented directly in the htmltmplpro C library.
+Instead of converting keys in every hash of "param" tree, it
+converts the name of variable.
+
+For example, in case of <tmpl_var name="CamelCaseName"> setting
+tmpl_var_case = ASK_NAME_AS_IS | ASK_NAME_LOWERCASE | ASK_NAME_UPPERCASE
+will cause HTML::Template::Pro to look into "param" tree for 3 names:
+CamelCaseName, camelcasename, and CAMELCASENAME.
+
+By default, the name is asked "as is".
 
 =item *
 
@@ -394,6 +458,10 @@ Would output (in a browser) something like:
 Given an appropriate C<param()> call, of course.  NOTE: A loop with only
 a single pass will get both __first__ and __last__ set to true, but
 not __inner__.
+
+NOTE: in the original HTML::Template with case_sensitive = 1 and loop_context_vars 
+the special loop variables are available in lower-case only.
+In HTML::Template::Pro they are recognized regardless of case.
 
 =item *
 
@@ -487,7 +555,7 @@ FOO!!!" and transforms them into HTML::Template tags:
                                       filter => $filter);
 
 More complicated usages are possible.  You can request that your
-filter receieve the template text as an array of lines rather than as
+filter receive the template text as an array of lines rather than as
 a single scalar.  To do that you need to specify your filter using a
 hash-ref.  In this form you specify the filter using the C<sub> key and
 the desired argument format using the C<format> key.  The available
@@ -640,7 +708,7 @@ you'll want to print this, like:
 When output is called each occurrence of <TMPL_VAR NAME=name> is
 replaced with the value assigned to "name" via C<param()>.  If a named
 parameter is unset it is simply replaced with ''.  <TMPL_LOOPS> are
-evaluated once per parameter set, accumlating output on each pass.
+evaluated once per parameter set, accumulating output on each pass.
 
 Calling output() is guaranteed not to change the state of the
 Template object, in case you were wondering.  This property is mostly
@@ -773,7 +841,7 @@ This method is not supported in HTML::Template::Pro.
 
 =head2 param()
 
-param() without arguements should return a list of parameters in the template.
+param() without arguments should return a list of parameters in the template.
 In HTML::Template::Pro it returns a list of parameters set after new(). 
 
 =head1 BUGS

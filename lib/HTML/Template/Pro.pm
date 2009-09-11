@@ -3,13 +3,29 @@ package HTML::Template::Pro;
 use 5.005;
 use strict;
 use integer; # no floating point math so far!
-require DynaLoader;
+use HTML::Template::Pro::WrapAssociate;
 use File::Spec; # generate paths that work on all platforms
+use Scalar::Util qw(tainted);
 use Carp;
-use vars qw($VERSION @ISA);
-@ISA = qw(DynaLoader);
+require DynaLoader;
+require Exporter;
+use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS);
+@ISA = qw(DynaLoader Exporter);
 
-$VERSION = '0.87';
+$VERSION = '0.90';
+
+@EXPORT_OK = qw/ASK_NAME_DEFAULT ASK_NAME_AS_IS ASK_NAME_LOWERCASE ASK_NAME_UPPERCASE ASK_NAME_MASK/;
+%EXPORT_TAGS = (const => [qw/ASK_NAME_DEFAULT ASK_NAME_AS_IS ASK_NAME_LOWERCASE ASK_NAME_UPPERCASE ASK_NAME_MASK/]);
+
+# constants for tmpl_var_case
+use constant {
+    ASK_NAME_DEFAULT	=> 0,
+    ASK_NAME_AS_IS	=> 1,
+    ASK_NAME_LOWERCASE	=> 2,
+    ASK_NAME_UPPERCASE	=> 4,
+};
+use constant ASK_NAME_MASK => ASK_NAME_AS_IS | ASK_NAME_LOWERCASE | ASK_NAME_UPPERCASE;
+
 
 bootstrap HTML::Template::Pro $VERSION;
 
@@ -21,9 +37,9 @@ push @HTML::Template::Expr::ISA, qw/HTML::Template::Pro/;
 
 # Preloaded methods go here.
 
-# internal mallocs -- required
+# internal C library init -- required
 _init();
-# internal frees -- it is better to comment it:
+# internal C library unload -- it is better to comment it:
 # when process terminates, memory is freed anyway
 # but END {} can be called between calls (as SpeedyCGI does)
 # END {_done()}
@@ -32,7 +48,7 @@ _init();
 use vars qw(%FUNC);
 %FUNC = 
  (
-  # commented sin,cos,log,tan,... are built-in
+  # note that length,defined,sin,cos,log,tan,... are built-in
    'sprintf' => sub { sprintf(shift, @_); },
    'substr'  => sub { 
      return substr($_[0], $_[1]) if @_ == 2; 
@@ -45,16 +61,9 @@ use vars qw(%FUNC);
 #   'length'  => sub { length($_[0]); },
 #   'defined' => sub { defined($_[0]); },
 #   'abs'     => sub { abs($_[0]); },
-#   'atan2'   => sub { atan2($_[0], $_[1]); },
-#   'cos'     => sub { cos($_[0]); },
-#   'exp'     => sub { exp($_[0]); },
-   'hex'     => sub { hex($_[0]); },
-#   'int'     => sub { int($_[0]); },
-#   'log'     => sub { log($_[0]); },
-   'oct'     => sub { oct($_[0]); },
+#   'hex'     => sub { hex($_[0]); },
+#   'oct'     => sub { oct($_[0]); },
    'rand'    => sub { rand($_[0]); },
-#   'sin'     => sub { sin($_[0]); },
-#   'sqrt'    => sub { sqrt($_[0]); },
    'srand'   => sub { srand($_[0]); },
   );
 
@@ -74,11 +83,11 @@ sub new {
 		path => [],
 		associate => [],
 		case_sensitive => 0,
-		#in expr only
-		strict => 1,
+		__strict_compatibility => 1,
+		force_untaint => 0,
 		# ---- unsupported distinct -------
-		#die_on_bad_params => 1,
 		die_on_bad_params => 0,
+		strict => 0,
 		# ---- unsupported -------
 #		vanguard_compatibility_mode => 0,
 #=============================================
@@ -105,6 +114,11 @@ sub new {
 #============================================
 		@_};
 
+    # make sure taint mode is on if force_untaint flag is set
+    if ($options->{force_untaint} && ! ${^TAINT}) {
+	croak("HTML::Template->new() : 'force_untaint' option set but perl does not run in taint mode!");
+    }
+
     # associate should be an array if it's not already
     if (ref($options->{associate}) ne 'ARRAY') {
 	$options->{associate} = [ $options->{associate} ];
@@ -118,11 +132,14 @@ sub new {
 	$options->{filter} = [ $options->{filter} ];
     }
 
-    # make sure objects in associate area support param()
-    foreach my $object (@{$options->{associate}}) {
-	defined($object->can('param')) or
-	    croak("HTML::Template->new called with associate option, containing object of type " . ref($object) . " which lacks a param() method!");
-    } 
+    my $case_sensitive = $options->{case_sensitive};
+    my $__strict_compatibility = $options->{__strict_compatibility};
+    # wrap associated objects into tied hash and
+    # make sure objects in associate are support param()
+    $options->{associate} = [
+	map {HTML::Template::Pro::WrapAssociate->_wrap($_, $case_sensitive, $__strict_compatibility)} 
+	@{$options->{associate}}
+	];
 
     # check for syntax errors:
     my $source_count = 0;
@@ -154,6 +171,7 @@ sub new {
     #$options->{options}=$options; 
     bless $options,$class;
     $options->_call_filters($options->{scalarref}) if $options->{scalarref} and @{$options->{filter}};
+
     return $options; # == $self
 }
 
@@ -174,21 +192,12 @@ sub new_scalar_ref {
 sub output {
     my $self=shift;
     my %oparam=(@_);
+    my $print_to = $oparam{print_to};
 
-    # emulation of the associate magic
-    if (scalar(@{$self->{associate}})) {
-	foreach my $associated_object (reverse @{$self->{associate}}) {
-	    foreach my $param ($associated_object->param()) {
-		$self->param($param, scalar $associated_object->param($param))
-		    unless $self->param($param);
-	    }
-	}
-    }
-
-    if ($oparam{print_to}) {
-	exec_tmpl($self,$oparam{print_to});
-    } else {
+    if (defined wantarray && ! $print_to) {
 	return exec_tmpl_string($self);
+    } else {
+	exec_tmpl($self,$print_to);
     }
 }
 
@@ -230,8 +239,6 @@ sub param {
 	  if (ref($val)) {
 	      if (UNIVERSAL::isa($val, 'ARRAY')) {
 		  $param_map->{lc($key)}=[map {_lowercase_keys($_)} @$val];
-	      } elsif (UNIVERSAL::isa($val, 'CODE')) {
-		  $param_map->{lc($key)}=&$val();
 	      } else {
 		  $param_map->{lc($key)}=$val;
 	      }
@@ -280,8 +287,6 @@ sub _lowercase_keys {
 	if (ref($val)) {
 	    if (UNIVERSAL::isa($val, 'ARRAY')) {
 		$newhash->{lc($key)}=[map {_lowercase_keys($_)} @$val];
-	    } elsif (UNIVERSAL::isa($val, 'CODE')) {
-		$newhash->{lc($key)}=&$val();
 	    } else {
 		$newhash->{lc($key)}=$val;
 	    }
@@ -519,8 +524,8 @@ The template syntax, interface conventions and a large piece of documentation
 of HTML::Template::Pro are based on CPAN module HTML::Template 
 by Sam Tregar, sam@tregar.com.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.4 or,
-at your option, any later version of Perl 5 you may have available.
+This library is free software; you can redistribute it and/or modify it under 
+either the LGPL2+ or under the same terms as Perl itself, either Perl version 
+5.8.4 or, at your option, any later version of Perl 5 you may have available.
 
 =cut

@@ -245,3 +245,22 @@ Revision history for Perl extension HTML::Template::Pro.
 	  the old perl find_file implementation can be re-enabled with 
 	  __use_perl_find_file option. 
 	  Please, report any misbehavior of built-in find_file implementation.
+
+0.90 Mon Aug 31 18:44:39 EEST 2009
+	- perl: added force_untaint option
+	- perl: bugfix: code references are now treated properly
+	  (evaluated dynamically).
+	- perl: bugfix: support for magic arrays and hashes.
+	- perl: now in void context output use built-in stdout.
+	- perl: support for associate on library level.
+	  case_sensitive option removed from the C library. 
+	  from now on it is wrapper-level option.
+	- template syntax: added support for template tags decorated as xml 
+	  like <TMPL_FOO A="B" /> (thanks to Alberto Simaes).
+	- C lib: added tmpl_var_case option.
+	- C lib: tmplpro_get_expr_type has new return value EXPR_TYPE_NULL
+	- expr: Modified Bruni extension: now recommended bracketing is ${}
+	  change {NAME} -> ${NAME} in Expr
+	  compatibility warning is ifdefed.
+	- C lib: 1.0.0 ABI (see htmltmplpro/API for details)
+
