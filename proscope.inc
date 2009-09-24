@@ -29,19 +29,22 @@ Scope_free(struct scope_stack* scopestack) {
   scopestack->level=-1;
 }
 
+INLINE
 static
-int curScopeLevel(struct scope_stack* scopestack) {
+int curScopeLevel(const struct scope_stack* scopestack) {
   return scopestack->level;
 }
 
+INLINE
 static
-struct ProScopeEntry* getCurrentScope(struct scope_stack* scopestack) {
+struct ProScopeEntry* getCurrentScope(const struct scope_stack* scopestack) {
   return scopestack->root+scopestack->level;
 }
 
+INLINE
 static
 struct ProScopeEntry* 
-getScope(struct scope_stack* scopestack, int depth) {
+getScope(const struct scope_stack* scopestack, int depth) {
   return &(scopestack->root)[depth];
 }
 

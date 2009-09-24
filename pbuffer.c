@@ -3,7 +3,7 @@
 /* reentrant pbuffer functions */
 
 TMPLPRO_LOCAL
-size_t pbuffer_size(pbuffer* pBuffer) {
+size_t pbuffer_size(const pbuffer* pBuffer) {
   return pBuffer->bufsize;
 }
 TMPLPRO_LOCAL
@@ -24,7 +24,7 @@ char* pbuffer_init_as(pbuffer* pBuffer,size_t size) {
   return pBuffer->buffer;
 }
 TMPLPRO_LOCAL
-char* pbuffer_string(pbuffer* pBuffer) {
+char* pbuffer_string(const pbuffer* pBuffer) {
   return pBuffer->buffer;
 }
 TMPLPRO_LOCAL

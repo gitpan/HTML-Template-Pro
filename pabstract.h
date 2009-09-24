@@ -56,11 +56,6 @@ typedef const char* BACKCALL (*find_file_functype) (ABSTRACT_FINDFILE*, const ch
 typedef PSTRING BACKCALL (*load_file_functype) (ABSTRACT_FILTER*, const char* filename);
 typedef int     BACKCALL (*unload_file_functype) (ABSTRACT_FILTER*, PSTRING memarea);
 
-#define HTML_TEMPLATE_OPT_ESCAPE_NO   0
-#define HTML_TEMPLATE_OPT_ESCAPE_HTML 1
-#define HTML_TEMPLATE_OPT_ESCAPE_URL  2
-#define HTML_TEMPLATE_OPT_ESCAPE_JS   3
-
 /* -------- Expr extension------------ */
 
 /* those are needed for EXPR= extension */
@@ -68,7 +63,7 @@ typedef ABSTRACT_USERFUNC* BACKCALL (*is_expr_userfnc_functype) (ABSTRACT_FUNCMA
 typedef ABSTRACT_ARGLIST*  BACKCALL (*init_expr_arglist_functype) (ABSTRACT_CALLER*);
 typedef void BACKCALL (*push_expr_arglist_functype) (ABSTRACT_ARGLIST*, ABSTRACT_EXPRVAL*);
 typedef void BACKCALL (*free_expr_arglist_functype) (ABSTRACT_ARGLIST*);
-typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*, ABSTRACT_EXPRVAL*);
+typedef void BACKCALL (*call_expr_userfnc_functype) (ABSTRACT_CALLER*, ABSTRACT_ARGLIST*, ABSTRACT_USERFUNC*, ABSTRACT_EXPRVAL* return_value);
 
 /* ------- end Expr extension -------- */
 

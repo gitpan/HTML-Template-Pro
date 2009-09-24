@@ -17,9 +17,10 @@ void tagstack_free(struct tagstack* tagstack) {
   free(tagstack->entry);
 }
 
+INLINE
 static 
-int tagstack_notempty(struct tagstack* tagstack) {
-  return tagstack->pos>=0;
+int tagstack_notempty(const struct tagstack* tagstack) {
+  return tagstack->pos >= 0;
 }
 
 /*
@@ -29,8 +30,9 @@ void tagstack_entry_debug(struct tagstack_entry item) {
 }
 */
 
+INLINE
 static 
-struct tagstack_entry* tagstack_top(struct tagstack* tagstack) {
+struct tagstack_entry* tagstack_top(const struct tagstack* tagstack) {
   return tagstack->entry+tagstack->pos;
 }
 

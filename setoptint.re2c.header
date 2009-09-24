@@ -1,0 +1,18 @@
+#include "pabidecl.h"
+#include "pabstract.h"
+#include "pparam.h"
+#include "procore.h"
+
+API_IMPL 
+int
+APICALL
+tmplpro_set_int_option(struct tmplpro_param* param, const char *p, int val)
+{
+	register const char* YYMARKER;
+	param->htp_errno = 0;
+/*!re2c
+	re2c:define:YYCTYPE  = "unsigned char";
+	re2c:define:YYCURSOR = p;
+	re2c:yyfill:enable   = 0;
+	re2c:yych:conversion = 1;
+	re2c:indent:top      = 1;

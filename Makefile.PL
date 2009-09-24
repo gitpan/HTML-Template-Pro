@@ -88,6 +88,9 @@ procore\$(OBJ_EXT): loadfile.inc tagstack.inc
 rpm: dist
 	rpmbuild -ta --clean HTML-Template-Pro-$(VERSION).tar.gz
 
+.re2c.c:
+	re2c $< > $@
+
 MANIFEST.git::
 	git-ls-files > MANIFEST.git
 
@@ -109,6 +112,7 @@ json::
 	rm -rf templates-Pro/json
 	export HTP_DUMP=1; $(MAKE) test
 
+.SUFFIXES: .re2c
 MAKE_FRAG
 }
 

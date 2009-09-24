@@ -73,6 +73,8 @@ unload_file_functype UnloadFileFuncPtr;
   flag warn_unused;
 
   /* private */
+  int found_syntax_error;
+  int htp_errno;
 
   int cur_includes; /* internal counter of include depth */
   const char* masterpath; /* file that has included this file, or NULL */
@@ -81,6 +83,8 @@ unload_file_functype UnloadFileFuncPtr;
   struct scope_stack var_scope_stack;
   int param_map_count; /* internal counter of pushed scope roots */
 
+  /* private buffer of builtin tmpl2string */
+  pbuffer builtin_tmpl2string_buffer;
   /* private buffer of builtin_findfile */
   pbuffer builtin_findfile_buffer;
   /* private buffer of write_chars_to_pbuffer */
@@ -90,6 +94,11 @@ unload_file_functype UnloadFileFuncPtr;
   pbuffer lowercase_varname_buffer;
   PSTRING uppercase_varname;
   pbuffer uppercase_varname_buffer;
+
+  /* private buffer for escape_pstring */
+  pbuffer escape_pstring_buffer;
+  /* private buffer for get_loop_context_vars_value */
+  char loopvarbuf[20]; /* for snprintf %d */
 };
 
 #endif /* _PPARAM_H */

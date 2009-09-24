@@ -25,6 +25,10 @@ exprtool.h
 exprtool.inc
 exprtype.h
 exprval.h
+getoptint.c
+getoptint.re2c
+getoptint.re2c.footer
+getoptint.re2c.header
 lib/HTML/Template/PerlInterface.pod
 lib/HTML/Template/Pro.pm
 lib/HTML/Template/Pro/CommonTest.pm
@@ -32,6 +36,7 @@ lib/HTML/Template/Pro/WrapAssociate.pm
 lib/HTML/Template/SYNTAX.pod
 loadfile.h
 loadfile.inc
+loopvar.inc
 pabidecl.h
 pabstract.h
 parse_expr.h
@@ -54,6 +59,10 @@ provalue.h
 pstring.h
 pstrutils.h
 pstrutils.inc
+setoptint.c
+setoptint.re2c
+setoptint.re2c.footer
+setoptint.re2c.header
 t/01coderefs.t
 t/02basic.t
 t/02random.t
@@ -73,6 +82,7 @@ t/templates/loop.tmpl
 t/templates/negative.tmpl
 t/templates/numerics.tmpl
 t/templates/register.tmpl
+tags.inc
 tagstack.h
 tagstack.inc
 templates-Pro/a.incl

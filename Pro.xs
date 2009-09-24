@@ -663,14 +663,13 @@ exec_tmpl_string_builtin(self_ptr)
  PREINIT:
 	int retstate;
 	SV* outputString;
-	MPSTRING inString;
+	PSTRING inString;
 	struct perl_callback_state callback_state = {self_ptr,newAV(),newAV(),0};
 	struct tmplpro_param* proparam=process_tmplpro_options(&callback_state);
     CODE:
 	inString = tmplpro_tmpl2pstring(proparam, &retstate);
 	outputString=newSV(inString.endnext-inString.begin+2);
 	sv_setpvn(outputString, inString.begin, inString.endnext-inString.begin);
-	free(inString.begin);
 	release_tmplpro_options(proparam,callback_state);
 	if (retstate!=0) warn ("Pro.xs: non-zero exit code %d",retstate);
 	RETVAL = outputString;

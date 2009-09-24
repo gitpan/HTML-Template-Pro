@@ -24,12 +24,9 @@ struct tmplpro_state {
   int   tag;
   boolval  is_tag_closed;
   boolval  is_tag_commented;
-  boolval  is_expr;
-  const char* tag_start; 
+  const char* tag_start;
 
-/* internal buffers */
-  /* main string buffer */
-  pbuffer str_buffer;
+  /* internal buffers */
   /* tag stack */
   struct tagstack tag_stack;
 

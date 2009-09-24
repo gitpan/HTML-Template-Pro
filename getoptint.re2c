@@ -1,0 +1,44 @@
+#include "pabidecl.h"
+#include "pabstract.h"
+#include "pparam.h"
+#include "procore.h"
+
+API_IMPL 
+int
+APICALL
+tmplpro_get_int_option(struct tmplpro_param* param, const char *p, int* failure_ptr)
+{
+	register const char* YYMARKER;
+	param->htp_errno = 0;
+	if (failure_ptr) *failure_ptr=0;
+/*!re2c
+	re2c:define:YYCTYPE  = "unsigned char";
+	re2c:define:YYCURSOR = p;
+	re2c:yyfill:enable   = 0;
+	re2c:yych:conversion = 1;
+	re2c:indent:top      = 1;
+	"global_vars"		{return param->global_vars;}
+	"max_includes"		{return param->max_includes;}
+	"debug"		{return param->debug;}
+	"tmpl_var_case"		{return param->tmpl_var_case;}
+	"no_includes"		{return (int) param->no_includes;}
+	"loop_context_vars"		{return (int) param->loop_context_vars;}
+	"strict"		{return (int) param->strict;}
+	"filters"		{return (int) param->filters;}
+	"default_escape"		{return param->default_escape;}
+	"path_like_variable_scope"		{return (int) param->path_like_variable_scope;}
+	"search_path_on_include"		{return (int) param->search_path_on_include;}
+[^]					{if (failure_ptr) *failure_ptr=ERR_PRO_INVALID_ARGUMENT; param->htp_errno=ERR_PRO_INVALID_ARGUMENT; return 0;}
+*/
+}
+
+/*
+ * Local variables:
+ * mode: c
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */
+

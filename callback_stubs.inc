@@ -9,7 +9,7 @@
 
 struct builtin_writer_state {
   size_t size;
-  pbuffer buffer;
+  pbuffer* bufptr;
 };
 
 
@@ -30,7 +30,7 @@ static void BACKCALL stub_write_chars_to_pbuffer (ABSTRACT_WRITER* state,const c
   pbuffer* pbuf;
   if (addlen==0) return;
   oldlen = ((struct builtin_writer_state*) state)->size;
-  pbuf = &((struct builtin_writer_state*) state)->buffer;
+  pbuf = ((struct builtin_writer_state*) state)->bufptr;
   pbuffer_resize(pbuf, oldlen + addlen + 1);
   memcpy(pbuffer_string(pbuf) + oldlen, begin, addlen);
   ((struct builtin_writer_state*) state)->size += addlen;

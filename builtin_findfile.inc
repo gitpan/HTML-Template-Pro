@@ -251,11 +251,7 @@ static const char* _find_file (struct tmplpro_param* param, const char* filename
    * but we malloc an extra space to avoid  frequent reallocing
    */
   buffsize+=HTML_TEMPLATE_ROOT_length+strlen(filename)+(extra_dir.endnext-extra_dir.begin)+4+1; /* 4 - for slashes */
-  if (0==pbuffer_size(&param->builtin_findfile_buffer)) {
-    pbuffer_init_as(&param->builtin_findfile_buffer, 3*buffsize);
-  } else {
-    pbuffer_resize(&param->builtin_findfile_buffer, buffsize);
-  }
+  pbuffer_resize(&param->builtin_findfile_buffer, buffsize);
   pbuf_begin.begin=pbuffer_string(&param->builtin_findfile_buffer);
   pbuf_begin.endnext=pbuf_begin.begin;
 
@@ -285,8 +281,8 @@ static const char* _find_file (struct tmplpro_param* param, const char* filename
     while (NULL!=*pathlist) {
       //tmpl_log(TMPL_LOG_ERROR,"try 'path' option list..: looking in [%s]\n",*pathlist);
       filepath=_ff_add_str_to_buffer(pbuf_begin,*pathlist);
-      /* TODO: check *pathlist length */
-      filepath=_ff_add_sep_to_buffer(filepath);
+      /* add separator only if *pathlist non-empty */
+      if (0!=**pathlist) filepath=_ff_add_sep_to_buffer(filepath);
       filepath=_ff_add_str_to_buffer(filepath,filename);
       filepath=_ff_add_0_to_buffer(filepath);
       if (_ff_exists(filepath.begin)) return _ff_canonical_path_from_buf(filepath);
@@ -306,8 +302,8 @@ static const char* _find_file (struct tmplpro_param* param, const char* filename
 	if (HTML_TEMPLATE_ROOT_length >0) 
 	  filepath=_ff_add_sep_to_buffer(filepath);
 	filepath=_ff_add_str_to_buffer(filepath,*pathlist);
-	/* TODO: check *pathlist length */
-	filepath=_ff_add_sep_to_buffer(filepath);
+	/* add separator only if *pathlist non-empty */
+	if (0!=**pathlist) filepath=_ff_add_sep_to_buffer(filepath);
 	filepath=_ff_add_str_to_buffer(filepath,filename);
 	filepath=_ff_add_0_to_buffer(filepath);
 	if (_ff_exists(filepath.begin)) return _ff_canonical_path_from_buf(filepath);

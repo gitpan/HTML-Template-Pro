@@ -33,12 +33,19 @@ TMPLPRO_API struct tmplpro_param* APICALL tmplpro_param_init(void);
 TMPLPRO_API void APICALL tmplpro_param_free(struct tmplpro_param*);
 
 TMPLPRO_API int APICALL tmplpro_exec_tmpl (struct tmplpro_param*);
-TMPLPRO_API MPSTRING APICALL tmplpro_tmpl2pstring (struct tmplpro_param *param, int *exitcode);
+TMPLPRO_API PSTRING APICALL tmplpro_tmpl2pstring (struct tmplpro_param *param, int *exitcode);
 
 
 TMPLPRO_API void APICALL tmplpro_clear_option_param_map(struct tmplpro_param *param);
 TMPLPRO_API int APICALL tmplpro_count_option_param_map(struct tmplpro_param *param);
 TMPLPRO_API int APICALL tmplpro_push_option_param_map(struct tmplpro_param *param, ABSTRACT_MAP* map, EXPR_int64 flags);
+
+TMPLPRO_API int APICALL tmplpro_get_int_option(struct tmplpro_param* param, const char *p, int* failure_ptr);
+TMPLPRO_API int APICALL tmplpro_set_int_option(struct tmplpro_param* param, const char *p, int value);
+
+TMPLPRO_API int APICALL tmplpro_errno(struct tmplpro_param* param);
+TMPLPRO_API const char* APICALL tmplpro_errmsg(struct tmplpro_param* param);
+
 
 struct exprval;
 TMPLPRO_API void APICALL tmplpro_set_expr_as_int64 (ABSTRACT_EXPRVAL*,EXPR_int64);
@@ -63,6 +70,11 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
 #define ASK_NAME_LCFIRST	16
 #define ASK_NAME_UCFIRST	32
 /* define ASK_NAME_MASK	(ASK_NAME_AS_IS|ASK_NAME_LOWERCASE|ASK_NAME_UPPERCASE|ASK_NAME_CAPITALIZED|ASK_NAME_LCFIRST|ASK_NAME_UCFIRST) */
+
+#define HTML_TEMPLATE_OPT_ESCAPE_NO   0
+#define HTML_TEMPLATE_OPT_ESCAPE_HTML 1
+#define HTML_TEMPLATE_OPT_ESCAPE_URL  2
+#define HTML_TEMPLATE_OPT_ESCAPE_JS   3
 
 #endif /* tmplpro.h */
 
@@ -103,10 +115,14 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
     \brief main method of libhtmltmplpro.
 */
 
-/*! \fn MPSTRING tmplpro_tmpl2pstring (struct tmplpro_param*, int* exitcode);
+/*! \fn PSTRING tmplpro_tmpl2pstring (struct tmplpro_param*, int* exitcode);
     \brief main method of libhtmltmplpro. Returns processed template as a C string.
 
-    Note that caller's responsibility is to free the returned memory.
+    Note that returned PSTRING resides in an internal tmplpro buffer.
+    A caller should copy its contents as it will be rewritten in the next 
+    call to tmplpro_tmpl2pstring. It is libhtmltmplpro ( tmplpro_param_free() )
+    responsibility to free the buffer's memory during the destruction 
+    of param object.
 */
 
 /*! \fn void tmplpro_set_expr_as_int64 (ABSTRACT_EXPRVAL*,EXPR_int64);
@@ -159,6 +175,36 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
     \brief method for callback of push_expr_arglist_functype to determine the type of a value.
 
     It should only be used in a callback of push_expr_arglist_functype.
+*/
+
+/*! \fn int  tmplpro_get_int_option(struct tmplpro_param* param, const char *p, int* failure_ptr);
+    \brief string-based option getter, useful for dynamic languages.
+
+    non-NULL failure_ptr is used to return exit code. 
+    Note that exit code is also available via tmplpro_errno/tmplpro_errmsg.
+    Non-null exit code indicates failure (invalid option).
+*/
+
+/*! \fn int  tmplpro_set_int_option(struct tmplpro_param* param, const char *p, int val);
+    \brief string-based option setter, useful for dynamic languages.
+    
+    returns exit code, also available via tmplpro_errno/tmplpro_errmsg.
+    Non-null exit code indicates failure (invalid option or invalid option value).
+*/
+
+/*! \fn int  tmplpro_errno(struct tmplpro_param* param);
+    \brief exit code of the last function call.
+
+    Exit code of the last function call. 
+    (For functions that return exit status).
+
+*/
+
+/*! \fn const char* tmplpro_errmsg(struct tmplpro_param* param);
+    \brief exit message of the last function call.
+
+    A exit status message of the last function call. 
+    (For functions that return exit status).
 */
 
 /** \struct tmplpro_param

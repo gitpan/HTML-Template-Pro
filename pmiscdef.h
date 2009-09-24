@@ -45,6 +45,24 @@ void __cta_proto__(int __cta_foo__[(x) ? 1 : -1])
 #define INLINE 
 #endif /* __GNUC__ */
 
+
+/* C89 compatible flexible array
+struct header {
+  size_t len;
+  unsigned char data[FLEXIBLE_SIZE];
+};
+struct header *my_header = malloc(SIZEOF_FLEXIBLE(struct header, data, n));
+ 
+expands to 
+   = malloc(offsetof(struct header, data) + n * sizeof my_header->data);
+
+Setting FLEXIBLE_SIZE to SIZE_MAX almost ensures this will fail :
+struct header *my_header = malloc(sizeof *my_header);
+*/
+#define FLEXIBLE_SIZE SIZE_MAX /* or whatever maximum length for an array */
+#define SIZEOF_FLEXIBLE(type, member, length) \
+  ( offsetof(type, member) + (length) * sizeof ((type *)0)->member[0] )
+
 #endif /* pmiscdef.h */
 
 /*
