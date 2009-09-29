@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 #include "tmplpro.h"
+#include "pconst.h"
 #include "procore.h"
 #include "prostate.h"
 #include "provalue.h"
@@ -84,8 +85,30 @@ static const char const tag_has_opt[][6]={
   { 0, 0, 0, 0, 0, 0 }, /**/
 };
 
-/* max offset to ensure we are not out of file when try <!--/  */
-#define TAG_WIDTH_OFFSET 4
+typedef void (*tag_handler_func)(struct tmplpro_state *state, const PSTRING* const TagOptVal);
+
+static const tag_handler_func const output_closetag_handler[]={
+  tag_handler_unknown,	/*Bad or unsupported tag*/
+  tag_handler_unknown,	/*VAR*/
+  tag_handler_unknown,	/*INCLUDE*/
+  tag_handler_closeloop,	/*LOOP*/
+  tag_handler_closeif,	/*IF*/
+  tag_handler_unknown,	/*ELSE*/
+  tag_handler_closeunless,	/*UNLESS*/
+  tag_handler_unknown,	/*ELSIF*/
+  tag_handler_unknown,	/**/
+};
+static const tag_handler_func const output_opentag_handler[]={
+  tag_handler_unknown,	/*Bad or unsupported tag*/
+  tag_handler_var,	/*VAR*/
+  tag_handler_include,	/*INCLUDE*/
+  tag_handler_loop,	/*LOOP*/
+  tag_handler_if,	/*IF*/
+  tag_handler_else,	/*ELSE*/
+  tag_handler_unless,	/*UNLESS*/
+  tag_handler_elsif,	/*ELSIF*/
+  tag_handler_unknown,	/**/
+};
 
 static 
 int 
@@ -321,29 +344,16 @@ process_tmpl_tag(struct tmplpro_state *state)
     (state->param->WriterFuncPtr)(state->param->ext_writer_state,state->last_processed_pos,state->tag_start);
     state->last_processed_pos=state->cur_pos;
   }
-  /* TODO: call tag_specific handler by array of handlers 
-     var_tag_handler(..) */
   if (is_tag_closed) {
-    switch (tag_type) {
-    case HTML_TEMPLATE_TAG_IF:		tag_handler_closeif(state);break;
-    case HTML_TEMPLATE_TAG_UNLESS:	tag_handler_closeunless(state);break;
-    case HTML_TEMPLATE_TAG_LOOP:	tag_handler_closeloop(state);break;
-    default:	tag_handler_unknown(state);break;
-    }
+    output_closetag_handler[tag_type](state,TagOptVal);
   } else {
-    switch (tag_type) {
-    case HTML_TEMPLATE_TAG_VAR:		tag_handler_var(state,TagOptVal); break;
-    case HTML_TEMPLATE_TAG_IF:		tag_handler_if(state,TagOptVal); break;
-    case HTML_TEMPLATE_TAG_UNLESS:	tag_handler_unless(state,TagOptVal); break;
-    case HTML_TEMPLATE_TAG_ELSE:	tag_handler_else(state,TagOptVal); break;
-    case HTML_TEMPLATE_TAG_ELSIF:	tag_handler_elsif(state,TagOptVal); break;
-    case HTML_TEMPLATE_TAG_LOOP:	tag_handler_loop(state,TagOptVal); break;
-    case HTML_TEMPLATE_TAG_INCLUDE:	tag_handler_include(state,TagOptVal);break;
-    default:	tag_handler_unknown(state);break;
-    }
+    output_opentag_handler[tag_type](state,TagOptVal);
   }
 }
 
+
+/* max offset to ensure we are not out of file when try <!--/  */
+#define TAG_WIDTH_OFFSET 4
 static 
 void 
 process_state (struct tmplpro_state * state)

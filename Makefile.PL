@@ -25,6 +25,7 @@ if (grep {/^DYNAMIC=1/} @ARGV) {
 }
 
 my %DEF=(
+    MAINTAINER  => $^O eq 'linux' && -d '.git' ? 1 : 0,
     PCRE  => 1,
     DEBUG => 0,
     MMAP  => 1,
@@ -78,6 +79,7 @@ WriteMakefile(
 );
 
 sub MY::postamble {
+    return '' unless $DEF{MAINTAINER};
     return <<'MAKE_FRAG';
 expr.c: calc.inc exprtool.inc exprpstr.inc
 procore\$(OBJ_EXT): loadfile.inc tagstack.inc

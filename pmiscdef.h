@@ -22,8 +22,8 @@
 # define MOD_TD "%ld"
 #endif
 
-#if ! HAVE_STRDUP && ! defined strdup
-# if HAVE__STRDUP
+#if ! defined HAVE_STRDUP && ! defined strdup
+# if defined HAVE__STRDUP
 #  define strdup _strdup
 # else
 #  define strdup(str) strcpy(malloc(strlen(str) + 1), str)

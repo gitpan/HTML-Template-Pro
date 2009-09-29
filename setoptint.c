@@ -3,7 +3,7 @@
 #include "pabidecl.h"
 #include "pabstract.h"
 #include "pparam.h"
-#include "procore.h"
+#include "pconst.h"
 
 API_IMPL 
 int

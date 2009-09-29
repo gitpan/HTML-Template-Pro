@@ -71,10 +71,11 @@ is_pstring_true (PSTRING s) {
   } else return 1;
 }
 
+#define MAX_ESCAPE_SEQ sizeof("&quot;")
 static 
 PSTRING 
 htmlencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
-  char* buf=pbuffer_resize(StrBuffer, pstring.endnext-pstring.begin+1);
+  char* buf=pbuffer_resize(StrBuffer, pstring.endnext-pstring.begin+1+MAX_ESCAPE_SEQ);
   const char* curpos=pstring.begin;
   size_t offset=0;
   size_t buflen=pbuffer_size(StrBuffer);
@@ -82,8 +83,8 @@ htmlencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
   while (curpos<pstring.endnext) {
     unsigned char curchar=*curpos++;
     int bufdelta=1;
-    if (offset>=buflen) {
-      buf=pbuffer_resize(StrBuffer, 2*offset);
+    if (offset>=buflen-MAX_ESCAPE_SEQ) {
+      buf=pbuffer_resize(StrBuffer, 2*(offset+MAX_ESCAPE_SEQ));
       buflen=pbuffer_size(StrBuffer);
     }
     switch (curchar) {
@@ -105,7 +106,7 @@ htmlencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
 static 
 PSTRING 
 jsencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
-  char* buf=pbuffer_resize(StrBuffer, pstring.endnext-pstring.begin+1);
+  char* buf=pbuffer_resize(StrBuffer, pstring.endnext-pstring.begin+1+MAX_ESCAPE_SEQ);
   const char* curpos=pstring.begin;
   size_t offset=0;
   size_t buflen=pbuffer_size(StrBuffer);
@@ -113,8 +114,8 @@ jsencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
   while (curpos<pstring.endnext) {
     unsigned char curchar=*curpos++;
     int bufdelta=1;
-    if (offset>=buflen) {
-      buf=pbuffer_resize(StrBuffer, 2*offset);
+    if (offset>=buflen-MAX_ESCAPE_SEQ) {
+      buf=pbuffer_resize(StrBuffer, 2*(offset+MAX_ESCAPE_SEQ));
       buflen=pbuffer_size(StrBuffer);
     }
     switch (curchar) {
@@ -135,7 +136,7 @@ jsencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
 static 
 PSTRING 
 urlencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
-  char* buf=pbuffer_resize(StrBuffer, pstring.endnext-pstring.begin+1);
+  char* buf=pbuffer_resize(StrBuffer, pstring.endnext-pstring.begin+1+MAX_ESCAPE_SEQ);
   const char* curpos=pstring.begin;
   size_t offset=0;
   size_t buflen=pbuffer_size(StrBuffer);
@@ -143,8 +144,8 @@ urlencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
   while (curpos<pstring.endnext) {
     unsigned char curchar=*curpos++;
     int bufdelta=1;
-    if (offset>=buflen) {
-      buf=pbuffer_resize(StrBuffer, 2*offset);
+    if (offset>=buflen-MAX_ESCAPE_SEQ) {
+      buf=pbuffer_resize(StrBuffer, 2*(offset+MAX_ESCAPE_SEQ));
       buflen=pbuffer_size(StrBuffer);
     }
     /* 

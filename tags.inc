@@ -318,7 +318,7 @@ tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
 
 static 
 void 
-tag_handler_closeif (struct tmplpro_state *state)
+tag_handler_closeif (struct tmplpro_state *state, const PSTRING* const TagOptVal)
 {
   struct tagstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_IF)) {
@@ -332,7 +332,7 @@ tag_handler_closeif (struct tmplpro_state *state)
 
 static 
 void 
-tag_handler_closeunless (struct tmplpro_state *state)
+tag_handler_closeunless (struct tmplpro_state *state, const PSTRING* const TagOptVal)
 {
   struct tagstack_entry iftag;
   if (! test_stack(HTML_TEMPLATE_TAG_UNLESS)) {
@@ -468,7 +468,7 @@ tag_handler_loop (struct tmplpro_state *state, const PSTRING* const TagOptVal)
 
 static 
 void 
-tag_handler_closeloop (struct tmplpro_state *state)
+tag_handler_closeloop (struct tmplpro_state *state, const PSTRING* const TagOptVal)
 {
   struct tagstack_entry* iftag_ptr;
   if (! test_stack(HTML_TEMPLATE_TAG_LOOP)) {
@@ -492,7 +492,7 @@ tag_handler_closeloop (struct tmplpro_state *state)
 
 static 
 void 
-tag_handler_unknown (struct tmplpro_state *state)
+tag_handler_unknown (struct tmplpro_state *state, const PSTRING* const TagOptVal)
 {
   log_state(state,TMPL_LOG_ERROR,"tag_handler_unknown: unknown tag\n");
 }

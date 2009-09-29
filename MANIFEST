@@ -42,6 +42,7 @@ pabstract.h
 parse_expr.h
 pbuffer.c
 pbuffer.h
+pconst.h
 perl-HTML-Template-Pro.spec
 pmiscdef.h
 pparam.h

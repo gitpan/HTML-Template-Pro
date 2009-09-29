@@ -169,7 +169,7 @@ static const char* _ff_canonical_path_from_buf(MPSTRING buf) {
 	}
 	/* old prev_slash_next now current, so we need to recalculate it  */
 	/* first find a 'slash' char */
-	while (!IS_FILE_SEP(*prev_slash_next) && prev_slash_next>=slash_begin) prev_slash_next--;
+	while (prev_slash_next>=slash_begin && !IS_FILE_SEP(*prev_slash_next)) prev_slash_next--;
 	if (prev_slash_next>slash_begin) prev_slash_next++;/* step next to slash */
       } else {
 	prev_slash_next=pos+1;

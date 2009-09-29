@@ -1,8 +1,3 @@
-#define ERR_PRO_INVALID_ARGUMENT 1
-#define ERR_PRO_FILE_NOT_FOUND 2
-#define ERR_PRO_CANT_OPEN_FILE 3
-#define ERR_PRO_TEMPLATE_SYNTAX_ERROR 4
-
 #include "pstring.h"
 #include "tmpllog.h"
 #include "pabstract.h"
