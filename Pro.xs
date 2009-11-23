@@ -579,6 +579,11 @@ struct tmplpro_param* process_tmplpro_options (struct perl_callback_state* callb
     tmplpro_set_option_path(param, get_array_of_strings_from_hash(aTHX_ SelfHash, "path", callback_state));
     tmplpro_set_option_FindFileFuncPtr(param, NULL);
   }
+
+#if defined _WIN32
+  /* hack; see https://rt.cpan.org/Public/Bug/Display.html?id=51218 */
+  tmplpro_set_option_template_root(param, getenv("HTML_TEMPLATE_ROOT"));
+#endif
   return param;
 }
 

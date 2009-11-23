@@ -83,6 +83,7 @@ sub MY::postamble {
     return <<'MAKE_FRAG';
 expr.c: calc.inc exprtool.inc exprpstr.inc
 procore\$(OBJ_EXT): loadfile.inc tagstack.inc
+optint.c: optint.re2c.m4
 
 #proparam.c proparam.h: pparam.h
 #	./pparam2proparam
@@ -92,6 +93,9 @@ rpm: dist
 
 .re2c.c:
 	re2c $< > $@
+
+%.re2c: %.re2c.m4
+	m4 -P $< > $@
 
 MANIFEST.git::
 	git-ls-files > MANIFEST.git

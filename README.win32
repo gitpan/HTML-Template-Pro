@@ -38,6 +38,7 @@ or from http://gnuwin32.sourceforge.net/packages/pcre.htm (seems to be too old)
 Unpack it into pcre subdirectory.
 
 Perl module should be built using Makefile.PL.
+It is known to compile and work properly under Strawberry Perl.
 
 The C library can be built for Windows using CMake
 http://www.cmake.org/cmake/resources/software.html

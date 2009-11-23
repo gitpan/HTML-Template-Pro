@@ -281,6 +281,25 @@ TMPLPRO_API char** APICALL tmplpro_get_option_path(struct tmplpro_param*);
 */
 TMPLPRO_API void APICALL tmplpro_set_option_path(struct tmplpro_param*,char**);
 
+/*! \fn char* tmplpro_get_option_template_root(struct tmplpro_param*);
+    \brief get value of template_root option.
+
+    see HTML::Template::Pro perl module documentation for template_root option.
+
+    \param param -- pointer to an internal state.
+*/
+TMPLPRO_API char* APICALL tmplpro_get_option_template_root(struct tmplpro_param*);
+
+/*! \fn void tmplpro_set_option_template_root(struct tmplpro_param*,char*);
+    \brief set value of template_root option.
+
+    see HTML::Template::Pro perl module documentation for template_root option.
+
+    \param param -- pointer to an internal state.
+    \param val -- value to set.
+*/
+TMPLPRO_API void APICALL tmplpro_set_option_template_root(struct tmplpro_param*,char*);
+
 /*! \fn writer_functype tmplpro_get_option_WriterFuncPtr(struct tmplpro_param*);
     \brief get address of callback of ::writer_functype
     \param param -- pointer to an internal state.

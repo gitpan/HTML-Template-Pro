@@ -28,6 +28,7 @@ Debug Assertion Failed! f:\dd\vctools\crt_bld\self_x86\crt\src \isctype.c Expres
   struct exprval numval;   /* For returning numbers.  */
   const symrec_const  *tptr;   /* For returning symbol-table pointers.  */
   struct user_func_call extfunc;  /* for user-defined function name */
+  PSTRING uservar;
 }
 %{
   /* the second section is required as we use YYSTYPE here */
@@ -37,13 +38,14 @@ Debug Assertion Failed! f:\dd\vctools\crt_bld\self_x86\crt\src \isctype.c Expres
 %start line
 %token <numval>  NUM        /*  poly type.  */
 %token <extfunc> EXTFUNC    /* user-defined function */
-%token <tptr> VAR	    /* built-in Variable  */
+%token <tptr> BUILTIN_VAR	    /* built-in Variable  */
 %token <tptr> BUILTIN_FNC_DD /* built-in D Function (D).  */
 %token <tptr> BUILTIN_FNC_DDD /* built-in D Function (D,D).  */
 %token <tptr> BUILTIN_FNC_EE /* built-in E Function (E).  */
+%token <uservar> VAR    /* user-supplied variable.  */
 %type  <numval>  numEXP
 %type  <extfunc> arglist
-     
+
 /*%right '='*/
 %left OR
 %left AND
@@ -65,8 +67,17 @@ line: numEXP
 /* | error { yyerrok;                  } */
 
 numEXP: NUM			{ $$ = $1;			}
-| VAR				{ $$.type=EXPR_TYPE_DBL; $$.val.dblval = $1->var; }
-/*| VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
+| BUILTIN_VAR			{ $$.type=EXPR_TYPE_DBL; $$.val.dblval = $1->var; }
+/*| BUILTIN_VAR '=' numEXP 		{ $$ = $3; $1->value.var = $3;	} */
+| VAR		{
+		  PSTRING varvalue=_get_variable_value(state->param, $1);
+		  if (varvalue.begin==NULL) {
+		    int loglevel = state->param->warn_unused ? TMPL_LOG_ERROR : TMPL_LOG_INFO;
+		    log_expr(exprobj,loglevel, "non-initialized variable %.*s\n",(int)(varvalue.endnext-varvalue.begin),varvalue.begin);
+		  }
+		  $$.type=EXPR_TYPE_PSTR;
+		  $$.val.strval=varvalue;
+  }
 | arglist ')'
                  {
 		   $$ = call_expr_userfunc(exprobj, state->param, $1);
@@ -162,8 +173,30 @@ numEXP: NUM			{ $$ = $1;			}
 		   expr_to_dbl(exprobj, &$1,&$3);
 		   $$.val.dblval = pow ($1.val.dblval, $3.val.dblval);
                  }
-| numEXP AND numEXP 		{ DO_LOGOP(exprobj, $$,&&,$1,$3);	}
-| numEXP OR  numEXP 		{ DO_LOGOP(exprobj, $$,||,$1,$3);	}
+| numEXP OR numEXP
+ 		 {
+		   if (exprobj->is_tt_like_logical) {
+		     $$=$1;
+		     switch (expr_to_int_or_dbl_logop1(exprobj, &$$)) {
+		     case EXPR_TYPE_INT: $$= ($1.val.intval ? $1 : $3); break;
+		     case EXPR_TYPE_DBL: $$= ($1.val.dblval ? $1 : $3); break;
+		     }
+		   } else {
+		     DO_LOGOP(exprobj, $$,||,$1,$3);
+		   }
+		 }
+| numEXP AND numEXP
+ 		 {
+		   if (exprobj->is_tt_like_logical) {
+		     $$=$1;
+		     switch (expr_to_int_or_dbl_logop1(exprobj, &$$)) {
+		     case EXPR_TYPE_INT: $$= ($1.val.intval ? $3 : $1); break;
+		     case EXPR_TYPE_DBL: $$= ($1.val.dblval ? $3 : $1); break;
+		     }
+		   } else {
+		     DO_LOGOP(exprobj, $$,&&,$1,$3);
+		   }
+		 }
 | numEXP numGE numEXP 		{ DO_CMPOP(exprobj, $$,>=,$1,$3);	}
 | numEXP numLE numEXP 		{ DO_CMPOP(exprobj, $$,<=,$1,$3);	}
 | numEXP numNE numEXP 		{ DO_CMPOP(exprobj, $$,!=,$1,$3);	}
@@ -269,6 +302,8 @@ parse_expr(PSTRING expression, struct tmplpro_state* state)
   exprobj.exprarea=expression;
   exprobj.state = state;
   exprobj.is_expect_quote_like=1;
+  // TODO!!
+  exprobj.is_tt_like_logical=0;
   yyparse (state, &exprobj, &expr_retval);
   if (NULL!=expr_retval.begin && NULL==expr_retval.endnext) log_expr(&exprobj, TMPL_LOG_ERROR, "parse_expr internal warning: %s\n", "endnext is null pointer");
   return expr_retval;
@@ -406,7 +441,6 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state, struct expr_parser* exprobj)
     }
 
     {
-      PSTRING varvalue;
       const char* next_char= exprobj->expr_curpos;
       /* optimization: funcs is always followed by ( */
       while ((next_char<(exprobj->exprarea).endnext) && isspace(*next_char)) next_char++;
@@ -421,14 +455,8 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state, struct expr_parser* exprobj)
 	  return s->type;
 	}
       }
-      varvalue=_get_variable_value(state->param, name);
-      if (varvalue.begin==NULL) {
-	int loglevel = state->param->warn_unused ? TMPL_LOG_ERROR : TMPL_LOG_INFO;
-      	log_expr(exprobj,loglevel, "non-initialized variable %.*s\n",(int)(varvalue.endnext-varvalue.begin),varvalue.begin);
-      }
-      (*lvalp).numval.type=EXPR_TYPE_PSTR;
-      (*lvalp).numval.val.strval=varvalue;
-      return NUM;
+      (*lvalp).uservar=name;
+      return VAR;
     }
   }
 

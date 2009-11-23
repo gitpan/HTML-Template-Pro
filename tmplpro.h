@@ -42,6 +42,7 @@ TMPLPRO_API int APICALL tmplpro_push_option_param_map(struct tmplpro_param *para
 
 TMPLPRO_API int APICALL tmplpro_get_int_option(struct tmplpro_param* param, const char *p, int* failure_ptr);
 TMPLPRO_API int APICALL tmplpro_set_int_option(struct tmplpro_param* param, const char *p, int value);
+TMPLPRO_API void APICALL tmplpro_reset_int_options(struct tmplpro_param* param);
 
 TMPLPRO_API int APICALL tmplpro_errno(struct tmplpro_param* param);
 TMPLPRO_API const char* APICALL tmplpro_errmsg(struct tmplpro_param* param);
@@ -190,6 +191,10 @@ TMPLPRO_API PSTRING APICALL tmplpro_get_expr_as_pstring (ABSTRACT_EXPRVAL*);
     
     returns exit code, also available via tmplpro_errno/tmplpro_errmsg.
     Non-null exit code indicates failure (invalid option or invalid option value).
+*/
+
+/*! \fn void  tmplpro_reset_int_options(struct tmplpro_param* param);
+    \brief reset integer userspace options to their default values.
 */
 
 /*! \fn int  tmplpro_errno(struct tmplpro_param* param);

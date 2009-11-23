@@ -15,7 +15,7 @@ typedef int flag;
 
 struct tmplpro_param {
   int global_vars;
-  int max_includes;
+  int max_includes; /*default:16 */
   int debug;
   int tmpl_var_case;
   flag no_includes;
@@ -32,6 +32,7 @@ struct tmplpro_param {
   flag path_like_variable_scope;
   flag search_path_on_include;
   char** path;
+  char* template_root;
   /* flag vanguard_compatibility_mode; */
 
   /* hooks to perl or other container */

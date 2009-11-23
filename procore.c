@@ -12,6 +12,7 @@
 #include "pbuffer.h"
 #include "parse_expr.h"
 #include "pparam.h"
+#include "optint.h"
 #include "proscope.h"
 #include "proscope.inc"
 #include "pstrutils.inc"
@@ -412,8 +413,6 @@ static
 void 
 init_state (struct tmplpro_state *state, struct tmplpro_param *param)
 {
-  debuglevel=param->debug;
-  tmpl_log_set_level(debuglevel);
   /* initializing state */
   state->param=param;
   state->last_processed_pos=state->top;
@@ -538,6 +537,11 @@ tmplpro_exec_tmpl (struct tmplpro_param *param)
   param->found_syntax_error=0;
   /*masterpath=NULL;*/
 
+
+  /* TODO: hackaround;*/
+  debuglevel=param->debug;
+  tmpl_log_set_level(debuglevel);
+
   if (param->scalarref.begin) exitcode = tmplpro_exec_tmpl_scalarref(param, param->scalarref);
   else if (param->filename) exitcode = tmplpro_exec_tmpl_filename(param, param->filename);
   else {
@@ -634,7 +638,7 @@ tmplpro_param_init(void)
      param->expr_func_map=NULL;
      param->expr_func_arglist=NULL;
   */
-  param->max_includes=16;
+  _reset_int_options_set_nonzero_defaults(param);
   Scope_init(&param->var_scope_stack);
   /* no need for them due to memset 0
   pbuffer_preinit(&param->builtin_findfile_buffer);

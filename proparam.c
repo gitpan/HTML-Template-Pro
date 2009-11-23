@@ -179,6 +179,18 @@ APICALL tmplpro_set_option_path(struct tmplpro_param* param, char** val) {
 }
 
 API_IMPL 
+char* 
+APICALL tmplpro_get_option_template_root(struct tmplpro_param* param) {
+    return param->template_root;
+}
+
+API_IMPL 
+void
+APICALL tmplpro_set_option_template_root(struct tmplpro_param* param, char* val) {
+    param->template_root=val;
+}
+
+API_IMPL 
 writer_functype 
 APICALL tmplpro_get_option_WriterFuncPtr(struct tmplpro_param* param) {
     return param->WriterFuncPtr;

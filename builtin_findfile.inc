@@ -5,6 +5,7 @@
  */
 
 #include <ctype.h> /* for isalpha */
+#include <stdlib.h> /* for getenv */
 
 /* TODO: support CYGWIN
  * see
@@ -47,6 +48,7 @@ static PSTRING _ff_dirname(const char* path) {
   if (path!=NULL) retval.endnext += strlen(path);
   else return retval;
   while (retval.endnext > retval.begin && (c=*(--retval.endnext)) && ! IS_FILE_SEP(c));
+  /*fprintf(stderr,"built-in _ff_dirname: dir = %.*s\n",(int)(retval.endnext-retval.begin),retval.begin);*/
   return retval;
 }
 /*
@@ -67,6 +69,7 @@ int _ff_is_absolute(const char * filename) {
   unsigned char c0 = *filename;
 #if defined _WIN32 || defined __CYGWIN__
   unsigned char c1;
+  unsigned char c2;
 #endif
   if ('\0' == c0) return 0;
   /* \\?\ and \\?\UNC\ prefixes are included too */
@@ -74,7 +77,8 @@ int _ff_is_absolute(const char * filename) {
 #if defined _WIN32 || defined __CYGWIN__
   c1 = *(++filename);
   if ('\0' == c1) return 0;
-  if (isalpha(c0) && ':'==c1 && IS_FILE_SEP(*filename)) return 1;
+  c2 = *(++filename);
+  if (isalpha(c0) && ':'==c1 && IS_FILE_SEP(c2)) return 1;
 #endif
   return 0;
 }
@@ -218,9 +222,15 @@ static MPSTRING _ff_add_0_to_buffer(MPSTRING buf) {
   *(buf.endnext++)='\0';
   return buf;
 }
+static const char* get_template_root(struct tmplpro_param* param) {
+  const char* retval = param->template_root;
+  if (NULL==retval) retval = getenv("HTML_TEMPLATE_ROOT");
+  return retval;
+}
+
 static const char* _find_file (struct tmplpro_param* param, const char* filename, PSTRING extra_dir) {
   // TODO: finish it
-  const char* HTML_TEMPLATE_ROOT = getenv("HTML_TEMPLATE_ROOT");
+  const char* HTML_TEMPLATE_ROOT = get_template_root(param);
   size_t HTML_TEMPLATE_ROOT_length=0;
   size_t buffsize=0;
   char** pathlist=param->path;
@@ -228,6 +238,7 @@ static const char* _find_file (struct tmplpro_param* param, const char* filename
 
   if (param->debug >= TMPL_LOG_DEBUG2) {
     tmpl_log(TMPL_LOG_DEBUG2,"built-in _find_file: looking for %s extra dir = %.*s\n",filename, (int)(extra_dir.endnext-extra_dir.begin),extra_dir.begin);
+    if (HTML_TEMPLATE_ROOT) tmpl_log(TMPL_LOG_DEBUG2,"built-in _find_file: HTML_TEMPLATE_ROOT = %s\n",HTML_TEMPLATE_ROOT);
   }
 
   /* first check for a full path */
@@ -235,7 +246,10 @@ static const char* _find_file (struct tmplpro_param* param, const char* filename
 
 #if defined _WIN32 || defined __CYGWIN__
   /* no sense of prefixing C:\ or \\?\ */
-  if (_ff_is_win_fully_qualified_path(filename)) return NULL;
+  if (_ff_is_win_fully_qualified_path(filename)) {
+    tmpl_log(TMPL_LOG_DEBUG2,"built-in _ff_is_win_fully_qualified_path: rejected %s: is_absolute=%d exists=%d\n",filename,_ff_is_absolute(filename),_ff_exists(filename));
+    return NULL;
+  }
 #endif
 
   if (HTML_TEMPLATE_ROOT!=NULL) HTML_TEMPLATE_ROOT_length=strlen(HTML_TEMPLATE_ROOT);
@@ -331,8 +345,12 @@ static const char* BACKCALL stub_find_file_func(ABSTRACT_FINDFILE* param,const c
   filepath = _find_file((struct tmplpro_param*)param,filename,extra_path);
   if (filepath==NULL) {
     char** path=((struct tmplpro_param*)param)->path;
+    const char* HTML_TEMPLATE_ROOT = get_template_root((struct tmplpro_param*)param);
     tmpl_log(TMPL_LOG_ERROR,"built-in find_file: can't find file %s", filename);
     if (NULL!=last_visited_file) tmpl_log(TMPL_LOG_ERROR," (included from %s)", last_visited_file);
+    if(HTML_TEMPLATE_ROOT!=NULL) {
+      tmpl_log(TMPL_LOG_ERROR," with HTML_TEMPLATE_ROOT = '%s'",HTML_TEMPLATE_ROOT);
+    }
     if (NULL!=path) {
       tmpl_log(TMPL_LOG_ERROR," with path = [");
       while (NULL!=*path) {

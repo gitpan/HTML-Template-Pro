@@ -262,5 +262,18 @@ Revision history for Perl extension HTML::Template::Pro.
 	- expr: Modified Bruni extension: now recommended bracketing is ${}
 	  change {NAME} -> ${NAME} in Expr
 	  compatibility warning is ifdefed.
-	- C lib: 1.0.0 ABI (see htmltmplpro/API for details)
+	- C lib: 1.0 ABI (see htmltmplpro/API for details)
+
+0.92 Wed Oct  7 21:41:21 EEST 2009
+	- C lib: 1.1 (2:0:1) ABI (see htmltmplpro/API for details)
+	- C lib: bugfix: memory corruption in ESCAPE=(html|js)
+	  bug seems to be very old, everyone is recommended to update.
+	- php interface first release candidate.
+
+0.93 Sun Nov 22 19:33:06 EET 2009
+	- C lib: bugfix: builtin_find_file on WIN32 does not work
+	  properly with absolute path names.
+	- C lib: 1.2 (3:0:1) ABI (see htmltmplpro/API for details)
+	  added API call for alternate HTML_TEMPLATE_ROOT setup
+	  (hack around %ENV on WIN32).
 

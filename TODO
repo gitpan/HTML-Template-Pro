@@ -43,11 +43,17 @@ add Pro::Compat (Compat::Pro??)
 	3) has default case_sensitive=0
 	4) has option html_template_strict_mode=1 (enables use of perl _find_file);
 
+6.
+add option
+expr: logical should return one of args
+
 7. C htmltmplpro C API:
 add interface call 
 ABSTRACT_MAP* get_root_scope (param, int POS);
 FLAGS can be user-provided SET scope, main root scope, case_transform flags etc.
 
+8. Rewrite documentation - split C API documentation or merge perl and C docs.
+Find a place to document template_root hack.
 
 10. rewrite scanner using re2c
 

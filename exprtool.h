@@ -24,6 +24,10 @@ struct expr_parser {
    * if is_expect_quote_like we also look for /str/.
    */
   int is_expect_quote_like;
+  /* 
+   * is_tt_like_logical: if set, && and || behave like in TemplateToolkit
+   */
+  int is_tt_like_logical;
 };
 
 #define DO_MATHOP(exprobj, z,op,x,y) switch (z.type=expr_to_int_or_dbl(exprobj, &x,&y)) { \

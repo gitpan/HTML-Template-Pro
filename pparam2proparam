@@ -16,15 +16,17 @@ open (PP,'pparam.h');
 open (PARAMH,'>','proparam.h');
 open (PARAMC,'>','proparam.c');
 
-open (PGETINT,'>','getoptint.re2c');
-open (PSETINT,'>','setoptint.re2c');
-
+#open (PGETINT,'>','getoptint.re2c');
+#open (PSETINT,'>','setoptint.re2c');
+open (PGETINT2,'>','getoptint.re2c.inc');
+open (PSETINT2,'>','setoptint.re2c.inc');
+open (PPRESET0,'>','resetopt0.inc');
+open (PPRESET1,'>','resetoptnot0.inc');
 
 open (PARAMM1,'>','mono-wrapper/src/htp-c-opts.cs.inc');
 open (PARAMM2,'>','mono-wrapper/src/htp-intset.cs.inc');
 open (PARAMM3,'>','mono-wrapper/src/htp-intget.cs.inc');
 open (PARAMM4,'>','mono-wrapper/src/htp-intprop.cs.inc');
-open (PARAMM5,'>','mono-wrapper/src/htp-intclear.cs.inc');
 open (PARAMDLLSYM,'>','htmltmplpro/src/libhtmltmplpro.sym');
 open (PARAMDLLDEF,'>','htmltmplpro/src/libhtmltmplpro.def');
 
@@ -77,12 +79,10 @@ print PARAMM2 '/* generated; do not edit */
 ';
 print PARAMM3 '/* generated; do not edit */
 ';
-print PARAMM5 '/* generated; do not edit */
-';
 
 
-print PGETINT catfile('getoptint.re2c.header');
-print PSETINT catfile('setoptint.re2c.header');
+#print PGETINT catfile('getoptint.re2c.header');
+#print PSETINT catfile('setoptint.re2c.header');
 
 #----------- BEGIN LOOP-------------------
 while (<PP>) {
@@ -91,8 +91,11 @@ while (<PP>) {
     next if /^\s*\};\s*$/;
     next if /typedef/;
     next unless m!^\s*(.+);\s*(/\*.+\*/)?\s*$!;
-    $_=$1;
-    /(.*?)\s+(\S+)$/;
+    my $field=$1;
+    my $default_value=0;
+    $default_value=$1 if m!/\*\s*default:(\d+).+\*/!;
+    #print STDERR "defval: $default_value\n" if $default_value;
+    $field=~/(.*?)\s+(\S+)$/;
     my $type=$1;
     my $name=$2;
     my $flagtype=$type;
@@ -185,8 +188,18 @@ APICALL tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
 "}
 ";
 
-    print PGETINT '	"'.$name.'"		{return '.$c_get_line.";}\n" if $is_int_option;
-    print PSETINT '	"'.$name.'"		{'.$c_set_line."; return 0;}\n" if $is_int_option;
+    #print PGETINT '	"'.$name.'"		{return '.$c_get_line.";}\n" if $is_int_option;
+    #print PSETINT '	"'.$name.'"		{'.$c_set_line."; return 0;}\n" if $is_int_option;
+    print PGETINT2 '	"'.$name.'"		{return '.$c_get_line.";}\n" if $is_int_option;
+    print PSETINT2 '	"'.$name.'"		{'.$c_set_line."; return 0;}\n" if $is_int_option;
+
+    if ($is_int_option) {
+	if ($default_value) {
+	    print PPRESET1 "	param->$name=".($type eq 'flag' ? '(flag)':'').$default_value.";\n";
+	} else {
+	    print PPRESET0 "	param->$name=".($type eq 'flag' ? '(flag)':'').$default_value.";\n";
+	}
+    }
 
     print PARAMM1 "
     [DllImport(DLL.HTP_DLL, CallingConvention=DLL.HTP_CallingConvention, CharSet=DLL.HTPCharSet)]
@@ -198,8 +211,6 @@ APICALL tmplpro_set_option_$name(struct tmplpro_param* param, $flagtype val) {
     print PARAMM2 '      case "'.$name.'": '."\t".'C_OPTS.tmplpro_set_option_'.$name.'(_c_param, val); break;
 ' if $is_int_option;
     print PARAMM3 '      case "'.$name.'": '."\t".'return C_OPTS.tmplpro_get_option_'.$name.'(_c_param);
-' if $is_int_option;
-    print PARAMM5 '    C_OPTS.tmplpro_set_option_'.$name.'(_c_param, 0);
 ' if $is_int_option;
 
     print PARAMM4 '
@@ -233,8 +244,8 @@ print PARAMM1 '
     }
 ';
 
-print PGETINT catfile('getoptint.re2c.footer');
-print PSETINT catfile('setoptint.re2c.footer');
+#print PGETINT catfile('getoptint.re2c.footer');
+#print PSETINT catfile('setoptint.re2c.footer');
 
 close (PARAMH);
 close (PARAMC);
@@ -242,9 +253,14 @@ close (PARAMM1);
 close (PARAMM2);
 close (PARAMM3);
 close (PARAMM4);
-close (PARAMM5);
 close (PARAMDLLDEF);
 
+#close (PGETINT);
+#close (PSETINT);
+close (PGETINT2);
+close (PSETINT2);
+close (PPRESET0);
+close (PPRESET1);
 
 sub catfile {
     my $file=shift;
