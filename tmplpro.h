@@ -47,6 +47,10 @@ TMPLPRO_API void APICALL tmplpro_reset_int_options(struct tmplpro_param* param);
 TMPLPRO_API int APICALL tmplpro_errno(struct tmplpro_param* param);
 TMPLPRO_API const char* APICALL tmplpro_errmsg(struct tmplpro_param* param);
 
+TMPLPRO_API int APICALL tmplpro_set_log_file(struct tmplpro_param* param, const char* logfilename);
+TMPLPRO_API size_t APICALL tmplpro_param_allocated_memory_info(struct tmplpro_param* param);
+
+
 
 struct exprval;
 TMPLPRO_API void APICALL tmplpro_set_expr_as_int64 (ABSTRACT_EXPRVAL*,EXPR_int64);

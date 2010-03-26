@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 1+4*8+2*6 };
+BEGIN { plan tests => 1+4*8+2*7 };
 use HTML::Template::Pro;
 use HTML::Template::Pro::CommonTest;
 ok(1); # If we made it this far, we're ok.
@@ -43,6 +43,7 @@ test_tmpl_std('test_expr5', @exprset1);
 test_tmpl_std('test_expr6', @exprset1);
 test_tmpl_std('test_expr7', @refset1);
 test_tmpl_std('test_expr8', @exprset1);
+test_tmpl('test_expr9',[], n=>2);
 test_tmpl_expr('test_userfunc1', @exprset1);
 test_tmpl_expr('test_userfunc2', @exprset1);
 test_tmpl_expr('test_userfunc3', @exprset1);

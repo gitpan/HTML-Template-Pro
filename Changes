@@ -273,7 +273,10 @@ Revision history for Perl extension HTML::Template::Pro.
 0.93 Sun Nov 22 19:33:06 EET 2009
 	- C lib: bugfix: builtin_find_file on WIN32 does not work
 	  properly with absolute path names.
-	- C lib: 1.2 (3:0:1) ABI (see htmltmplpro/API for details)
+	- C lib: 1.2 (3:0:2) ABI (see htmltmplpro/API for details)
 	  added API call for alternate HTML_TEMPLATE_ROOT setup
 	  (hack around %ENV on WIN32).
 
+0.94 Tue Feb 16 16:58:39 EET 2010
+	- c lib 1.3 (4:0:3) ABI (see htmltmplpro/API for details)
+	- fixed lexer bug (thanks to Svetlana Safronova)

@@ -248,22 +248,22 @@ const
 builtin_funcs_symrec[] =
   {
     /* built-in funcs */
-    {"sin", BUILTIN_FNC_DD,	0,	  sin},
-    {"cos", BUILTIN_FNC_DD,	0,	  cos},
-    {"atan", BUILTIN_FNC_DD,	0,	 atan},
-    {"log", BUILTIN_FNC_DD,	0,	  log},
-    {"exp", BUILTIN_FNC_DD,	0,	  exp},
-    {"sqrt", BUILTIN_FNC_DD,	0,	 sqrt},
-    {"atan2", BUILTIN_FNC_DDD,	0,	atan2},
-    {"abs", BUILTIN_FNC_EE,	0,	builtin_abs},
-    {"defined", BUILTIN_FNC_EE,	0,	builtin_defined},
-    {"int", BUILTIN_FNC_EE,	0,	builtin_int},
-    {"hex", BUILTIN_FNC_EE,	0,	builtin_hex},
-    {"length", BUILTIN_FNC_EE,	0,	builtin_length},
-    {"oct", BUILTIN_FNC_EE,	0,	builtin_oct},
-    {"rand", BUILTIN_FNC_EE,	0,	builtin_rand},
-    {"srand", BUILTIN_FNC_EE,	0,	builtin_srand},
-    {"version", BUILTIN_FNC_EE,	0,	builtin_version},
+    {SYMREC("sin"), BUILTIN_FNC_DD,	0,	  sin},
+    {SYMREC("cos"), BUILTIN_FNC_DD,	0,	  cos},
+    {SYMREC("atan"), BUILTIN_FNC_DD,	0,	 atan},
+    {SYMREC("log"), BUILTIN_FNC_DD,	0,	  log},
+    {SYMREC("exp"), BUILTIN_FNC_DD,	0,	  exp},
+    {SYMREC("sqrt"), BUILTIN_FNC_DD,	0,	 sqrt},
+    {SYMREC("atan2"), BUILTIN_FNC_DDD,	0,	atan2},
+    {SYMREC("abs"), BUILTIN_FNC_EE,	0,	builtin_abs},
+    {SYMREC("defined"), BUILTIN_FNC_EE,	0,	builtin_defined},
+    {SYMREC("int"), BUILTIN_FNC_EE,	0,	builtin_int},
+    {SYMREC("hex"), BUILTIN_FNC_EE,	0,	builtin_hex},
+    {SYMREC("length"), BUILTIN_FNC_EE,	0,	builtin_length},
+    {SYMREC("oct"), BUILTIN_FNC_EE,	0,	builtin_oct},
+    {SYMREC("rand"), BUILTIN_FNC_EE,	0,	builtin_rand},
+    {SYMREC("srand"), BUILTIN_FNC_EE,	0,	builtin_srand},
+    {SYMREC("version"), BUILTIN_FNC_EE,	0,	builtin_version},
     /* end mark */
     {0, 0, 0}
   };
@@ -276,16 +276,16 @@ const
 builtin_ops_symrec[] =
   {
     /* built-in ops */
-    {"eq",  strEQ,	0,	NULL},
-    {"ne",  strNE,	0,	NULL},
-    {"gt",  strGT,	0,	NULL},
-    {"ge",  strGE,	0,	NULL},
-    {"lt",  strLT,	0,	NULL},
-    {"le",  strLE,	0,	NULL},
-    {"cmp", strCMP,	0,	NULL},
-    {"or",  OR,	0,	NULL},
-    {"and",AND,	0,	NULL},
-    {"not",NOT,	0,	NULL},
+    {SYMREC("eq"),  strEQ,	0,	NULL},
+    {SYMREC("ne"),  strNE,	0,	NULL},
+    {SYMREC("gt"),  strGT,	0,	NULL},
+    {SYMREC("ge"),  strGE,	0,	NULL},
+    {SYMREC("lt"),  strLT,	0,	NULL},
+    {SYMREC("le"),  strLE,	0,	NULL},
+    {SYMREC("cmp"), strCMP,	0,	NULL},
+    {SYMREC("or"),  OR,	0,	NULL},
+    {SYMREC("and"),AND,	0,	NULL},
+    {SYMREC("not"),NOT,	0,	NULL},
     /* end mark */
     {0, 0, 0}
   };

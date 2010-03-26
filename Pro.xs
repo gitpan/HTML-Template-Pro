@@ -237,7 +237,7 @@ PSTRING load_file (ABSTRACT_FILTER* callback_state, const char* filepath) {
     tmpl.begin = SvPV(SvRV(templateptr), len);
     tmpl.endnext=tmpl.begin+len;
     av_push(((struct perl_callback_state*)callback_state)->filtered_tmpl_array,templateptr);
-    SvREFCNT_inc(SvRV(templateptr));
+    SvREFCNT_inc(templateptr);
   } else {
     croak("Big trouble! _load_template internal fatal error\n") ;
   }
@@ -250,11 +250,7 @@ PSTRING load_file (ABSTRACT_FILTER* callback_state, const char* filepath) {
 static
 int unload_file(ABSTRACT_FILTER* callback_state, PSTRING memarea) {
   dTHX;       /* fetch context */
-  /*
-   * scalar is already mortal so we don't need to dereference it
-   * SvREFCNT_dec(SvRV(av_pop(((struct perl_callback_state*)callback_state)->filtered_tmpl_array)));
-   */
-  av_pop(((struct perl_callback_state*)callback_state)->filtered_tmpl_array); 
+  SvREFCNT_dec(av_pop(((struct perl_callback_state*)callback_state)->filtered_tmpl_array)); 
   return 0;
 }
 

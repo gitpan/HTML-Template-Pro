@@ -25,3 +25,7 @@ extern TMPLPRO_LOCAL  int tmpl_log_get_level(void);
 extern TMPLPRO_LOCAL void tmpl_log_set_level(int);
 extern TMPLPRO_LOCAL void tmpl_log_set_callback(void (*)(int, const char*, va_list));
 
+extern TMPLPRO_LOCAL FILE* tmpl_log_stream;
+
+extern TMPLPRO_LOCAL void tmpl_log_default_callback(int level, const char* fmt, va_list vl);
+extern TMPLPRO_LOCAL void tmpl_log_stream_callback(int level, const char* fmt, va_list vl);

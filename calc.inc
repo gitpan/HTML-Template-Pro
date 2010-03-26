@@ -23,9 +23,10 @@ static
 const symrec_const *
 getsym (const symrec_const symrec_array[], PSTRING sym_name)
 {
+  long int len = sym_name.endnext-sym_name.begin;
   const symrec_const* ptr;
   for (ptr=symrec_array; ptr->name!=NULL; ptr++) 
-    if (strncmp (ptr->name,sym_name.begin,sym_name.endnext-sym_name.begin) == 0)
+    if (len == ptr->len && strncmp (ptr->name,sym_name.begin,len) == 0)
       return ptr;
   return 0;
 }

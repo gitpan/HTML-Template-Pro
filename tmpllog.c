@@ -13,12 +13,19 @@
 #include "tmpllog.h"
 
 static int tmpl_log_level = TMPL_LOG_ERROR;
+TMPLPRO_LOCAL FILE* tmpl_log_stream = NULL;
 
-static void 
+TMPLPRO_LOCAL void 
 tmpl_log_default_callback(int level, const char* fmt, va_list vl)
 {
-    if(level>tmpl_log_level) return;
     vfprintf(stderr, fmt, vl);
+}
+
+TMPLPRO_LOCAL void 
+tmpl_log_stream_callback(int level, const char* fmt, va_list vl)
+{
+    vfprintf(tmpl_log_stream, fmt, vl);
+    fflush(tmpl_log_stream);
 }
 
 static void (*tmpl_log_callback)(int, const char*, va_list) = tmpl_log_default_callback;
@@ -37,6 +44,7 @@ TMPLPRO_LOCAL
 void 
 tmpl_vlog(int level, const char *fmt, va_list vl)
 {
+    if(level>tmpl_log_level) return;
     tmpl_log_callback(level, fmt, vl);
 }
 

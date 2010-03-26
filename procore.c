@@ -681,6 +681,32 @@ tmplpro_errmsg(struct tmplpro_param* param)
 }
 
 API_IMPL 
+int
+APICALL
+tmplpro_set_log_file(struct tmplpro_param* param, const char* logfilename)
+{
+  FILE *file_p;
+  if (NULL==logfilename) {
+    if (tmpl_log_stream!=NULL) {
+      fclose(tmpl_log_stream);
+      tmpl_log_stream=NULL;
+    }
+    tmpl_log_set_callback(tmpl_log_default_callback);
+    return 0;
+  }
+  file_p = fopen(logfilename, "w");
+  if (!file_p) {
+    tmpl_log(TMPL_LOG_ERROR,"tmplpro_set_log_file: can't create log file [%s]\n",logfilename);
+    return ERR_PRO_FILE_NOT_FOUND;
+  } else {
+    if (tmpl_log_stream!=NULL) fclose(tmpl_log_stream);
+    tmpl_log_stream=file_p;
+    tmpl_log_set_callback(tmpl_log_stream_callback);
+    return 0;
+  }
+}
+
+API_IMPL 
 size_t
 APICALL
 tmplpro_param_allocated_memory_info(struct tmplpro_param* param)
