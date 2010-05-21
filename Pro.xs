@@ -104,7 +104,7 @@ PSTRING ABSTRACT_VALUE2PSTRING_impl (ABSTRACT_DATASTATE* callback_state, ABSTRAC
   if (SvOK(SVval) && SvROK(SVval)) {
     if (SvTYPE(SvRV(SVval))==SVt_PVCV) {
       SVval = call_coderef(SVval);
-    } else {
+    } else if(SvTYPE(SvRV(SVval))==SVt_PV) {
       SVval = SvRV(SVval);
     }
     SvGETMAGIC(SVval);

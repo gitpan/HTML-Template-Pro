@@ -64,6 +64,7 @@ t/02random.t
 t/03complex.t
 t/04register.t
 t/05path_like_variable_scope.t
+t/06loop_var.t
 t/HTML-Template-Expr.t
 t/HTML-Template-Pro.t
 t/HTML-Template.t
