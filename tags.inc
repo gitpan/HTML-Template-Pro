@@ -229,6 +229,10 @@ is_var_true(struct tmplpro_state *state, const PSTRING* const TagOptVal)
 {
   register int ifval=-1; /*not yet defined*/
   if (TagOptVal[TAG_OPT_EXPR].begin!=NULL) {
+    /*
+    if (debuglevel>=TMPL_LOG_DEBUG2) {
+      tmpl_log(TMPL_LOG_DEBUG2,"is_var_true: expr = %.*s\n",(int)(TagOptVal[TAG_OPT_EXPR].endnext-TagOptVal[TAG_OPT_EXPR].begin),TagOptVal[TAG_OPT_EXPR].begin);
+      }*/
     ifval=is_pstring_true(parse_expr(TagOptVal[TAG_OPT_EXPR], state));
   } else
     if (state->param->loop_context_vars) {

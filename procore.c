@@ -239,7 +239,7 @@ try_tmpl_var_options (struct tmplpro_state *state, int tag_type, PSTRING* TagOpt
 	  try_tag_parameter(state, tagopt[i], TAGOPT[i])) {
 	TagOptVal[i] = read_tag_parameter_value(state);
 	found_in_loop=1;
-	if (debuglevel) log_state(state,TMPL_LOG_DEBUG,"in tag %s: found option %s\n", TAGNAME[tag_type], TAGOPT[i]);
+	if (debuglevel) log_state(state,TMPL_LOG_DEBUG,"in tag %s: found option %s=%.*s\n", TAGNAME[tag_type], TAGOPT[i],(int)(TagOptVal[i].endnext-TagOptVal[i].begin),TagOptVal[i].begin);
       }
     }
     if (!found_in_loop) opt_found = 0;

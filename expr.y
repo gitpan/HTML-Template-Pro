@@ -73,7 +73,7 @@ numEXP: NUM			{ $$ = $1;			}
 		  PSTRING varvalue=_get_variable_value(state->param, $1);
 		  if (varvalue.begin==NULL) {
 		    int loglevel = state->param->warn_unused ? TMPL_LOG_ERROR : TMPL_LOG_INFO;
-		    log_expr(exprobj,loglevel, "non-initialized variable %.*s\n",(int)(varvalue.endnext-varvalue.begin),varvalue.begin);
+		    log_expr(exprobj,loglevel, "non-initialized variable %.*s\n",(int)($1.endnext-$1.begin),$1.begin);
 		  }
 		  $$.type=EXPR_TYPE_PSTR;
 		  $$.val.strval=varvalue;
@@ -318,7 +318,7 @@ log_expr(struct expr_parser* exprobj, int loglevel, const char* fmt, ...)
   log_state(exprobj->state, loglevel, "in EXPR:at pos " MOD_TD " [" MOD_TD "]: ", 
 	   TO_PTRDIFF_T((exprobj->expr_curpos)-(exprobj->state->top)),
 	   TO_PTRDIFF_T((exprobj->expr_curpos)-(exprobj->exprarea).begin));
-  tmpl_log(loglevel, fmt, vl);
+  tmpl_vlog(loglevel, fmt, vl);
   va_end(vl);
 }
 
@@ -456,6 +456,7 @@ yylex (YYSTYPE *lvalp, struct tmplpro_state* state, struct expr_parser* exprobj)
 	}
       }
       (*lvalp).uservar=name;
+      /*log_expr(exprobj,TMPL_LOG_DEBUG2, "yylex: returned variable name %.*s\n",(int)(name.endnext-name.begin),name.begin);*/
       return VAR;
     }
   }

@@ -285,3 +285,8 @@ Revision history for Perl extension HTML::Template::Pro.
 	- perl specific: fixed bug in perl wrapper
 	(list evaluated to false). thanks to Shigeki Morimoto 
 	for bugreport and patch.
+
+0.9501 Wed Jun  9 10:36:07 EEST 2010
+	- bugfix release: segfault in EXPR log subroutine.
+	thanks to Robert Hanniger and Mike Shogin
+
