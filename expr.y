@@ -216,8 +216,8 @@ numEXP: NUM			{ $$ = $1;			}
 | numEXP strEQ numEXP 		{ DO_TXTOP($$,pstring_eq,$1,$3,state);}
 | numEXP strGT numEXP		{ DO_TXTOP($$,pstring_gt,$1,$3,state);}
 | numEXP strLT numEXP		{ DO_TXTOP($$,pstring_lt,$1,$3,state);}
-| numEXP reLIKE numEXP		{ DO_TXTOP($$,re_like,$1,$3,state);}
-| numEXP reNOTLIKE numEXP	{ DO_TXTOP($$,re_notlike,$1,$3,state);}
+| numEXP reLIKE numEXP		{ DO_TXTOPLOG($$,re_like,$1,$3,exprobj);}
+| numEXP reNOTLIKE numEXP	{ DO_TXTOPLOG($$,re_notlike,$1,$3,exprobj);}
 ;
 
 arglist: EXTFUNC '(' numEXP 	 	{

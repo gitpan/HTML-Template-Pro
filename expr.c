@@ -1875,14 +1875,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 219 "expr.y"
-    { DO_TXTOP((yyval.numval),re_like,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state);}
+    { DO_TXTOPLOG((yyval.numval),re_like,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),exprobj);}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
 #line 220 "expr.y"
-    { DO_TXTOP((yyval.numval),re_notlike,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),state);}
+    { DO_TXTOPLOG((yyval.numval),re_notlike,(yyvsp[(1) - (3)].numval),(yyvsp[(3) - (3)].numval),exprobj);}
     break;
 
   case 39:

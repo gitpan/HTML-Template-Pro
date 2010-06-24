@@ -53,6 +53,8 @@ int
 pstring_ge(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
+  if (in_b==NULL) return 1;
+  if (in_a==NULL) return 0;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) >= *(--in_b) ) return 1; else return 0;
 }
@@ -62,6 +64,8 @@ int
 pstring_le(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
+  if (in_a==NULL) return 1;
+  if (in_b==NULL) return 0;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_a==a.endnext && in_b==b.endnext) || *(--in_a) <= *(--in_b) ) return 1; else return 0;
 }
@@ -71,6 +75,7 @@ int
 pstring_ne(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
+  if (in_a==NULL || in_b==NULL) return in_a != in_b;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 0; else return 1;
 }
@@ -80,6 +85,7 @@ int
 pstring_eq(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
+  if (in_a==NULL || in_b==NULL) return in_a == in_b;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 1; else return 0;
 }
@@ -89,6 +95,8 @@ int
 pstring_gt(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
+  if (in_a==NULL) return 0;
+  if (in_b==NULL) return 1;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_b==b.endnext && in_a!=a.endnext)
       || (*(--in_a) > *(--in_b)) ) return 1; else return 0;
@@ -99,6 +107,8 @@ int
 pstring_lt(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
+  if (in_b==NULL) return 0;
+  if (in_a==NULL) return 1;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if ((in_b!=b.endnext && in_a==a.endnext)
       ||  *(--in_a) < *(--in_b) ) return 1; else return 0;
@@ -106,35 +116,48 @@ pstring_lt(PSTRING a, PSTRING b) {
 
 static
 int 
-re_notlike(PSTRING a, PSTRING b) {
-  return ! re_like(a,b);
+re_notlike(struct expr_parser* exprobj, PSTRING a, PSTRING b) {
+  return ! re_like(exprobj, a,b);
 }
 
 #ifndef HAVE_PCRE
 static
 int 
-re_like(PSTRING a, PSTRING b) {
-    tmpl_log(TMPL_LOG_ERROR," (sorry, Stanislav Yadykin regexp extension is disabled at compile time) \n");
+re_like(struct expr_parser* exprobj, PSTRING a, PSTRING b) {
+  log_expr(exprobj,TMPL_LOG_ERROR,"can't parse the regular expression (sorry, Stanislav Yadykin regexp extension is disabled at compile time) \n");
   return 0;
 }
 #else
 #include <pcre.h>
 static
 int 
-re_like(PSTRING a, PSTRING b) {
+re_like(struct expr_parser* exprobj, PSTRING a, PSTRING b) {
   pcre* re;
   int ovector[30];
   int rc, erroffset;
   const char* error;
   const char* subject=a.begin;
   int subject_length=(int)(a.endnext-a.begin);
-  char* pattern=(char*)malloc(b.endnext-b.begin);
+  char* pattern;
+  if (subject==NULL) {
+    log_expr(exprobj,TMPL_LOG_INFO, "regular expression: applied to undefined value.\n");
+    return 0;
+  }
+  if (b.begin==NULL || (b.endnext-b.begin)==0) {
+    log_expr(exprobj,TMPL_LOG_INFO, "regular expression: the pattern is empty or undefined.\n");
+    return 1;
+  }
+  pattern=(char*)malloc(b.endnext-b.begin);
+  if (pattern==NULL) {
+    log_expr(exprobj,TMPL_LOG_ERROR, "regular expression: memory allocation failed.\n");
+    return 0;
+  }
   strncpy(pattern, b.begin, (b.endnext-b.begin));
   *(pattern+(b.endnext-b.begin))=0;
   re = pcre_compile(pattern, 0, &error, &erroffset, NULL); /* default character set */
   free(pattern);
   if (re==NULL) {
-    tmpl_log(TMPL_LOG_ERROR, "PCRE compilation failed at offset %d: %s\n",
+      log_expr(exprobj,TMPL_LOG_ERROR, "regular expression: PCRE compilation failed at offset %d: %s\n",
       erroffset, error);
     return 0;
   }

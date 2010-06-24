@@ -29,8 +29,8 @@ static
 int pstring_lt(PSTRING, PSTRING);
 
 static
-int re_like(PSTRING, PSTRING);
+int re_like(struct expr_parser* exprobj, PSTRING, PSTRING);
 static
-int re_notlike(PSTRING, PSTRING);
+int re_notlike(struct expr_parser* exprobj, PSTRING, PSTRING);
 
 #endif /* exprpstr.h */

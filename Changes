@@ -290,3 +290,6 @@ Revision history for Perl extension HTML::Template::Pro.
 	- bugfix release: segfault in EXPR log subroutine.
 	thanks to Robert Hanniger and Mike Shogin
 
+09502 Fri Jun 18 18:02:28 EEST 2010
+	- bugfix release: segfault for string operetions
+	with undefined variables. Thanks to Mike Shogin.

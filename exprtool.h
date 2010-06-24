@@ -51,6 +51,7 @@ case EXPR_TYPE_DBL: z.val.intval=x.val.dblval op y.val.dblval;break; \
 }; z.type=EXPR_TYPE_INT;
 
 #define DO_TXTOP(z,op,x,y,buf) expr_to_str(buf, &x,&y); z.type=EXPR_TYPE_INT; z.val.intval = op (x.val.strval,y.val.strval);
+#define DO_TXTOPLOG(z,op,x,y,exprobj) expr_to_str(exprobj->state, &x,&y); z.type=EXPR_TYPE_INT; z.val.intval = op (exprobj,x.val.strval,y.val.strval);
 
 static
 EXPR_char expr_to_int_or_dbl (struct expr_parser* exprobj, struct exprval* val1, struct exprval* val2);
