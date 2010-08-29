@@ -8,6 +8,7 @@
 use Test;
 BEGIN { plan tests => 1+4*8+2*7 };
 use HTML::Template::Pro;
+use lib "t";
 use HTML::Template::Pro::CommonTest;
 ok(1); # If we made it this far, we're ok.
 

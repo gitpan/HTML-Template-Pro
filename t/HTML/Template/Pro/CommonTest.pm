@@ -15,8 +15,9 @@ use vars qw/@ISA @EXPORT/;
 @ISA=qw/Exporter/;
 @EXPORT =qw/test_tmpl test_tmpl_std test_tmpl_expr dryrun/;
 
-use vars qw/$DumpDir/;
-$DumpDir='json';
+use vars qw/$DumpDir $DumpDir_no_cs/;
+$DumpDir='json-cs';
+$DumpDir_no_cs='json';
 
 #$Data::Dumper::Terse=1;
 #$Data::Dumper::Indent=1;
@@ -108,7 +109,7 @@ my %filename_counter;
 $0=~/([\w_-]+)(?:\.t)$/;
 my $dump_prefix = $1 ? "$1-" : '';
 sub _dump_file_name {
-    my ($file) = @_;
+    my ($DumpDir,$file) = @_;
     my $plain=$file;
     $plain=~s![\\/:]!_!g;
     return File::Spec->catfile($DumpDir, 
@@ -117,14 +118,24 @@ sub _dump_file_name {
 
 sub dump_test {
     my ($file,$optref,$paramref) = @_;
-    mkpath ($DumpDir);
-    my $dump_file = _dump_file_name($file);
-    open FH, '>', $dump_file or die "can't open ($!) ".$dump_file;
+    mkpath ([$DumpDir,$DumpDir_no_cs]);
     my $tojson = {
 	'file' => $file,
 	'options' => $optref,
 	'params' => $paramref,
     };
+    &__dump_json(&_dump_file_name($DumpDir,$file), $tojson);
+    my $case_sensitive=$optref->{'case_sensitive'};
+    if (defined $case_sensitive) {
+	delete $optref->{'case_sensitive'};
+	$optref->{'tmpl_var_case'}=ASK_NAME_UPPERCASE unless $case_sensitive;
+    }
+    &__dump_json(&_dump_file_name($DumpDir_no_cs,$file), $tojson);
+}
+
+sub __dump_json {
+    my ($dump_file, $tojson) = @_;
+    open FH, '>', $dump_file or die "can't open ($!) ".$dump_file;
     print FH to_json($tojson, {utf8 => 1, pretty => 1});
     close (FH) or die "can't close ($!) ".$dump_file;
 }

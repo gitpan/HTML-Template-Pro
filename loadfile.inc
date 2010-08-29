@@ -139,8 +139,8 @@ mmap_load_file (const char* filepath) {
   stream = fopen(filepath, "r");
   if (stream == NULL) return memarea; /* {NULL,NULL} */
   /* mmap size_in_bytes+1 to avoid crash with empty file */
-  memarea.begin=(char*) malloc(memsize+1);
-  writepoint=memarea.begin;
+  memarea.begin=(const char*) malloc(memsize+1);
+  writepoint=(char*)memarea.begin;
 
   while (1) {
     realsize=fread(writepoint, 1, chunksize, stream);
@@ -149,8 +149,8 @@ mmap_load_file (const char* filepath) {
       writepoint+=chunksize;
       if (size_in_bytes+chunksize>memsize) {
 	memsize*=2;
-	memarea.begin=(char*) realloc(memarea.begin, memsize+1);
-	writepoint=memarea.begin+size_in_bytes;
+	memarea.begin=(char*) realloc((char*)memarea.begin, memsize+1);
+	writepoint=((char*)memarea.begin)+size_in_bytes;
       }
     } else {
       fclose(stream);
@@ -164,7 +164,7 @@ static
 int 
 mmap_unload_file (PSTRING memarea) {
   /* destroying */
-  free(memarea.begin);
+  free((char*)memarea.begin);
   return 0;
 }
 

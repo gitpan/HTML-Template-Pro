@@ -37,7 +37,7 @@ static void BACKCALL stub_write_chars_to_pbuffer (ABSTRACT_WRITER* state,const c
 }
 
 static ABSTRACT_USERFUNC* BACKCALL stub_is_expr_userfnc_func (ABSTRACT_FUNCMAP* af, PSTRING name) {
-  tmpl_log(TMPL_LOG_ERROR,"is_expr_userfnc_func stub: EXPR is not initialized properly. user func dispatcher was not supplied.");
+  tmpl_log(TMPL_LOG_DEBUG,"is_expr_userfnc_func stub: EXPR is not initialized properly. user func dispatcher was not supplied.\n");
   return NULL;
 }
 

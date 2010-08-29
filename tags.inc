@@ -184,7 +184,6 @@ tag_handler_include (struct tmplpro_state *state, const PSTRING* const TagOptVal
 {
   struct tmplpro_param* param;
   char* filename;
-  const char* masterpath;
   int x;
   PSTRING varvalue;
   PSTRING defvalue;
@@ -209,16 +208,17 @@ tag_handler_include (struct tmplpro_state *state, const PSTRING* const TagOptVal
   };
   if (varvalue.begin==varvalue.endnext && defvalue.begin!=defvalue.endnext) varvalue=defvalue;
   /* pstrdup */
-  filename =(char*) malloc(varvalue.endnext-varvalue.begin+1);
-  for (x=0;x<varvalue.endnext-varvalue.begin;x++) {
-    *(filename+x)=*(varvalue.begin+x);
+  {
+    const long len = varvalue.endnext-varvalue.begin;
+    filename =(char*) malloc(len+1);
+    for (x=0;x<len;x++) {
+      *(filename+x)=*(varvalue.begin+x);
+    }
+    *(filename+len)=0;
   }
-  *(filename+(varvalue.endnext-varvalue.begin))=0;
   /* end pstrdup */
-  masterpath=param->masterpath; /* saving current file name */
   tmplpro_exec_tmpl_filename (param,filename);
   free (filename);
-  param->masterpath=masterpath;
   param->cur_includes--; 
   return;
 }

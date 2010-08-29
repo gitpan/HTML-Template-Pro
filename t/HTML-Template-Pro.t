@@ -14,6 +14,7 @@ BEGIN {
 }
 use File::Spec;
 use HTML::Template::Pro;
+use lib "t";
 use HTML::Template::Pro::CommonTest;
 ok(1); # If we made it this far, we're ok.
 

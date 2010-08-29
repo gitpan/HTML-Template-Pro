@@ -429,6 +429,7 @@ tmplpro_exec_tmpl_filename (struct tmplpro_param *param, const char* filename)
   int mmapstatus;
   PSTRING memarea;
   int retval = 0;
+  const char* saved_masterpath;
   /* 
    * param->masterpath is path to upper level template 
    * (or NULL in toplevel) which called <include filename>.
@@ -439,7 +440,8 @@ tmplpro_exec_tmpl_filename (struct tmplpro_param *param, const char* filename)
   if (NULL==filepath) return ERR_PRO_FILE_NOT_FOUND;
   /* filepath should be alive for every nested template */
   filepath = strdup(filepath);
-
+  if (NULL==filepath) return ERR_PRO_NOT_ENOUGH_MEMORY;
+  saved_masterpath=param->masterpath; /* saving current file name */
   param->masterpath=filepath;
   if (param->filters) memarea=(param->LoadFileFuncPtr)(param->ext_filter_state,filepath);
   else memarea=mmap_load_file(filepath);
@@ -460,6 +462,7 @@ tmplpro_exec_tmpl_filename (struct tmplpro_param *param, const char* filename)
   else mmapstatus=mmap_unload_file(memarea);
  cleanup_filepath:
   if (filepath!=NULL) free((void*) filepath);
+  param->masterpath=saved_masterpath;
   return retval;
 }
 
@@ -468,12 +471,16 @@ int
 tmplpro_exec_tmpl_scalarref (struct tmplpro_param *param, PSTRING memarea)
 {
   struct tmplpro_state state;
+  const char* saved_masterpath=param->masterpath; /* saving current file name */
   param->masterpath=NULL; /* no upper file */
   state.top = memarea.begin;
   state.next_to_end=memarea.endnext;
-  if (memarea.begin == memarea.endnext) return 0;
-  init_state(&state,param);
-  process_state(&state);
+  if (memarea.begin != memarea.endnext) {
+    init_state(&state,param);
+    process_state(&state);
+  }
+  /* exit cleanup code */
+  param->masterpath=saved_masterpath;
   return 0;
 }
 
@@ -694,7 +701,7 @@ tmplpro_set_log_file(struct tmplpro_param* param, const char* logfilename)
     tmpl_log_set_callback(tmpl_log_default_callback);
     return 0;
   }
-  file_p = fopen(logfilename, "w");
+  file_p = fopen(logfilename, "a");
   if (!file_p) {
     tmpl_log(TMPL_LOG_ERROR,"tmplpro_set_log_file: can't create log file [%s]\n",logfilename);
     return ERR_PRO_FILE_NOT_FOUND;

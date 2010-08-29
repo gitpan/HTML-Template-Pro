@@ -12,7 +12,11 @@ static const char* const errlist[] = {
   "invalid argument",
   "file not found",
   "can't open file",
-  "syntax error in template"
+  "syntax error in template",
+  "not enough memory (allocation error)",
+  "",
+  "",
+  ""
 };
 
 /* 

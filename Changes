@@ -293,3 +293,9 @@ Revision history for Perl extension HTML::Template::Pro.
 09502 Fri Jun 18 18:02:28 EEST 2010
 	- bugfix release: segfault for string operetions
 	with undefined variables. Thanks to Mike Shogin.
+
+09503 Sat Aug 28 18:00:49 EEST 2010
+	- log file is not truncated now in tmplpro_set_log_file.
+	- freed memory access error fixed.
+	- perl: CommonTest.pm hidden from installation
+	- tests: added generic json-packed test data 

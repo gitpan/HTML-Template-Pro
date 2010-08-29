@@ -14,7 +14,7 @@ typedef struct exprval (*func_t_ee) (struct expr_parser* exprobj, struct exprval
 struct symrec_const
 {
   char *name;  /* name of symbol */
-  int len;     /* symbol length */;
+  int len;     /* symbol length */
   int type;    /* type of symbol: either VAR or FNCT */
   double var;      /* value of a VAR */
   void* fnctptr;  /* value of a FNCT */

@@ -14,6 +14,7 @@ pm_to_blib
 Makefile.old
 semantic.cache
 templates-Pro/json
+templates-Pro/json-cs
 getoptint.re2c.inc
 resetopt0.inc
 resetoptnot0.inc

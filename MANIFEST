@@ -27,7 +27,6 @@ exprtype.h
 exprval.h
 lib/HTML/Template/PerlInterface.pod
 lib/HTML/Template/Pro.pm
-lib/HTML/Template/Pro/CommonTest.pm
 lib/HTML/Template/Pro/WrapAssociate.pm
 lib/HTML/Template/SYNTAX.pod
 loadfile.h
@@ -65,9 +64,11 @@ t/03complex.t
 t/04register.t
 t/05path_like_variable_scope.t
 t/06loop_var.t
+t/error_output.t
 t/HTML-Template-Expr.t
 t/HTML-Template-Pro.t
 t/HTML-Template.t
+t/HTML/Template/Pro/CommonTest.pm
 t/magic.t
 t/pod.t
 t/realloc.t
