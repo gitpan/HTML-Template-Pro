@@ -69,6 +69,7 @@ t/HTML-Template-Expr.t
 t/HTML-Template-Pro.t
 t/HTML-Template.t
 t/HTML/Template/Pro/CommonTest.pm
+t/htp_version.t
 t/magic.t
 t/pod.t
 t/realloc.t

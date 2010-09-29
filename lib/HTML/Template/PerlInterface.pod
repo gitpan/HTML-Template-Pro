@@ -386,7 +386,7 @@ If case_sensitive is set to 0, the perl wrapper is forced to lowercase
 keys in every hash it will find in "param" tree, which is sometimes 
 an expensive operation. To avoid this, set case_sensitive => 1.
 
-If case conversion is nessessary, there is an alternative lightweight 
+If case conversion is necessary, there is an alternative lightweight
 option tmpl_var_case, which is HTML::Template::Pro specific.
 
 Note that case_sensitive is wrapper-only option: it is not implemented 
@@ -540,7 +540,7 @@ HTML::Template reads your template file but before it starts parsing
 template tags.
 
 In the most simple usage, you simply assign a code reference to the
-filter parameter.  This subroutine will recieve a single argument - a
+filter parameter.  This subroutine will receive a single argument - a
 reference to a string containing the template file text.  Here is an
 example that accepts templates with tags that look like "!!!ZAP_VAR
 FOO!!!" and transforms them into HTML::Template tags:
@@ -630,7 +630,7 @@ C<param()> can be called in a number of ways
       $self->param(PARAM => 'value');
 
       # with a subroutine reference that gets called to get the value
-      # of the scalar.  The sub will recieve the template object as a
+      # of the scalar.  The sub will receive the template object as a
       # parameter.
       $self->param(PARAM => sub { return 'value' });   
 
@@ -902,7 +902,7 @@ or
   HTML::Template::Expr->register_function(func_name => \&func_handler);
 
 You provide a subroutine reference that will be called during output.
-It will recieve as arguments the parameters specified in the template.
+It will receive as arguments the parameters specified in the template.
 For example, here's a function that checks if a directory exists:
 
   sub directory_exists {
@@ -982,7 +982,7 @@ HTML::Template::Pro does not forces the HTML::Template global_vars
 option to be set, whereas currently HTML::Template::Expr does.
 Anyway, this also will hopefully go away in a future version of 
 HTML::Template::Expr, so if you need global_vars in your templates 
-then you should set it explicitely.
+then you should set it explicitly.
 
 
 

@@ -15,4 +15,11 @@ testing unescape string
 false:0
 true:1
 
+good
+good
+true:1
+true:1
+true:1
+false:0
+
 </body></html>

@@ -9,7 +9,11 @@
 #endif
 
 #ifndef PACKAGE_VERSION
+ #ifdef VERSION
+#define PACKAGE_VERSION VERSION
+ #else
 #define PACKAGE_VERSION "0.0(not defined)"
+ #endif
 #endif
 
 /*************************************************

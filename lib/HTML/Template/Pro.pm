@@ -12,7 +12,7 @@ require Exporter;
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS);
 @ISA = qw(DynaLoader Exporter);
 
-$VERSION = '0.9503';
+$VERSION = '0.9504';
 
 @EXPORT_OK = qw/ASK_NAME_DEFAULT ASK_NAME_AS_IS ASK_NAME_LOWERCASE ASK_NAME_UPPERCASE ASK_NAME_MASK/;
 %EXPORT_TAGS = (const => [qw/ASK_NAME_DEFAULT ASK_NAME_AS_IS ASK_NAME_LOWERCASE ASK_NAME_UPPERCASE ASK_NAME_MASK/]);
@@ -462,7 +462,7 @@ HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
 of HTML::Template (as of 2.9) and HTML::Template::Expr (as of 0.0.7). 
 It is not intended to be a complete replacement, 
 but to be a fast implementation of HTML::Template if you don't need 
-quering, the extended facility of HTML::Template.
+querying, the extended facility of HTML::Template.
 Designed for heavy upload, resource limitations, abcence of mod_perl.
 
 HTML::Template::Pro has complete support of filters and HTML::Template::Expr's 

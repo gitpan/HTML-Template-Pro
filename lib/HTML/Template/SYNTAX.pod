@@ -282,7 +282,7 @@ available.  As a final attempt, the filename is passed to open()
 directly.  See below for more information on HTML_TEMPLATE_ROOT and
 the "path" option to new().
 
-As a protection against infinitly recursive includes, an arbitary
+As a protection against infinitly recursive includes, an arbitrary
 limit of 10 levels deep is imposed.  You can alter this limit with the
 "max_includes" option.  See the entry for the "max_includes" option
 below for more details.
@@ -607,7 +607,7 @@ regexp support is added to HTML::Template::Expr and
 HTML::Template::Pro by Stanislav Yadykin <tosick at altlinux.ru>.
 Currently it is not included in official distribution of HTML::Template::Expr.
 
-Standart regexp syntax:
+Standard regexp syntax:
 
 =over 4
 

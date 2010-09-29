@@ -9,6 +9,8 @@ $Verbose = 1;
 
 my ($INC, $DEFINE, $LIBS, $O_FILES, $STATIC_BUILD);
 
+our $VERSION='';
+eval `grep 'VERSION *=' lib/HTML/Template/Pro.pm`;
 
 if (grep {/^DYNAMIC=1/} @ARGV) {
     $STATIC_BUILD=0;
@@ -31,6 +33,8 @@ my %DEF=(
     MMAP  => 1,
     IMITATE=>0,
 );
+$DEF{PACKAGE_VERSION}=$VERSION if $VERSION;
+
 
 &configure() if $STATIC_BUILD;
 

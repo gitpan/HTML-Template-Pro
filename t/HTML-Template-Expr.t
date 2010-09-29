@@ -24,7 +24,7 @@ HTML::Template::Pro->register_function( f1 => sub { return "F1: @_"; });
 HTML::Template::Pro->register_function( f2 => sub { return "F2: @_"; });
 HTML::Template::Pro->register_function( fUNDEF => sub { return undef; });
 
-my @exprset1=(ONE=>1,TWO=>2,THREE=>3,ZERO=>0,MINUSTEN=>-10, FILE=>'test_if1.tmpl', TWENTY=>20,FOURTY=>50);
+my @exprset1=(ONE=>1,TWO=>2,THREE=>3,ZERO=>0,MINUSTEN=>-10, FILE=>'test_if1.tmpl', TWENTY=>20,FOURTY=>50, EMPTYSTR=>'');
 my @brunoext=('FOO.BAR'=>'<test passed>');
 my @refset1=(
 HASHREF0=>[],

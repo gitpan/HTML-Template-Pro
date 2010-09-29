@@ -86,6 +86,7 @@ pstring_eq(PSTRING a, PSTRING b) {
   const char* in_a=a.begin;
   const char* in_b=b.begin;
   if (in_a==NULL || in_b==NULL) return in_a == in_b;
+  if (in_a==a.endnext) return in_b==b.endnext;
   while (in_a<a.endnext && in_b < b.endnext && *in_a++==*in_b++);
   if (in_a==a.endnext && in_b==b.endnext && *(--in_a) == *(--in_b)) return 1; else return 0;
 }

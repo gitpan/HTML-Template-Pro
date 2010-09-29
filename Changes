@@ -299,3 +299,7 @@ Revision history for Perl extension HTML::Template::Pro.
 	- freed memory access error fixed.
 	- perl: CommonTest.pm hidden from installation
 	- tests: added generic json-packed test data 
+
+09504 Tue Sep 28 17:16:55 EEST 2010
+	- bugfix in string comparision
+	- spelling fix by gregor herrmann <gregoa@debian.org>
