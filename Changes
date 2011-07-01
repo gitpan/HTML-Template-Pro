@@ -290,16 +290,20 @@ Revision history for Perl extension HTML::Template::Pro.
 	- bugfix release: segfault in EXPR log subroutine.
 	thanks to Robert Hanniger and Mike Shogin
 
-09502 Fri Jun 18 18:02:28 EEST 2010
+0.9502 Fri Jun 18 18:02:28 EEST 2010
 	- bugfix release: segfault for string operetions
 	with undefined variables. Thanks to Mike Shogin.
 
-09503 Sat Aug 28 18:00:49 EEST 2010
+0.9503 Sat Aug 28 18:00:49 EEST 2010
 	- log file is not truncated now in tmplpro_set_log_file.
 	- freed memory access error fixed.
 	- perl: CommonTest.pm hidden from installation
 	- tests: added generic json-packed test data 
 
-09504 Tue Sep 28 17:16:55 EEST 2010
+0.9504 Tue Sep 28 17:16:55 EEST 2010
 	- bugfix in string comparision
 	- spelling fix by gregor herrmann <gregoa@debian.org>
+
+0.9505 Fri Jul  1 13:27:10 EEST 2011
+	- bugfix in perl wrapper: fix in WrapAssociate.pm
+	  thanks to Viktor Bukhtoyarov

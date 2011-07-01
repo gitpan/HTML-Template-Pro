@@ -33,7 +33,7 @@ sub _wrap {
 
 sub param {
     my $this = shift;
-    return ${$this}->param(@_);
+    return $this->[0]->param(@_);
 }
 
 sub TIEHASH {
@@ -44,17 +44,17 @@ sub TIEHASH {
 
 sub FETCH {
     my ($this, $key) = @_;
-    return ${$this}->param($key);
+    return $this->[0]->param($key);
 }
 
 sub EXISTS {
     my ($this, $key) = @_;
-    return defined(${$this}->param($key));
+    return defined($this->[0]->param($key));
 }
 
 sub FIRSTKEY{
     my ($this) = @_;
-    my @param=${$this}->param();
+    my @param=$this->[0]->param();
     $this->[1]=\@param;
     return shift @{$this->[1]};
 }
