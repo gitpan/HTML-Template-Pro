@@ -307,3 +307,6 @@ Revision history for Perl extension HTML::Template::Pro.
 0.9505 Fri Jul  1 13:27:10 EEST 2011
 	- bugfix in perl wrapper: fix in WrapAssociate.pm
 	  thanks to Viktor Bukhtoyarov
+
+0.9506 Tue Oct  4 22:55:35 EEST 2011
+	- file name in logs
