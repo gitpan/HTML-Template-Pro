@@ -8,7 +8,7 @@ end
  \&lt;&gt;&quot;; %FAhidden:
 end 
  
- \\<>\"; %FAhidden:\r\nend 
+ \\&lt;&gt;\"; %FAhidden:\r\nend 
  
 <H1> END test_var3 </H1>
 </body></html>

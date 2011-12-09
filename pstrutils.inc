@@ -124,6 +124,8 @@ jsencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
     case '\'' : bufdelta=2; strncpy(buf+offset, "\\'",bufdelta);break;
     case '\n' : bufdelta=2; strncpy(buf+offset, "\\n",bufdelta);break;
     case '\r' : bufdelta=2; strncpy(buf+offset, "\\r",bufdelta);break;
+    case '>' : bufdelta=4; strncpy(buf+offset, "&gt;",  bufdelta);break;
+    case '<' : bufdelta=4; strncpy(buf+offset, "&lt;",  bufdelta);break;
     default: *(buf+offset)=curchar;
     }
     offset+=bufdelta;

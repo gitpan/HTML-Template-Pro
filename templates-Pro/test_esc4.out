@@ -1,5 +1,5 @@
 <H1> test_esc4 </H1>
- \\<>\"; %FAhidden:\r\nend 
+ \\&lt;&gt;\"; %FAhidden:\r\nend 
  
 VAR1
 Some&quot;&#39; Txt&#39;

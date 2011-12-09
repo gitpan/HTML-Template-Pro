@@ -310,3 +310,8 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.9506 Tue Oct  4 22:55:35 EEST 2011
 	- file name in logs
+
+0.9507 Fri Dec  9 09:44:49 EET 2011
+	- patch for XSS vulnerability in HTML::Template::Pro
+	  thanks to Shigeki Morimoto shigeki.morimoto mixi.co.jp
+

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               HTML-Template-Pro
-version:            0.9506
+version:            0.9507
 abstract:           Perl/XS module to use HTML Templates from CGI scripts
 author:
     - I. Yu. Vlasenko <viy@altlinux.org>
