@@ -80,6 +80,10 @@ WriteMakefile(
     OBJECT            => $O_FILES, # link all the C files too
     LICENSE           => 'perl or LGPL2+',
 #   PERL_MALLOC_OK    => 1 # read first, static only
+    depend => {
+        'expr.o'    => 'calc.inc exprtool.inc exprpstr.inc',
+        'procore.o' => 'proscope.inc pstrutils.inc loadfile.inc loopvar.inc',
+    },
 );
 
 sub MY::postamble {

@@ -820,7 +820,7 @@ $template = HTML::Template->new(path => ['templates'],
                                             filename => 'js.tmpl');
 $template->param(msg => qq{"He said 'Hello'.\n\r"});
 $output = $template->output();
-is($output, q{\\"He said \\'Hello\\'.\\n\\r\\"});
+is($output, q{\u0022He said \u0027Hello\u0027.\u000a\u000d\u0022});
 
 SKIP: {
   skip "Skipping die test. Not supported in Pro\n", 1

@@ -21,7 +21,7 @@ ok(1); # If we made it this far, we're ok.
 #########################
 
 my @varset1=(VAR1=>'VAR1',VAR2=>'VAR2',VAR3=>'VAR3',VAR10=>'VAR10');
-my @varset2=(STUFF1 => '\<>"; %FA'."hidden:\r\012end", STUFF2=>'Some"'."' Txt'");
+my @varset2=(STUFF1 => '&foo"bar\'</script>=-;+ \<>"; %FA'."hidden:\r\012end", STUFF2=>'Some"'."' Txt'");
 my @refset1=(
 HASHREF0=>[],
 HASHREF2=>[{},{}],

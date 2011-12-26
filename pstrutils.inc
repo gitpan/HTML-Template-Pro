@@ -119,13 +119,18 @@ jsencode_pstring (pbuffer* StrBuffer, PSTRING pstring) {
       buflen=pbuffer_size(StrBuffer);
     }
     switch (curchar) {
-    case '\\' : bufdelta=2; strncpy(buf+offset, "\\\\", bufdelta);break;
-    case '"'  : bufdelta=2; strncpy(buf+offset, "\\\"",bufdelta);break;
-    case '\'' : bufdelta=2; strncpy(buf+offset, "\\'",bufdelta);break;
-    case '\n' : bufdelta=2; strncpy(buf+offset, "\\n",bufdelta);break;
-    case '\r' : bufdelta=2; strncpy(buf+offset, "\\r",bufdelta);break;
-    case '>' : bufdelta=4; strncpy(buf+offset, "&gt;",  bufdelta);break;
-    case '<' : bufdelta=4; strncpy(buf+offset, "&lt;",  bufdelta);break;
+    case '\\' : bufdelta=6; strncpy(buf+offset, "\\u005c", bufdelta);break;
+    case '"'  : bufdelta=6; strncpy(buf+offset, "\\u0022",bufdelta);break;
+    case '\'' : bufdelta=6; strncpy(buf+offset, "\\u0027",bufdelta);break;
+    case '\n' : bufdelta=6; strncpy(buf+offset, "\\u000a",bufdelta);break;
+    case '\r' : bufdelta=6; strncpy(buf+offset, "\\u000d",bufdelta);break;
+    case '>' : bufdelta=6; strncpy(buf+offset, "\\u003e;",  bufdelta);break;
+    case '<' : bufdelta=6; strncpy(buf+offset, "\\u003c;",  bufdelta);break;
+    case '&' : bufdelta=6; strncpy(buf+offset, "\\u0026;",  bufdelta);break;
+    case '=' : bufdelta=6; strncpy(buf+offset, "\\u003d;",  bufdelta);break;
+    case '-' : bufdelta=6; strncpy(buf+offset, "\\u002d;",  bufdelta);break;
+    case ';' : bufdelta=6; strncpy(buf+offset, "\\u003b;",  bufdelta);break;
+    case '+' : bufdelta=6; strncpy(buf+offset, "\\u002b;",  bufdelta);break;
     default: *(buf+offset)=curchar;
     }
     offset+=bufdelta;
