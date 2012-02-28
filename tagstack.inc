@@ -37,10 +37,11 @@ struct tagstack_entry* tagstack_top(const struct tagstack* tagstack) {
 }
 
 static 
-struct tagstack_entry tagstack_pop(struct tagstack* tagstack) {
+struct tagstack_entry tagstack_pop(struct tagstack* tagstack, int* is_underflow) {
+  if (is_underflow != NULL) *is_underflow=0;
   if (tagstack->pos<0) {
-    tmpl_log(TMPL_LOG_ERROR,"stack underflow:tags stack is empty\n");
     tagstack->pos=0;
+    if (is_underflow != NULL) *is_underflow=1;
     if (tagstack->depth<0) {
       tmpl_log(TMPL_LOG_ERROR,"FATAL:stack error:tags stack is uninitialized\n");
       tagstack_init(tagstack);

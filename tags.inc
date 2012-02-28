@@ -321,6 +321,17 @@ tag_stack_debug  (struct tmplpro_state *state, int stack_tag_type)
 }
 
 static 
+struct tagstack_entry tagstack_smart_pop(struct tmplpro_state *state)
+{
+  int is_underflow=0;
+  struct tagstack_entry curtag=tagstack_pop(&(state->tag_stack), &is_underflow);
+  if (is_underflow) {
+    log_state(state,TMPL_LOG_ERROR,"stack underflow:tag stack is empty. Cased by closing tag w/o matching opening tag.\n");
+  }
+  return curtag;
+}
+
+static
 void 
 tag_handler_closeif (struct tmplpro_state *state, const PSTRING* const TagOptVal)
 {
@@ -329,7 +340,7 @@ tag_handler_closeif (struct tmplpro_state *state, const PSTRING* const TagOptVal
     tag_stack_debug(state,HTML_TEMPLATE_TAG_IF);
     return;
   }
-  iftag=tagstack_pop(&(state->tag_stack));
+  iftag=tagstack_smart_pop(state);
   if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
   state->is_visible=iftag.vcontext;
 }
@@ -343,7 +354,7 @@ tag_handler_closeunless (struct tmplpro_state *state, const PSTRING* const TagOp
     tag_stack_debug(state,HTML_TEMPLATE_TAG_UNLESS);
     return;
   }
-  iftag=tagstack_pop(&(state->tag_stack));
+  iftag=tagstack_smart_pop(state);
   if (0==state->is_visible) state->last_processed_pos=state->cur_pos;
   state->is_visible=iftag.vcontext;
 }
@@ -488,7 +499,7 @@ tag_handler_closeloop (struct tmplpro_state *state, const PSTRING* const TagOptV
   } else {
     /* finish loop */
     struct tagstack_entry iftag;
-    iftag=tagstack_pop(&(state->tag_stack));
+    iftag=tagstack_smart_pop(state);
     state->is_visible=iftag.vcontext;
     state->last_processed_pos=state->cur_pos;
   }

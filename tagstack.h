@@ -15,7 +15,7 @@ void tagstack_free(struct tagstack* tagstack);
 static 
 void tagstack_push(struct tagstack* tagstack, struct tagstack_entry);
 static 
-struct tagstack_entry tagstack_pop(struct tagstack* tagstack);
+struct tagstack_entry tagstack_pop(struct tagstack* tagstack, int* is_underflow);
 INLINE
 static 
 struct tagstack_entry* tagstack_top(const struct tagstack* tagstack);
