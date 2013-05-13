@@ -81,7 +81,7 @@ call_coderef (SV* coderef) {
   else
     {
       if (count != 1)
-	croak("Pro.xs: internal context error (got %d) while calling CODE reference\n", count);
+	croak("Pro.xs: internal context error (got %d) while calling CODE reference\n", (int)count);
       SVretval=POPs;
     }
 

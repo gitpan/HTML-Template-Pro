@@ -11,7 +11,18 @@
 #include "pbuffer.h"
 #include "exprval.h" /* TODO: remove together with buffer */
 
-typedef int flag;
+/* for wrappers; flag better always be int32 - useful for Mono */
+#if HAVE_INTTYPES_H
+# include <inttypes.h>
+   typedef int32_t flag;
+#else
+# if HAVE_STDINT_H
+#  include <stdint.h>
+   typedef int32_t flag;
+# else
+   typedef int flag;
+# endif
+#endif
 
 struct tmplpro_param {
   int global_vars;

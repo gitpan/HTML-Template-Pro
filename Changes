@@ -321,3 +321,6 @@ Revision history for Perl extension HTML::Template::Pro.
 
 0.9509 Tue Feb 28 21:15:28 EET 2012
 	- more verbose messages for tag stack underflow
+
+0.9510 Mon May 13 11:30:15 EEST 2013
+	- rt.cpan.org #85211 - pod fix

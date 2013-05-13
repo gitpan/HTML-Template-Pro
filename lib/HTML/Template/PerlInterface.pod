@@ -582,14 +582,13 @@ specified.
 The specified filters will be called for any TMPL_INCLUDEed files just
 as they are for the main template file.
 
-
-=back
-
 =item * 
 
 default_escape - Set this parameter to "HTML", "URL" or "JS" and
 HTML::Template will apply the specified escaping to all variables
 unless they declare a different escape in the template.
+
+=back
 
 =back
 

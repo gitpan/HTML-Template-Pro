@@ -6,7 +6,7 @@
 %define module HTML-Template-Pro
 
 Name: perl-%module
-Version: 0.9509
+Version: 0.9510
 Release: alt1
 
 Packager: Igor Yu. Vlasenko <viy@altlinux.org>
@@ -19,7 +19,7 @@ Source: %module-%version.tar.gz
 Url: http://sourceforge.net/projects/html-tmpl-pro/
 
 # Automatically added by buildreq on Wed Nov 06 2002
-BuildRequires: perl-devel pcre libpcre-devel perl-JSON perl-JSON-XS
+BuildRequires: perl-devel pcre libpcre-devel perl-JSON perl-JSON-XS perl-Test-Pod
 
 %description
 HTML::Template::Pro is a fast lightweight C/Perl+XS reimplementation
@@ -54,6 +54,9 @@ in the Perl script.
 #perl_vendor_man3dir/*
 
 %changelog
+* Mon May 13 2013 Igor Vlasenko <viy@altlinux.ru> 0.9510-alt1
+- new version; see Changes
+
 * Tue Feb 28 2012 Igor Vlasenko <viy@altlinux.ru> 0.9509-alt1
 - new version; see Changes
 

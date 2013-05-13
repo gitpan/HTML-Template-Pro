@@ -78,7 +78,10 @@ WriteMakefile(
     DEFINE            => $DEFINE, # e.g., '-DHAVE_SOMETHING'
     INC               => $INC, 
     OBJECT            => $O_FILES, # link all the C files too
-    LICENSE           => 'perl or LGPL2+',
+    # license is: as perl itself or Artistic or GPL2+ or LGPL2+.
+    # 'perl' is a valid string for META1.4 spec
+    # https://rt.cpan.org/Public/Bug/Display.html?id=44210
+    LICENSE           => 'perl',
 #   PERL_MALLOC_OK    => 1 # read first, static only
     depend => {
         'expr.o'    => 'calc.inc exprtool.inc exprpstr.inc',
